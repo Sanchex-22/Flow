@@ -107,7 +107,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         <div className="flex *:px-4 items-center h-full">
           <div className="flex items-center space-x-2">
             <img
-              src={Images?.Flow || "#"}
+              src={Images?.logo || "#"}
               alt="logo"
               width={50}
               height={50}
@@ -169,7 +169,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           <div className="flex justify-between p-4">
             <div className="flex items-center space-x-2">
               <img
-                src={Images?.Flow || "#"}
+                src={Images?.logo || "#"}
                 alt="logo"
                 width={50}
                 height={50}

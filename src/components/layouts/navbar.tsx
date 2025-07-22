@@ -87,7 +87,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
             ) : (
               <a href="/" className="flex items-center space-x-2">
                 <img
-                  src={Images?.Flow || "#"}
+                  src={Images?.logo || "#"}
                   alt="logo"
                   width={50}
                   height={50}
@@ -140,7 +140,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
         <div className="flex justify-between p-4">
           <div className="flex items-center space-x-2">
                 <img
-                  src={Images?.Flow || "#"}
+                  src={Images?.logo || "#"}
                   alt="logo"
                   width={50}
                   height={50}
