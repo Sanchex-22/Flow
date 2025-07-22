@@ -14,7 +14,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') })
 
 export default defineConfig({
   plugins: [react()],
-    build: {
+  build: {
     outDir: 'dist',
   }
   // server: {
