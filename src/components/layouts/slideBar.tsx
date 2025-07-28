@@ -178,7 +178,7 @@ const SlideBar: React.FC<DashboardProps> = ({ subroutes, currentPathname, profil
                 {/* Help Section */}
                 <div className="p-4 border-t border-gray-800 flex flex-col space-y-2">
                     <a
-                        href="#"
+                        href="/profile/1"
                         className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
                     >
                         <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold">N</div>

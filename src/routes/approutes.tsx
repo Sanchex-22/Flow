@@ -23,6 +23,7 @@ import NextworkPage from "../pages/account/network/network";
 import MaintenancePage from "../pages/account/maintenance/page";
 import UsersPage from "../pages/account/users/page";
 import SettingsPage from "../pages/account/settings/page";
+import ProfilePage from "../pages/account/profile/page";
 
 // Tipado de usuario
 export interface User {
@@ -404,6 +405,40 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         }
       >
         <Route path="all" element={<></>} />
+      </Route>
+
+      <Route
+        path="/profile/:id"
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="users"
+              description="users"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+            >
+              <ProfilePage
+                userId ={profile?.id || "default-id"}
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "users")
+                //     ?.subroutes || []
+                // }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
       </Route>
 
       <Route
