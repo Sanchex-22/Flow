@@ -39,7 +39,7 @@ export default function LoginForm({
 
     try {
       await login({ email, password });
-      navigate("/account/quotes");
+      navigate("/dashboard/all");
     } catch (error) {
       setError(
         new Error(

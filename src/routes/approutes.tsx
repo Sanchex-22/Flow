@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import LoginPage from "../pages/auth/loginPage";
-import Dashboard from "../pages/account/principal";
+// import Dashboard from "../pages/account/principal";
 import ProtectedLogin from "./protectedLogin";
 import ProtectedRoute from "./protectedRoutes";
 import useUser from "../hook/useUser";
@@ -15,6 +15,14 @@ import routesConfig from "./routesConfig";
 import useUserProfile from "../hook/userUserProfile";
 import QuoteDetailPage from "../pages/account/quotes/id/quoteDetail";
 import NotFound from "../pages/public_pages/not_found";
+import Dashboard from "../pages/account/dashboard";
+import Inventory from "../pages/account/inventory/inventory";
+import ReportsPage from "../pages/account/reports/pages";
+import DevicesPage from "../pages/account/devices/devices";
+import NextworkPage from "../pages/account/network/network";
+import MaintenancePage from "../pages/account/maintenance/page";
+import UsersPage from "../pages/account/users/page";
+import SettingsPage from "../pages/account/settings/page";
 
 // Tipado de usuario
 export interface User {
@@ -90,7 +98,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         }
       />
       <Route
-        path="/account/*"
+        path="/dashboard/*"
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -103,8 +111,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
             ]}
           >
             <EnvolveLayout
-              title="account"
-              description="account"
+              title="Dashboard"
+              description="Dashboard"
               isLogged={isLogged}
               profile={profile}
               currentPathname={pathnameLocation}
@@ -112,7 +120,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
             >
               <Dashboard
                 subroutes={
-                  routesConfig.find((route) => route.name === "account")
+                  routesConfig.find((route) => route.name === "Dashboard")
                     ?.subroutes || []
                 }
               />
@@ -120,16 +128,6 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="quotes" 
-        element={
-          <QuotesSection />
-        } 
-        />
-        <Route path="quotes/:id" 
-        element={
-          <QuoteDetailPage />
-        } 
-        />
         <Route path="certificates" element={<CertificatesSection />} />
         <Route path="services" element={<ServicesSection />} />
       </Route>
@@ -155,11 +153,11 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               currentPathname={pathnameLocation}
               publicRoute={false}
             >
-              <Dashboard
-                subroutes={
-                  routesConfig.find((route) => route.name === "users")
-                    ?.subroutes || []
-                }
+              <UsersPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "users")
+                //     ?.subroutes || []
+                // }
               />
             </EnvolveLayout>
           </ProtectedRoute>
@@ -169,42 +167,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/certs/*"
-        element={
-          <ProtectedRoute
-            isLogged={isLogged}
-            auth={user}
-            allowedRoles={[
-              authRoles.user,
-              authRoles.admin,
-              authRoles.moderator,
-              authRoles.super_admin,
-            ]}
-          >
-            p
-            <EnvolveLayout
-              title="certs"
-              description="certs"
-              isLogged={isLogged}
-              profile={profile}
-              currentPathname={pathnameLocation}
-              publicRoute={false}
-            >
-              <Dashboard
-                subroutes={
-                  routesConfig.find((route) => route.name === "certificates")
-                    ?.subroutes || []
-                }
-              />
-            </EnvolveLayout>
-          </ProtectedRoute>
-        }
-      >
-        <Route path="all" element={<></>} />
-      </Route>
-
-      <Route
-        path="/clients/*"
+        path="/inventory/*"
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -217,28 +180,30 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
             ]}
           >
             <EnvolveLayout
-              title="clients"
-              description="clients"
+              title="Inventory"
+              description="Inventory"
               isLogged={isLogged}
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
             >
-              <Dashboard
-                subroutes={
-                  routesConfig.find((route) => route.name === "clients")
-                    ?.subroutes || []
-                }
+              <Inventory
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "Inventory")
+                //     ?.subroutes || []
+                // }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
+        <Route path="certificates" element={<CertificatesSection />} />
+        <Route path="services" element={<ServicesSection />} />
         <Route path="all" element={<></>} />
       </Route>
 
       <Route
-        path="/task/*"
+        path="/devices/*"
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -251,18 +216,120 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
             ]}
           >
             <EnvolveLayout
-              title="task"
-              description="task"
+              title="devices"
+              description="devices"
               isLogged={isLogged}
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
             >
-              <Dashboard
-                subroutes={
-                  routesConfig.find((route) => route.name === "task")
-                    ?.subroutes || []
-                }
+              <DevicesPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<></>} />
+      </Route>
+
+      <Route
+        path="/network/*"
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="network"
+              description="network"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+            >
+              <NextworkPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<></>} />
+      </Route>
+
+      <Route
+        path="/maintenance/*"
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="maintenance"
+              description="maintenance"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+            >
+              <MaintenancePage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<></>} />
+      </Route>
+
+      <Route
+        path="/users/*"
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="users"
+              description="users"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+            >
+              <UsersPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
               />
             </EnvolveLayout>
           </ProtectedRoute>
@@ -292,11 +359,45 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               currentPathname={pathnameLocation}
               publicRoute={false}
             >
-              <Dashboard
-                subroutes={
-                  routesConfig.find((route) => route.name === "reports")
-                    ?.subroutes || []
-                }
+              <ReportsPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<></>} />
+      </Route>
+
+      <Route
+        path="/settings/*"
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="settings"
+              description="settings"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+            >
+              <SettingsPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
               />
             </EnvolveLayout>
           </ProtectedRoute>

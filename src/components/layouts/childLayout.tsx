@@ -7,6 +7,7 @@ import Navbar from "./navbar";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Toaster } from "sonner"
+import SlideBar from "./slideBar";
 interface CurrentPathname {
   name: string;
 }
@@ -36,6 +37,9 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
     <>
       <Headers title={title} description={description} />
       <main className="w-full relative min-h-screen bg-slate-50 overflow-x-hidden">
+        <Toaster richColors position="top-right" />
+        <Analytics />
+        <SpeedInsights />
         {publicRoute ? 
         <>
         <Navbar
@@ -43,19 +47,27 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
           currentPathname={currentPathname}
           isLogged={isLogged}
         />
+        <div id="page-content" className="z-10">
+            {children}
+          </div>
         </>
         :
-        <AdminNavbar 
+        <div className="min-h-screen bg-gray-900 text-white flex h-[90vh]">
+        {/* <AdminNavbar 
         currentPathname={currentPathname}
           isLogged={isLogged}
-          profile={profile}/>
-        }
-        <div id="page-content" className="z-10">
-          {children}
-          <Toaster richColors position="top-right" />
-          <Analytics />
-          <SpeedInsights />
+          profile={profile}/> */}
+          <SlideBar 
+          subroutes={[]}
+          currentPathname={currentPathname}
+          isLogged={isLogged}
+          profile={profile}>
+          </SlideBar>
+          <div id="page-content" className="z-10 overflow-y-auto w-full">
+            {children}
+          </div>
         </div>
+        }
       </main>
       {publicRoute ? <Footer/>:<></>}
     </>

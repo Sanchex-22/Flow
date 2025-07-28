@@ -6,6 +6,18 @@ import { FaMoneyBill } from "react-icons/fa";
 const routesConfig = [
   { 
     icon: FaMoneyBill,
+    name: "dashboard", 
+    href: "/dashboard/all", 
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
+    subroutes: [
+      { name: "Dashboard", href: "/dashboard/all" },
+      // { name: "Certs", href: "/account/certificates" },
+      // { name: "Settings", href: "/account/settings" },
+      // { name: "Security", href: "/account/security" },
+    ]
+  },
+  { 
+    icon: FaMoneyBill,
     name: "account", 
     href: "/account/quotes", 
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
@@ -17,7 +29,7 @@ const routesConfig = [
     ]
   },
   { 
-    name: "users", 
+    name: "Users", 
     href: "/users/all", 
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
@@ -28,8 +40,8 @@ const routesConfig = [
     ]
   },
   { 
-    name: "certificates", 
-    href: "/certs/all", 
+    name: "Inventory", 
+    href: "/inventory/all", 
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
       { name: "View Certificates", href: "/certs/view" },
@@ -39,8 +51,8 @@ const routesConfig = [
     ]
   },
   { 
-    name: "clients", 
-    href: "/clients/all", 
+    name: "Network", 
+    href: "/network/all", 
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
       { name: "All Clients", href: "/clients/list" },
@@ -50,8 +62,8 @@ const routesConfig = [
     ]
   },
   { 
-    name: "task", 
-    href: "/task/all", 
+    name: "Settings", 
+    href: "/settings/all", 
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
       { name: "My Tasks", href: "/task/my-tasks" },

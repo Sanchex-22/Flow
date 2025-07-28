@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ auth, allowedRoles, chi
   }
 
   if (!auth.roles.some(role => allowedRoles.includes(role))) {
-    return <Navigate to={"/account"} replace={false} state={{ from: location }} />
+    return <Navigate to={"/dashboard"} replace={false} state={{ from: location }} />
   }
 
   return children
