@@ -1,68 +1,55 @@
 "use client"
 
+import useSWR from "swr"
+
+const { VITE_API_URL } = import.meta.env
+
+interface UsuarioFull {
+  id: string
+  username: string
+  email: string
+  role: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  companyId: string | null
+  person: {
+    id: string
+    userId: string
+    firstName: string
+    lastName: string
+    fullName: string
+    contactEmail: string
+    phoneNumber: string
+    department: string
+    position: string
+    status: string
+    userCode: string
+    createdAt: string
+    updatedAt: string
+  }
+}
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function UsersPage() {
-  const usuarios = [
-    {
-      id: "USR001",
-      nombre: "Juan Pérez",
-      avatar: "JP",
-      email: "juan.perez@empresa.com",
-      telefono: "+1 234-567-8901",
-      departamento: "Desarrollo",
-      descripcionDepartamento: "Desarrollador Senior",
-      cargo: "Desarrollador Senior",
-      estado: "Activo",
-      equipos: 2,
-    },
-    {
-      id: "USR002",
-      nombre: "María García",
-      avatar: "MG",
-      email: "maria.garcia@empresa.com",
-      telefono: "+1 234-567-8902",
-      departamento: "Ventas",
-      descripcionDepartamento: "Gerente de Ventas",
-      cargo: "Gerente de Ventas",
-      estado: "Activo",
-      equipos: 1,
-    },
-    {
-      id: "USR003",
-      nombre: "Carlos López",
-      avatar: "CL",
-      email: "carlos.lopez@empresa.com",
-      telefono: "+1 234-567-8903",
-      departamento: "IT",
-      descripcionDepartamento: "Técnico IT",
-      cargo: "Técnico IT",
-      estado: "Activo",
-      equipos: 1,
-    },
-    {
-      id: "USR004",
-      nombre: "Ana Martínez",
-      avatar: "AM",
-      email: "ana.martinez@empresa.com",
-      telefono: "+1 234-567-8904",
-      departamento: "IT",
-      descripcionDepartamento: "Especialista en Redes",
-      cargo: "Especialista en Redes",
-      estado: "Activo",
-      equipos: 0,
-    },
-    {
-      id: "USR005",
-      nombre: "Roberto Silva",
-      avatar: "RS",
-      email: "roberto.silva@empresa.com",
-      telefono: "+1 234-567-8905",
-      departamento: "Recursos Humanos",
-      descripcionDepartamento: "Coordinador RRHH",
-      cargo: "Coordinador RRHH",
-      estado: "Inactivo",
-      equipos: 0,
-    },
-  ]
+
+  const { data, error, isLoading } = useSWR(`${VITE_API_URL}/api/users/full`, fetcher)
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <span>Cargando usuarios...</span>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <span>Error al cargar el usuarios.</span>
+      </div>
+    );
+  }
 
   const getStatusBadge = (estado: string) => {
     switch (estado) {
@@ -260,17 +247,17 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((usuario) => (
+              {data.map((usuario: UsuarioFull) => (
                 <tr key={usuario.id} className="border-b border-gray-700 hover:bg-gray-750">
                   <td className="p-4">
                     <div className="flex items-center space-x-3">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(usuario.nombre)}`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(usuario.person.fullName)}`}
                       >
-                        {usuario.avatar}
+                        {usuario.username.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-sm">{usuario.nombre}</div>
+                        <div className="font-medium text-sm">{usuario.person.fullName}</div>
                         <div className="text-xs text-gray-400">{usuario.id}</div>
                       </div>
                     </div>
@@ -300,22 +287,22 @@ export default function UsersPage() {
                         >
                           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                         </svg>
-                        <span>{usuario.telefono}</span>
+                        <span>{usuario.person.phoneNumber}</span>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
                     <div>
-                      <div className="font-medium text-sm">{usuario.departamento}</div>
-                      <div className="text-xs text-gray-400">{usuario.descripcionDepartamento}</div>
+                      <div className="font-medium text-sm">{usuario.person.department}</div>
+                      <div className="text-xs text-gray-400">{usuario.person.position}</div>
                     </div>
                   </td>
-                  <td className="p-4 text-sm">{usuario.cargo}</td>
+                  <td className="p-4 text-sm">{usuario.person.position}</td>
                   <td className="p-4">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(usuario.estado)}`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(usuario.isActive ? "Activo" : "Inactivo")}`}
                     >
-                      {usuario.estado}
+                      {usuario.person.status}
                     </span>
                   </td>
                   <td className="p-4">
@@ -331,7 +318,7 @@ export default function UsersPage() {
                         <line x1="8" y1="21" x2="16" y2="21" />
                         <line x1="12" y1="17" x2="12" y2="21" />
                       </svg>
-                      <span className="text-sm font-medium">{usuario.equipos}</span>
+                      <span className="text-sm font-medium">{}</span>
                     </div>
                   </td>
                   <td className="p-4">

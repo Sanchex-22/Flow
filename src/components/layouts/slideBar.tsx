@@ -6,6 +6,26 @@ import { getMainRoutesForRole, getUserRoles } from "../../routes/routesConfig";
 import { LogOut } from "lucide-react";
 import { InventoryIcon } from "../icons/icons";
 
+interface Company {
+  id: string;
+  code: string;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdByUserId: string;
+  _count: {
+    users: number;
+    equipments: number;
+    licenses: number;
+    documents: number;
+    maintenances: number;
+  };
+}
+
 type Subroutes = {
   name: string;
   href: string;
@@ -20,12 +40,14 @@ type DashboardProps = {
   currentPathname: CurrentPathname;
   isLogged: boolean;
   profile: UserProfile | null;
+  companies?: Company[];
 };
 
 const SlideBar: React.FC<DashboardProps> = ({
   subroutes,
   currentPathname,
   profile,
+  companies,
 }) => {
   const { logout } = useUser();
   const location = currentPathname.name || "";
@@ -48,6 +70,24 @@ const SlideBar: React.FC<DashboardProps> = ({
             : undefined,
       }))
     ) || [];
+
+      // Handle company selection change
+  const handleCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCompanyCode = event.target.value;
+    const currentPath = currentPathname.name; // e.g., "/CO001/dashboard/users"
+    const pathSegments = currentPath.split("/"); // ["", "CO001", "dashboard", "users"]
+
+    // Ensure there's a segment to replace (i.e., not just "/")
+    if (pathSegments.length > 1) {
+      pathSegments[1] = newCompanyCode; // Replace the company code segment
+    } else {
+      // If the path is just "/", append the new company code
+      pathSegments.push(newCompanyCode);
+    }
+
+    const newPath = pathSegments.join("/"); // Construct the new path
+    window.location.href = newPath; // Navigate to the new path
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex h-[90vh]">
@@ -78,8 +118,21 @@ const SlideBar: React.FC<DashboardProps> = ({
             EMPRESA ACTIVA
           </div>
           <div className="relative">
-            <select className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm appearance-none cursor-pointer hover:bg-gray-750 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option>Empresa Principal S.A.</option>
+            <select
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm appearance-none cursor-pointer hover:bg-gray-750 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={handleCompanyChange}
+              value={baseRoute} // Set the selected value based on the current URL's company code
+            >
+              {/* Map over the companies prop to create options */}
+              {companies && companies.length > 0 ? (
+                companies.map((company) => (
+                  <option key={company.id} value={company.code}>
+                    {company.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">No companies available</option>
+              )}
             </select>
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
               <svg

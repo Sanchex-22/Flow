@@ -13,7 +13,6 @@ export interface DecodedToken {
   }
 export const decodeToken = (): DecodedToken | null => {
   const token = localStorage.getItem('jwt')
-  console.log(token)
   if (!token) return null
 
   try {
