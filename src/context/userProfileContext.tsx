@@ -46,13 +46,14 @@ export function UserProfileProvider({ children }: UserProfileProviderProps) {
         id: (decoded as any).id,
         username: (decoded as any).username,
         email: (decoded as any).email,
-        roles: (decoded as any).role,
+        roles: (decoded as any).roles,
       };
     }
     return null;
   }, [jwt]);
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     if (!metaData) return null;
+    console.log("Decoded MetaData:", metaData.roles);
     return {
       id: metaData.id,
       username: metaData.username ?? 'n/a',

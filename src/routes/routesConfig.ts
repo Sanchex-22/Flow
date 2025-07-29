@@ -1,86 +1,84 @@
 
+import { DashboardIcon, DevicesIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
-import { FaMoneyBill } from "react-icons/fa";
 
 const routesConfig = [
-  { 
-    icon: FaMoneyBill,
-    name: "dashboard", 
-    href: "/dashboard/all", 
+  {
+    icon: DashboardIcon,
+    name: "dashboard",
+    href: "/dashboard/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
     subroutes: [
       { name: "Dashboard", href: "/dashboard/all" },
-      // { name: "Certs", href: "/account/certificates" },
-      // { name: "Settings", href: "/account/settings" },
-      // { name: "Security", href: "/account/security" },
     ]
   },
-  { 
-    icon: FaMoneyBill,
-    name: "account", 
-    href: "/account/quotes", 
-    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
-    subroutes: [
-      { name: "Quotes", href: "/account/quotes" },
-      // { name: "Certs", href: "/account/certificates" },
-      // { name: "Settings", href: "/account/settings" },
-      // { name: "Security", href: "/account/security" },
-    ]
-  },
-  { 
-    name: "Users", 
-    href: "/users/all", 
+  {
+    icon: InventoryIcon,
+    name: "Inventory",
+    href: "/inventory/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "All Users", href: "/users/list" },
+      { name: "View Certificates", href: "/inventory/view" },
+    ]
+  },
+
+  {
+    icon: DevicesIcon,
+    name: "devices",
+    href: "/devices/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "All devices", href: "/devices/all" },
+    ]
+  },
+  {
+    icon: MaintenanceIcon,
+    name: "maintenance",
+    href: "/maintenance/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "All maintenance", href: "/maintenance/all" },
+    ]
+  },
+  {
+    icon: NetworkIcon,
+    name: "Network",
+    href: "/network/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "All Clients", href: "/network/all" },
+    ]
+  },
+  {
+    icon: UsersIcon,
+    name: "Users",
+    href: "/users/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "All Users", href: "/users/all" },
       { name: "Create User", href: "/users/create" },
       { name: "Roles", href: "/users/roles" },
       { name: "Permissions", href: "/users/permissions" },
     ]
   },
-  { 
-    name: "Inventory", 
-    href: "/inventory/all", 
+  {
+    icon: ReportsIcon,
+    name: "reports",
+    href: "/reports/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "View Certificates", href: "/certs/view" },
-      { name: "Upload", href: "/certs/upload" },
-      { name: "Manage", href: "/certs/manage" },
-      { name: "History", href: "/certs/history" },
+      { name: "Sales Reports", href: "/reports/all" },
     ]
   },
-  { 
-    name: "Network", 
-    href: "/network/all", 
+  {
+    icon: SettingsIcon,
+    name: "Settings",
+    href: "/settings/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "All Clients", href: "/clients/list" },
-      { name: "Add Client", href: "/clients/add" },
-      { name: "Contracts", href: "/clients/contracts" },
-      { name: "Invoices", href: "/clients/invoices" },
-    ]
-  },
-  { 
-    name: "Settings", 
-    href: "/settings/all", 
-    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
-    subroutes: [
-      { name: "My Tasks", href: "/task/my-tasks" },
-      { name: "Team Tasks", href: "/task/team" },
-      { name: "Create Task", href: "/task/create" },
-      { name: "Task Reports", href: "/task/reports" },
-    ]
-  },
-  { 
-    name: "reports", 
-    href: "/reports/all", 
-    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
-    subroutes: [
-      { name: "Sales Reports", href: "/reports/sales" },
-      { name: "User Reports", href: "/reports/users" },
-      { name: "Performance", href: "/reports/performance" },
-      { name: "Audit Logs", href: "/reports/audit" },
+      { name: "My Settings", href: "/settings/all" },
+
     ]
   },
 ];
@@ -90,7 +88,7 @@ export default routesConfig;
 
 const getRoutesForRole = (roleKey: keyof typeof authRoles) => {
   const role = authRoles[roleKey];
-  
+
   if (!role) {
     return [];
   }
@@ -117,7 +115,7 @@ const getMainRoutesForRole = (roleKey: keyof typeof authRoles) => {
   }
 
   const filteredRoutes = routesConfig.filter((route) => route.roles.includes(role));
-  
+
   return filteredRoutes;
 };
 
@@ -129,16 +127,19 @@ export const getUserRoles = (profile: UserProfile) => {
     return ["user"];
   }
 
+  const validRoles = ["super_admin", "admin", "moderator", "user"];
+
   if (Array.isArray(profile.roles)) {
-    const validRoles = profile!.roles.filter(
-      (role) => ["super_admin", "admin", "moderator", "user"].includes(role)
-    );
-    return validRoles.length > 0 ? validRoles : ["user"];
+    const rolesLower = profile.roles.map((role) => role.toLowerCase());
+    const filtered = rolesLower.filter((role) => validRoles.includes(role));
+    return filtered.length > 0 ? filtered : ["user"];
   }
 
-  if (["super_admin", "admin", "moderator", "user"].includes(profile!.roles)) {
-    return [profile!.roles];
+  const singleRole = profile.roles.toLowerCase();
+  if (validRoles.includes(singleRole)) {
+    return [singleRole];
   }
 
   return ["user"];
 };
+

@@ -7,13 +7,11 @@ import ProtectedRoute from "./protectedRoutes";
 import useUser from "../hook/useUser";
 import { CurrentPathname } from "../components/layouts/main";
 import EnvolveLayout from "../components/layouts/childLayout";
-import { QuotesSection } from "../pages/account/quotes/quotesSection";
 import CertificatesSection from "../pages/account/quotes/certificatesSection";
 import ServicesSection from "../pages/account/quotes/servicesSection";
 import { authRoles } from "../diccionary/constants";
-import routesConfig from "./routesConfig";
+import routesConfig, { getUserRoles } from "./routesConfig";
 import useUserProfile from "../hook/userUserProfile";
-import QuoteDetailPage from "../pages/account/quotes/id/quoteDetail";
 import NotFound from "../pages/public_pages/not_found";
 import Dashboard from "../pages/account/dashboard";
 import Inventory from "../pages/account/inventory/inventory";
@@ -55,10 +53,10 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
     }
   }, [isLogged, pathname]);
 
-  const userRole = profile?.roles || "user";
+  const userRole = profile?.roles ? getUserRoles(profile) : ["user"];
   const user: User = {
     isSignedIn: isLogged,
-    roles: [userRole],
+    roles: userRole,
     redirectPath: localStorage.getItem("externalUrl"),
   };
 
