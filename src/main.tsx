@@ -29,7 +29,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <UserContextProvider>
     <UserProfileProvider>
-      <App />
+        <App />
     </UserProfileProvider>
   </UserContextProvider>
 );

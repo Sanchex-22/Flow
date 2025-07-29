@@ -1,13 +1,12 @@
 
 import Headers from "../meta/headers";
 import { UserProfile } from "../../context/userProfileContext";
-import AdminNavbar from "./adminNavbar";
 import Footer from "./footer";
 import Navbar from "./navbar";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Toaster } from "sonner"
-import SlideBar from "./slideBar";
+import SlideBar, { Company } from "./slideBar";
 interface CurrentPathname {
   name: string;
 }
@@ -20,6 +19,7 @@ interface childLayoutProps {
   currentPathname: CurrentPathname;
   children: React.ReactNode;
   publicRoute: boolean;
+  companies?: Company[];
 }
 
 const EnvolveLayout: React.FC<childLayoutProps> = ({
@@ -30,29 +30,9 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
   currentPathname,
   children,
   publicRoute,
+  companies,
 }) => {
 
-  const myCompanies = [
-  {
-    "id": "8f043ca8-f4f3-44de-be0f-62dee31375ae",
-    "code": "CO001",
-    "name": "Intermaritime Solutions S.A.",
-    "address": "Calle 50, Ciudad de Panamá, Panamá",
-    "phone": "+507 263-1234",
-    "email": "info@intermaritime.org",
-    "isActive": true,
-    "createdAt": "2025-07-29T16:02:31.603Z",
-    "updatedAt": "2025-07-29T16:02:31.603Z",
-    "createdByUserId": "23f807cd-82c1-4751-8a60-e7c2ccaa4067",
-    "_count": {
-      "users": 1,
-      "equipments": 0,
-      "licenses": 0,
-      "documents": 0,
-      "maintenances": 0
-    }
-  },
-];
 
   return (
 
@@ -84,7 +64,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
           currentPathname={currentPathname}
           isLogged={isLogged}
           profile={profile}
-          companies={myCompanies}
+          companies={companies}
           >
           </SlideBar>
           <div id="page-content" className="z-10 overflow-y-auto w-full">

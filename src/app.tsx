@@ -6,6 +6,7 @@ import useUser from "./hook/useUser";
 
 const App = () => {
   const { isLogged } = useUser();
+
   return (
     <BrowserRouter>
       <HelmetProvider>

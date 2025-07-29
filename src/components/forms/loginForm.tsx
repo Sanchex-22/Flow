@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import useUser from "../../hook/useUser";
 import InputLabel from "./InputLabel";
 import LoginSubmitButton from "./LoginSubmitButton";
+import { useCompany } from "../../context/routerContext";
 
 interface LoginFormProps {
   pending: boolean;
@@ -23,6 +24,7 @@ export default function LoginForm({
   setError,
 }: LoginFormProps) {
   const navigate = useNavigate();
+  const { selectedCompany } = useCompany();
   const { login } = useUser()
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,7 +41,7 @@ export default function LoginForm({
 
     try {
       await login({ email, password });
-      navigate("/dashboard/all");
+      navigate(`/${selectedCompany?.code || 'code'}/dashboard/all`);
     } catch (error) {
       setError(
         new Error(

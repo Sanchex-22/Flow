@@ -22,6 +22,8 @@ import MaintenancePage from "../pages/account/maintenance/page";
 import UsersPage from "../pages/account/users/page";
 import SettingsPage from "../pages/account/settings/page";
 import ProfilePage from "../pages/account/profile/page";
+import { Company } from "../components/layouts/slideBar";
+import { useCompany } from "../context/routerContext";
 
 // Tipado de usuario
 export interface User {
@@ -37,12 +39,15 @@ export interface UserContextValue {
 
 type Props = {
   pathnameLocation: CurrentPathname;
+  companies: Company[];
 };
 
-export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
+export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
   const { pathname } = useLocation();
   const initialPathSet = useRef(false);
   const { isLogged } = useUser();
+    const { selectedCompany } = useCompany();
+  const code = `${selectedCompany?.code || "default-code"}`;
   const { profile } = useUserProfile();
   useEffect(() => {
     if (!isLogged) {
@@ -90,6 +95,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={true}
+              companies={companies}
             >
               <LoginPage />
             </EnvolveLayout>
@@ -97,7 +103,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
         }
       />
       <Route
-        path="/dashboard/*"
+        path={`/:${code}/dashboard/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -116,6 +122,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <Dashboard
                 subroutes={
@@ -132,41 +139,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/users/*"
-        element={
-          <ProtectedRoute
-            isLogged={isLogged}
-            auth={user}
-            allowedRoles={[
-              authRoles.user,
-              authRoles.admin,
-              authRoles.moderator,
-              authRoles.super_admin,
-            ]}
-          >
-            <EnvolveLayout
-              title="users"
-              description="users"
-              isLogged={isLogged}
-              profile={profile}
-              currentPathname={pathnameLocation}
-              publicRoute={false}
-            >
-              <UsersPage
-                // subroutes={
-                //   routesConfig.find((route) => route.name === "users")
-                //     ?.subroutes || []
-                // }
-              />
-            </EnvolveLayout>
-          </ProtectedRoute>
-        }
-      >
-        <Route path="all" element={<></>} />
-      </Route>
-
-      <Route
-        path="/inventory/*"
+        path={`/:${code}/inventory/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -185,6 +158,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <Inventory
                 // subroutes={
@@ -202,7 +176,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/devices/*"
+        path={`/:${code}/devices/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -221,6 +195,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <DevicesPage
                 // subroutes={
@@ -236,7 +211,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/network/*"
+        path={`/:${code}/network/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -255,6 +230,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <NextworkPage
                 // subroutes={
@@ -270,7 +246,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/maintenance/*"
+        path={`/:${code}/maintenance/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -289,6 +265,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <MaintenancePage
                 // subroutes={
@@ -304,7 +281,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/users/*"
+        path={`/:${code}/users/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -338,7 +315,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/reports/*"
+        path={`/:${code}/reports/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -357,6 +334,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <ReportsPage
                 // subroutes={
@@ -372,7 +350,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/settings/*"
+        path={`/:${code}/settings/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -391,6 +369,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <SettingsPage
                 // subroutes={
@@ -406,7 +385,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
       </Route>
 
       <Route
-        path="/profile/:id"
+        path={`/:${code}/profile/:id/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -425,6 +404,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation }) => {
               profile={profile}
               currentPathname={pathnameLocation}
               publicRoute={false}
+              companies={companies}
             >
               <ProfilePage
                 userId ={profile?.id || "default-id"}
