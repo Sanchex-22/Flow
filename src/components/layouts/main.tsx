@@ -15,39 +15,58 @@ interface RoutesProps {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+const fallbackCompanies = [
+  {
+    id: "na",
+    name: "N/A",
+    address: "N/A",
+    phone: "N/A",
+    email: "N/A",
+    isActive: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+];
+
 const Layout: React.FC<RoutesProps> = () => {
   const [pathnameLocation, setCurrentPathname] = useState<CurrentPathname>({ name: '' });
+  const [showError, setShowError] = useState(false);
 
   useEffect(() => {
     setCurrentPathname({ name: window.location.pathname });
   }, []);
 
-  const { data, error, isLoading } = useSWR(`${VITE_API_URL}/api/companies/all`, fetcher);
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    error,
+    isValidating,
+  } = useSWR(`${VITE_API_URL}/api/companies/all`, fetcher, {
+    fallbackData: fallbackCompanies,
+    revalidateOnFocus: true,
+    shouldRetryOnError: true,
+    errorRetryInterval: 5000, // Reintenta cada 5 segundos
+    errorRetryCount: 10,      // Máximo 10 intentos (puedes quitarlo para infinito)
+  });
 
   useEffect(() => {
-    if (data) {
-      setCompanies(data);
-      setLoading(false);
+    if (error) {
+      console.error("Error al cargar compañías:", error);
+      setShowError(true);
+    } else if (data && data[0]?.id !== "na") {
+      setShowError(false); // Oculta el error si ya hay datos reales
     }
-  }, [data]);
+  }, [error, data]);
 
-  // Fix: Return null or a loading component
-  if (loading) {
-    console.log("Loading companies..."); // This line is fine for logging
-    return null; // Return null while loading
-  }
-
-  // You might also want to handle the error state
-  if (error) {
-    console.error("Failed to load companies:", error);
-    return <div>Error loading companies.</div>; // Or some error component
-  }
+  const companies = data || fallbackCompanies;
 
   return (
     <CompanyProvider initialCompanies={companies}>
       <main className="w-full relative scroll-smooth">
+        {showError && (
+          <div className="fixed top-5 right-5 bg-yellow-300 text-black p-4 rounded shadow-lg z-50">
+            ⚠️ No se pudieron cargar las compañías. Usando datos por defecto. Reintentando...
+          </div>
+        )}
         <AppRoutes pathnameLocation={pathnameLocation} companies={companies} />
       </main>
     </CompanyProvider>
