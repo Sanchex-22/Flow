@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import { AppRoutes } from "../../routes/approutes";
 import { useEffect, useState } from "react";
-import { CompanyProvider } from "../../context/routerContext";
+import { CompanyProvider, useCompany } from "../../context/routerContext";
 
 const { VITE_API_URL } = import.meta.env;
 
