@@ -44,8 +44,8 @@ const Layout: React.FC<RoutesProps> = () => {
     fallbackData: fallbackCompanies,
     revalidateOnFocus: true,
     shouldRetryOnError: true,
-    errorRetryInterval: 5000, // Reintenta cada 5 segundos
-    errorRetryCount: 10,      // Máximo 10 intentos (puedes quitarlo para infinito)
+    errorRetryInterval: 5000,
+    errorRetryCount: 10,
   });
 
   useEffect(() => {

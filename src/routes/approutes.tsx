@@ -24,6 +24,8 @@ import SettingsPage from "../pages/account/settings/page";
 import ProfilePage from "../pages/account/profile/page";
 import { Company } from "../components/layouts/slideBar";
 import { useCompany } from "../context/routerContext";
+import CreateUserPage from "../pages/account/users/components/CreatePage";
+import AllUsers from "../pages/account/users/components/allUsers";
 
 // Tipado de usuario
 export interface User {
@@ -302,16 +304,17 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               publicRoute={false}
             >
               <UsersPage
-                // subroutes={
-                //   routesConfig.find((route) => route.name === "reports")
-                //     ?.subroutes || []
-                // }
+                subroutes={
+                  routesConfig.find((route) => route.name === "Users")
+                    ?.subroutes || []
+                }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllUsers />} />
+        <Route path="create" element={<CreateUserPage />} />
       </Route>
 
       <Route

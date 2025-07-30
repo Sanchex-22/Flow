@@ -56,10 +56,8 @@ const routesConfig = [
     href: "/users/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "All Users", href: "/users/all" },
       { name: "Create User", href: "/users/create" },
-      { name: "Roles", href: "/users/roles" },
-      { name: "Permissions", href: "/users/permissions" },
+      { name: "Edit User", href: "/users/edit" },
     ]
   },
   {

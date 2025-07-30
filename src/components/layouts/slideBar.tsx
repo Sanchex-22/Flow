@@ -100,7 +100,7 @@ const SlideBar: React.FC<DashboardProps> = ({
         </div>
 
         {/* Company Selector */}
-        <CompanySelectorComponent companies={companies}/>
+        <CompanySelectorComponent/>
 
         {/* Navigation */}
         <nav className="flex-1 p-4">

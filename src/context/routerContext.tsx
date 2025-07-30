@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 
 // 1. Define the Company interface (Mantener esto aquí o en un archivo de tipos compartido)
-interface Company {
+export interface Company {
   id: number; // Asumiendo que id es un número, ajustar si es string
   name: string;
   code: string;
