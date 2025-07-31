@@ -25,7 +25,10 @@ import ProfilePage from "../pages/account/profile/page";
 import { Company } from "../components/layouts/slideBar";
 import { useCompany } from "../context/routerContext";
 import CreateUserPage from "../pages/account/users/components/CreatePage";
-import AllUsers from "../pages/account/users/components/allUsers";
+import AllUsers from "../pages/account/users/components/AllUsers";
+import UpdateDevices from "../components/forms/UpdateDevices";
+import AllDevices from "../pages/account/devices/components/AllDevices";
+import UpdateDevicesPage from "../pages/account/devices/components/updateDevicesPage";
 
 // Tipado de usuario
 export interface User {
@@ -200,16 +203,18 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               companies={companies}
             >
               <DevicesPage
-                // subroutes={
-                //   routesConfig.find((route) => route.name === "reports")
-                //     ?.subroutes || []
-                // }
+                subroutes={
+                  routesConfig.find((route) => route.name === "devices")
+                    ?.subroutes || []
+                }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllDevices/>} />
+        <Route path="create" element={<UpdateDevicesPage/>} />
+        <Route path="edit/:id" element={<UpdateDevicesPage/>} />
       </Route>
 
       <Route
