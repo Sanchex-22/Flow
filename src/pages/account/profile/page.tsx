@@ -2,33 +2,9 @@
 
 import useSWR from "swr"
 import { formatValue } from "../../../utils/formatNull"
+import { UsuarioFull } from "../../../utils/usuarioFull"
 
 const { VITE_API_URL } = import.meta.env
-interface UserProfile {
-  id: string
-  username: string
-  email: string
-  role: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  companyId: string | null
-  person: {
-    id: string
-    userId: string
-    firstName: string
-    lastName: string
-    fullName: string
-    contactEmail: string
-    phoneNumber: string
-    department: string
-    position: string
-    status: string
-    userCode: string
-    createdAt: string
-    updatedAt: string
-  }
-}
 
 interface ProfilePageProps {
     userId : string
@@ -56,7 +32,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
     );
   }
 
-  const userData: UserProfile = data;
+  const userData: UsuarioFull = data;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES", {
@@ -331,7 +307,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Departamento</label>
-                <p className="text-white">{formatValue(userData.person.department)}</p>
+                <p className="text-white">{formatValue(userData.person.department.description)}</p>
               </div>
 
               <div>

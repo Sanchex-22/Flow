@@ -2,10 +2,23 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 
 // 1. Define the Company interface (Mantener esto aquí o en un archivo de tipos compartido)
 export interface Company {
-  id: number; // Asumiendo que id es un número, ajustar si es string
-  name: string;
+  id: string;
   code: string;
-  // Agrega cualquier otra propiedad que tu objeto compañía pueda tener
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdByUserId: string;
+  _count: {
+    users: number;
+    equipments: number;
+    licenses: number;
+    documents: number;
+    maintenances: number;
+  };
 }
 
 // 2. Define el tipo para el valor del contexto

@@ -315,6 +315,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       >
         <Route path="all" element={<AllUsers />} />
         <Route path="create" element={<CreateUserPage />} />
+        <Route path="edit/:id" element={<CreateUserPage />} />
       </Route>
 
       <Route

@@ -1,9 +1,12 @@
+// CreateUserPage.tsx
 "use client"
 
 import useSWR from "swr";
-import UpdateUser from "../../../../components/forms/UpdateUser"
-import { useCompany } from "../../../../context/routerContext";
-const { VITE_API_URL } = import.meta.env
+import { useParams } from "react-router-dom"; // ← aquí
+import UpdateUser from "../../../../components/forms/UpdateUser";
+import { Company, useCompany } from "../../../../context/routerContext";
+
+const { VITE_API_URL } = import.meta.env;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export interface Departments {
@@ -13,26 +16,36 @@ export interface Departments {
   isActive: boolean;
 }
 
-export default function CreateUserPage() {
-  const {selectedCompany} = useCompany()
-  const { data, error } = useSWR(`${VITE_API_URL}/api/companies/${selectedCompany?.code}/departments`, fetcher, {
-    revalidateOnFocus: true,
-    shouldRetryOnError: true,
-    errorRetryInterval: 5000,
-    errorRetryCount: 10,
-  })
-  if (error || !data) {
-    return "Error loading data";
-  }
+const CreateUserPage: React.FC = () => {
+  const { id: userID } = useParams<{ id: string }>(); // ← aquí obtienes el param desde la URL
+
+  const renderPage = userID ? "Editar Usuario" : "Crear Usuario";
+  document.title = renderPage;
+
+  const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
+
+  const { data, error } = useSWR(
+    selectedCompany ? `${VITE_API_URL}/api/companies/${selectedCompany.code}/departments` : null,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      shouldRetryOnError: true,
+      errorRetryInterval: 5000,
+      errorRetryCount: 10,
+    }
+  );
+
+  if (error || !data) return "Error loading data";
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-
       <div className="p-6">
-        {/* Page Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-2xl font-bold mb-2">Crear Nuevo Usuario</h1>
-            <p className="text-gray-400">Complete la información para registrar un nuevo usuario en el sistema</p>
+            <h1 className="text-2xl font-bold mb-2">{renderPage}</h1>
+            <p className="text-gray-400">
+              Complete la información para {userID ? "editar" : "registrar"} un usuario en el sistema
+            </p>
           </div>
           <div className="flex space-x-3">
             <button
@@ -48,9 +61,14 @@ export default function CreateUserPage() {
           </div>
         </div>
 
-        {/* Form Section */}
-        <UpdateUser departments={data} selectedCompany={selectedCompany}></UpdateUser>
+        <UpdateUser
+          userID={userID} // ← pásalo aquí si tu formulario lo necesita
+          departments={data}
+          selectedCompany={selectedCompany}
+        />
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default CreateUserPage;

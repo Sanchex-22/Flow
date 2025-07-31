@@ -1,6 +1,8 @@
 "use client"
 import type React from "react"
 import { useState, useEffect } from "react"
+import { Company } from "../../context/routerContext" // Assuming this path is correct
+import { UsuarioFull } from "../../utils/usuarioFull"
 
 // Asumo que Departments y Company son interfaces o tipos válidos
 interface Departments {
@@ -8,30 +10,26 @@ interface Departments {
   name: string
 }
 
-interface Company {
-  id: string
-  name: string
-}
-
-const { VITE_API_URL } = import.meta.env
+const { VITE_API_URL } = import.meta.env // Accessing environment variables
 
 interface CreateUserData {
   username: string
   email: string
-  password: string
+  password?: string // Password is now optional for updates
   role: string
   companyId: string
   firstName: string
   lastName: string
   contactEmail: string
   phoneNumber: string
-  department: string
+  department: string // This will hold the department ID for the form
   position: string
 }
 
 interface Props {
   departments?: Departments[] | null
   selectedCompany?: Company | null
+  userID?: string | null // userID prop to determine create or edit mode
 }
 
 // Tipos para las notificaciones
@@ -43,7 +41,7 @@ interface Notification {
   show: boolean
 }
 
-const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
+const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) => {
   const [formData, setFormData] = useState<CreateUserData>({
     username: "",
     email: "",
@@ -54,7 +52,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
     lastName: "",
     contactEmail: "",
     phoneNumber: "",
-    department: "",
+    department: "", // Holds department ID
     position: "",
   })
 
@@ -76,7 +74,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
     { value: "SUPER_ADMIN", label: "Super Administrador" },
   ]
 
-  // Función para mostrar notificaciones
+  // Function to display notifications
   const showNotification = (type: NotificationType, message: string) => {
     setNotification({
       type,
@@ -85,7 +83,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
     })
   }
 
-  // Auto-ocultar notificación después de 5 segundos
+  // Auto-hide notification after 5 seconds
   useEffect(() => {
     if (notification.show) {
       const timer = setTimeout(() => {
@@ -95,13 +93,68 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
     }
   }, [notification.show])
 
-  // Manejar cambios en los campos
+  // Fetch user data if userID is provided (edit mode)
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (userID) {
+        setIsLoading(true)
+        try {
+          const response = await fetch(`${VITE_API_URL}/api/users/profile/${userID}`)
+          if (!response.ok) {
+            throw new Error("Error al cargar los datos del usuario.")
+          }
+          // Cast the fetched data to UsuarioFull interface
+          const userData: UsuarioFull = await response.json()
+
+          // Populate form data with fetched user data, accessing nested 'person' properties
+          setFormData({
+            username: userData.username,
+            email: userData.email,
+            password: "", // Password should not be pre-filled for security
+            role: userData.role,
+            companyId: userData.companyId || "", // Handle potential null companyId
+            firstName: userData.person.firstName,
+            lastName: userData.person.lastName,
+            contactEmail: userData.person.contactEmail || "",
+            phoneNumber: userData.person.phoneNumber || "",
+            department: userData.person.departmentId || "", // Use departmentId from fetched data
+            position: userData.person.position,
+          })
+          showNotification("success", "Datos de usuario cargados exitosamente.")
+        } catch (error: any) {
+          console.error("Error fetching user data:", error)
+          showNotification("error", error.message || "Error al cargar los datos del usuario.")
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        // Reset form if no userID (create mode)
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          role: "USER",
+          companyId: selectedCompany?.id || "",
+          firstName: "",
+          lastName: "",
+          contactEmail: "",
+          phoneNumber: "",
+          department: "",
+          position: "",
+        })
+      }
+    }
+
+    fetchUserData()
+  }, [userID, selectedCompany?.id]) // Re-run when userID or selectedCompany changes
+
+  // Handle input changes
   const handleInputChange = (field: keyof CreateUserData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
-    // Limpiar error del campo cuando el usuario empieza a escribir
+    // Clear field error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -110,14 +163,20 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
     }
   }
 
-  // Validar formulario
+  // Validate form
   const validateForm = (): boolean => {
     const newErrors: Partial<CreateUserData> = {}
     if (!formData.username.trim()) newErrors.username = "El nombre de usuario es requerido"
     if (!formData.email.trim()) newErrors.email = "El email es requerido"
     if (!formData.email.includes("@")) newErrors.email = "El email debe ser válido"
-    if (!formData.password.trim()) newErrors.password = "La contraseña es requerida"
-    if (formData.password.length < 8) newErrors.password = "La contraseña debe tener al menos 8 caracteres"
+
+    // Password is required only for creation, or if explicitly provided for update
+    if (!userID && !formData.password?.trim()) {
+      newErrors.password = "La contraseña es requerida"
+    } else if (formData.password && formData.password.length < 8) {
+      newErrors.password = "La contraseña debe tener al menos 8 caracteres"
+    }
+
     if (!formData.firstName.trim()) newErrors.firstName = "El nombre es requerido"
     if (!formData.lastName.trim()) newErrors.lastName = "El apellido es requerido"
     if (!formData.department.trim()) newErrors.department = "El departamento es requerido"
@@ -128,34 +187,42 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
     return Object.keys(newErrors).length === 0
   }
 
-  // Manejar envío del formulario
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
 
     setIsLoading(true)
+    const isEditing = !!userID
+    const method = isEditing ? "PUT" : "POST"
+    const endpoint = isEditing ? `${VITE_API_URL}/api/users/${userID}` : `${VITE_API_URL}/api/users/create`
+
     try {
-      // Construir el payload para la API en el formato correcto
-      const apiPayload = {
+      // Build the payload for the API
+      const apiPayload: any = {
         username: formData.username,
         email: formData.email,
-        password: formData.password,
         role: formData.role,
-        isActive: true,
+        isActive: true, // Assuming isActive is always true for creation/update
         companyId: formData.companyId,
         firstName: formData.firstName,
         lastName: formData.lastName,
         contactEmail: formData.contactEmail,
         phoneNumber: formData.phoneNumber,
         position: formData.position,
-        status: "Activo",
-        departmentId: formData.department,
+        status: "Activo", // Assuming status is always "Activo"
+        departmentId: formData.department, // Send department ID
       }
 
-      console.log("Enviando a la API:", apiPayload)
+      // Only include password if it's a new user or if it's provided for an update
+      if (!isEditing || (isEditing && formData.password?.trim())) {
+        apiPayload.password = formData.password
+      }
 
-      const response = await fetch(`${VITE_API_URL}/api/users/create`, {
-        method: "POST",
+      console.log(`${isEditing ? "Actualizando" : "Creando"} usuario en la API:`, apiPayload)
+
+      const response = await fetch(endpoint, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -164,39 +231,41 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || "Error al crear el usuario")
+        throw new Error(errorData.message || `Error al ${isEditing ? "actualizar" : "crear"} el usuario`)
       }
 
       await response.json()
 
-      // Mostrar notificación de éxito
-      showNotification("success", "Usuario creado exitosamente")
+      // Show success notification
+      showNotification("success", `Usuario ${isEditing ? "actualizado" : "creado"} exitosamente`)
 
-      // Reiniciar el formulario
-      setFormData({
-        username: "",
-        email: "",
-        password: "",
-        role: "USER",
-        companyId: selectedCompany?.id || "",
-        firstName: "",
-        lastName: "",
-        contactEmail: "",
-        phoneNumber: "",
-        department: "",
-        position: "",
-      })
+      // Optionally reset form after creation, but not necessarily after update
+      if (!isEditing) {
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          role: "USER",
+          companyId: selectedCompany?.id || "",
+          firstName: "",
+          lastName: "",
+          contactEmail: "",
+          phoneNumber: "",
+          department: "",
+          position: "",
+        })
+      }
     } catch (error: any) {
-      console.error("Error al crear usuario:", error)
-      // Mostrar notificación de error
-      showNotification("error", error.message || "Error inesperado al crear el usuario")
+      console.error(`Error al ${isEditing ? "actualizar" : "crear"} usuario:`, error)
+      // Show error notification
+      showNotification("error", error.message || `Error inesperado al ${isEditing ? "actualizar" : "crear"} el usuario`)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="relative">
+    <div className="relative font-inter">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Account Information */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -214,14 +283,15 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">Información de Cuenta</h2>
+              <h2 className="text-xl font-bold text-white">Información de Cuenta</h2>
               <p className="text-gray-400 text-sm">Datos de acceso y configuración del usuario</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Nombre de Usuario *</label>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">Nombre de Usuario *</label>
               <input
+                id="username"
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
@@ -233,8 +303,9 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.username && <p className="text-red-400 text-sm mt-1">{errors.username}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email *</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email *</label>
               <input
+                id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
@@ -246,21 +317,25 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Contraseña *</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Contraseña {userID ? "(dejar en blanco para no cambiar)" : "*"}
+              </label>
               <div className="relative">
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white focus:outline-none focus:ring-2 pr-10 ${
                     errors.password ? "border-red-500 focus:ring-red-500" : "border-gray-600 focus:ring-blue-500"
                   }`}
-                  placeholder="Contraseña segura"
+                  placeholder={userID ? "••••••••" : "Contraseña segura"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
@@ -278,9 +353,10 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Rol *</label>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-2">Rol *</label>
               <div className="relative">
                 <select
+                  id="role"
                   value={formData.role}
                   onChange={(e) => handleInputChange("role", e.target.value)}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
@@ -305,7 +381,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               </div>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Empresa *</label>
+              <label htmlFor="companyId" className="block text-sm font-medium text-gray-300 mb-2">Empresa *</label>
               <input
                 disabled={true}
                 id="companyId"
@@ -339,14 +415,15 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">Información Personal</h2>
+              <h2 className="text-xl font-bold text-white">Información Personal</h2>
               <p className="text-gray-400 text-sm">Datos personales y de contacto del usuario</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Nombre *</label>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-2">Nombre *</label>
               <input
+                id="firstName"
                 type="text"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange("firstName", e.target.value)}
@@ -358,8 +435,9 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.firstName && <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Apellido *</label>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-2">Apellido *</label>
               <input
+                id="lastName"
                 type="text"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange("lastName", e.target.value)}
@@ -371,8 +449,9 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.lastName && <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email de Contacto</label>
+              <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-300 mb-2">Email de Contacto</label>
               <input
+                id="contactEmail"
                 type="email"
                 value={formData.contactEmail}
                 onChange={(e) => handleInputChange("contactEmail", e.target.value)}
@@ -384,8 +463,9 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.contactEmail && <p className="text-red-400 text-sm mt-1">{errors.contactEmail}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
               <input
+                id="phoneNumber"
                 type="tel"
                 value={formData.phoneNumber}
                 onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
@@ -416,15 +496,16 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">Información Profesional</h2>
+              <h2 className="text-xl font-bold text-white">Información Profesional</h2>
               <p className="text-gray-400 text-sm">Datos laborales</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Departamento *</label>
+              <label htmlFor="department" className="block text-sm font-medium text-gray-300 mb-2">Departamento *</label>
               <div className="relative">
                 <select
+                  id="department"
                   value={formData.department}
                   onChange={(e) => handleInputChange("department", e.target.value)}
                   className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 pr-10 ${
@@ -433,8 +514,8 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
                 >
                   <option value="">Seleccionar departamento...</option>
                   {Array.isArray(departments) &&
-                    departments.map((dept, index) => (
-                      <option key={index} value={dept.id}>
+                    departments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
                         {dept.name}
                       </option>
                     ))}
@@ -454,8 +535,9 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               {errors.department && <p className="text-red-400 text-sm mt-1">{errors.department}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Posición *</label>
+              <label htmlFor="position" className="block text-sm font-medium text-gray-300 mb-2">Posición *</label>
               <input
+                id="position"
                 type="text"
                 value={formData.position}
                 onChange={(e) => handleInputChange("position", e.target.value)}
@@ -500,7 +582,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span>Creando Usuario...</span>
+                <span>{userID ? "Actualizando Usuario..." : "Creando Usuario..."}</span>
               </>
             ) : (
               <>
@@ -510,14 +592,14 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                <span>Crear Usuario</span>
+                <span>{userID ? "Actualizar Usuario" : "Crear Usuario"}</span>
               </>
             )}
           </button>
         </div>
       </form>
 
-      {/* Notificación Toast */}
+      {/* Notification Toast */}
       {notification.show && (
         <div
           className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4 transition-all duration-300 ease-in-out ${
@@ -552,6 +634,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany }) => {
               <button
                 onClick={() => setNotification((prev) => ({ ...prev, show: false }))}
                 className="flex-shrink-0 text-current hover:opacity-75 transition-opacity"
+                aria-label="Cerrar notificación"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18" />
