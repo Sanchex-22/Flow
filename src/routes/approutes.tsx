@@ -29,6 +29,10 @@ import AllUsers from "../pages/account/users/components/AllUsers";
 import UpdateDevices from "../components/forms/UpdateDevices";
 import AllDevices from "../pages/account/devices/components/AllDevices";
 import UpdateDevicesPage from "../pages/account/devices/components/updateDevicesPage";
+import UpdateNetworkDeviceForm from "../components/forms/updateNetwork";
+import AllNetwork from "../pages/account/network/components/AllNetwork";
+import UpdateNetworkForm from "../components/forms/updateNetwork";
+import UpdateNetworkPage from "../pages/account/network/components/updateNetwork";
 
 // Tipado de usuario
 export interface User {
@@ -249,7 +253,9 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllNetwork/>} />
+        <Route path="create" element={<UpdateNetworkPage/>} />
+        <Route path="edit/:id" element={<UpdateNetworkPage/>} />
       </Route>
 
       <Route
