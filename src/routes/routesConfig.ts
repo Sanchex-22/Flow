@@ -39,6 +39,8 @@ const routesConfig = [
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
       { name: "All maintenance", href: "/maintenance/all" },
+      { name: "Create maintenance", href: "/maintenance/create" },
+      { name: "Edit maintenance", href: "/maintenance/edit" },
     ]
   },
   {

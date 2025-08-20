@@ -36,7 +36,8 @@
     "react-world-flags": "^1.6.0",
     "resend": "^4.5.2",
     "sonner": "^1.7.4",
-    "swr": "^2.3.4"
+    "swr": "^2.3.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/jspdf": "^2.0.0",

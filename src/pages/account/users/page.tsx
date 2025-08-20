@@ -5,9 +5,9 @@ import { Outlet } from "react-router-dom"
 // this will render the Outlet for nested routes like /users/all, /users/create, etc.
 
 interface SubRoutesProps {
-  subroutes: {
-    name: string
-    href: string
+  subroutes?: {
+    name?: string
+    href?: string
   }[]
 }
 

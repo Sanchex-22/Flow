@@ -18,7 +18,6 @@ import Inventory from "../pages/account/inventory/inventory";
 import ReportsPage from "../pages/account/reports/pages";
 import DevicesPage from "../pages/account/devices/devices";
 import NextworkPage from "../pages/account/network/network";
-import MaintenancePage from "../pages/account/maintenance/page";
 import UsersPage from "../pages/account/users/page";
 import SettingsPage from "../pages/account/settings/page";
 import ProfilePage from "../pages/account/profile/page";
@@ -26,13 +25,14 @@ import { Company } from "../components/layouts/slideBar";
 import { useCompany } from "../context/routerContext";
 import CreateUserPage from "../pages/account/users/components/CreatePage";
 import AllUsers from "../pages/account/users/components/AllUsers";
-import UpdateDevices from "../components/forms/UpdateDevices";
 import AllDevices from "../pages/account/devices/components/AllDevices";
 import UpdateDevicesPage from "../pages/account/devices/components/updateDevicesPage";
-import UpdateNetworkDeviceForm from "../components/forms/updateNetwork";
 import AllNetwork from "../pages/account/network/components/AllNetwork";
-import UpdateNetworkForm from "../components/forms/updateNetwork";
 import UpdateNetworkPage from "../pages/account/network/components/updateNetwork";
+import UpdateMaintenancePage from "../pages/account/maintenance/components/updateMaintenance";
+import AllMaintenance from "../pages/account/maintenance/components/AllMaintenance";
+import MaintenancePage from "../pages/account/maintenance/page";
+
 
 // Tipado de usuario
 export interface User {
@@ -281,16 +281,18 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               companies={companies}
             >
               <MaintenancePage
-                // subroutes={
-                //   routesConfig.find((route) => route.name === "reports")
-                //     ?.subroutes || []
-                // }
+                subroutes={
+                  routesConfig.find((route) => route.name === "maintenance")
+                    ?.subroutes || []
+                }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllMaintenance/>} />
+        <Route path="create" element={<UpdateMaintenancePage/>} />
+        <Route path="edit/:id" element={<UpdateMaintenancePage/>} />
       </Route>
 
       <Route

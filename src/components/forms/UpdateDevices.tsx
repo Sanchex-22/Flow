@@ -563,9 +563,6 @@ const UpdateDevices: React.FC<Props> = ({ users, departments, selectedCompany, d
                         </div>
                     </div>
                 </div>
-
-
-                {/* --- (UI ACTUALIZADA) Botones de acción dinámicos --- */}
                 <div className="flex justify-end space-x-4">
                     <button type="button" /* onClick={onCancel} */ className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
                         Cancelar
@@ -589,7 +586,6 @@ const UpdateDevices: React.FC<Props> = ({ users, departments, selectedCompany, d
                 </div>
             </form>
 
-            {/* Notificación Toast (sin cambios) */}
             {notification.show && (
                 <div
                     className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4 transition-all duration-300 ease-in-out ${notification.show ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"

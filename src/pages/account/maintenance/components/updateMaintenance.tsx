@@ -22,7 +22,6 @@ interface Props {
     onCancel?: () => void;
 }
 
-
 const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
     const { id: maintenanceID } = useParams<{ id: string }>();
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
@@ -65,9 +64,7 @@ const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
                     Ingresa los detalles del mantenimiento para registrarlo en el sistema.
                 </p>
                 <UpdateMaintenanceForm
-                    // users={users}
-                    maintenanceID={maintenanceID}
-                    departments={departments}
+                    maintenanceId={maintenanceID}
                     selectedCompany={selectedCompany}
                 />
             </div>

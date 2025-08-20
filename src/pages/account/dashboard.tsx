@@ -119,6 +119,18 @@ const Dashboard: React.FC<DashboardProps> = ({ subroutes }) => {
     return null;
   }
   
+const safeData: DashboardData = {
+  kpi: {
+    totalEquipments: dashboardData?.kpi?.totalEquipments || { count: 0, change: 0 },
+    pendingMaintenances: dashboardData?.kpi?.pendingMaintenances || { count: 0, change: 0 },
+    activeEquipments: dashboardData?.kpi?.activeEquipments || { count: 0, change: 0 },
+    activeUsers: dashboardData?.kpi?.activeUsers || { count: 0, change: 0 },
+  },
+  inventoryByCategory: dashboardData?.inventoryByCategory || [],
+  recentActivity: dashboardData?.recentActivity || [],
+};
+
+
   const totalInventoryCount = dashboardData.inventoryByCategory.reduce((sum, category) => sum + category.count, 0) || 1;
 
 
@@ -168,10 +180,10 @@ const Dashboard: React.FC<DashboardProps> = ({ subroutes }) => {
               <span className="text-gray-400 text-sm">Equipos Activos</span>
                {/* Icono... */}
             </div>
-            <div className="text-3xl font-bold mb-1">{dashboardData.kpi.activeEquipments.count}</div>
+            <div className="text-3xl font-bold mb-1">{dashboardData?.kpi?.activeEquipments.count ?? 0}</div>
             <div className="text-sm text-gray-400">En funcionamiento</div>
-             <div className={`text-sm mt-2 ${dashboardData.kpi.activeEquipments.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {dashboardData.kpi.activeEquipments.change >= 0 ? '↗' : '↘'} {dashboardData.kpi.activeEquipments.change}%
+             <div className={`text-sm mt-2 ${dashboardData?.kpi?.activeEquipments?.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {dashboardData?.kpi?.activeEquipments?.change >= 0 ? '↗' : '↘'} {dashboardData?.kpi?.activeEquipments?.change}%
             </div>
           </div>
 
@@ -181,9 +193,9 @@ const Dashboard: React.FC<DashboardProps> = ({ subroutes }) => {
               <span className="text-gray-400 text-sm">Usuarios Activos</span>
                {/* Icono... */}
             </div>
-            <div className="text-3xl font-bold mb-1">{dashboardData.kpi.activeUsers.count}</div>
+            <div className="text-3xl font-bold mb-1">{dashboardData?.kpi?.activeUsers?.count}</div>
             <div className="text-sm text-gray-400">Empleados registrados</div>
-            <div className={`text-sm mt-2 ${dashboardData.kpi.activeUsers.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`text-sm mt-2 ${dashboardData?.kpi?.activeUsers?.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {dashboardData.kpi.activeUsers.change >= 0 ? '↗' : '↘'} {dashboardData.kpi.activeUsers.change}%
             </div>
           </div>
@@ -201,9 +213,9 @@ const Dashboard: React.FC<DashboardProps> = ({ subroutes }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className={`w-2 h-2 bg-blue-500 rounded-full`}></div> {/* Color dinámico podría ser añadido */}
-                      <span className="text-sm">{category.name}</span>
+                      <span className="text-sm">{category?.name}</span>
                     </div>
-                    <span className="text-sm font-medium">{category.count}</span>
+                    <span className="text-sm font-medium">{category?.count}</span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-2 mt-1">
                     <div 
