@@ -126,7 +126,6 @@ export default function AllDevices() {
     const disponibles = filteredEquipos.filter(e => !e.assignedToUserId).length
 
     const getGarantiasPorVencer = () => {
-        const hoy = new Date();
         const proximos30Dias = new Date(new Date().setDate(new Date().getDate() + 30));
         return filteredEquipos.filter(equipo => {
             if (!equipo.warrantyDetails) return false;

@@ -46,10 +46,8 @@ type DashboardProps = {
 };
 
 const SlideBar: React.FC<DashboardProps> = ({
-  subroutes,
   currentPathname,
   profile,
-  companies,
 }) => {
   const { logout } = useUser();
   const { selectedCompany } = useCompany();

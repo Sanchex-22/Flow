@@ -93,7 +93,7 @@ const ActivityIcon: React.FC<{ icon: string }> = ({ icon }) => {
 };
 
 
-const Dashboard: React.FC<DashboardProps> = ({ subroutes }) => {
+const Dashboard: React.FC<DashboardProps> = () => {
   const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
 
   const { data: dashboardData, error, isLoading } = useSWR<DashboardData>( // <-- Tipado opcional para `data`
@@ -119,18 +119,6 @@ const Dashboard: React.FC<DashboardProps> = ({ subroutes }) => {
     return null;
   }
   
-const safeData: DashboardData = {
-  kpi: {
-    totalEquipments: dashboardData?.kpi?.totalEquipments || { count: 0, change: 0 },
-    pendingMaintenances: dashboardData?.kpi?.pendingMaintenances || { count: 0, change: 0 },
-    activeEquipments: dashboardData?.kpi?.activeEquipments || { count: 0, change: 0 },
-    activeUsers: dashboardData?.kpi?.activeUsers || { count: 0, change: 0 },
-  },
-  inventoryByCategory: dashboardData?.inventoryByCategory || [],
-  recentActivity: dashboardData?.recentActivity || [],
-};
-
-
   const totalInventoryCount = dashboardData.inventoryByCategory.reduce((sum, category) => sum + category.count, 0) || 1;
 
 

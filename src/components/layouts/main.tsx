@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import { AppRoutes } from "../../routes/approutes";
 import { useEffect, useState } from "react";
-import { CompanyProvider, useCompany } from "../../context/routerContext";
+import { CompanyProvider } from "../../context/routerContext";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -39,7 +39,6 @@ const Layout: React.FC<RoutesProps> = () => {
   const {
     data,
     error,
-    isValidating,
   } = useSWR(`${VITE_API_URL}/api/companies/all`, fetcher, {
     fallbackData: fallbackCompanies,
     revalidateOnFocus: true,

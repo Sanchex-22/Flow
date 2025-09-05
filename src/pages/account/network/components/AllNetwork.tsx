@@ -375,7 +375,7 @@ export default function AllNetwork() {
                   <tbody>
                     {filteredConexiones.map((c, index) => (
                       <tr
-                        key={c.id}
+                        key={index}
                         className="border-b border-slate-700 hover:bg-slate-750 transition-colors duration-150"
                       >
                         <td className="py-4 px-6">

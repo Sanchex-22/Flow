@@ -2,8 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect, type FormEvent } from "react"
-import { CheckCircle, AlertCircle, Save, Edit3 } from "lucide-react"
-import { useCompany } from "../../context/routerContext" // Asegúrate de que esta ruta sea correcta
+import { CheckCircle, AlertCircle, Save } from "lucide-react"
 import useSWR from "swr"
 import { UsuarioFull } from "../../pages/account/users/components/AllUsers" // Asegúrate de que esta ruta y tipo sean correctos
 
@@ -14,11 +13,6 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 interface Company {
     id: string
     name: string
-}
-
-interface User {
-    id: string
-    username: string
 }
 
 interface FormErrors {
@@ -60,7 +54,7 @@ interface Props {
     networkID?: string | null
 }
 
-const UpdateNetworkForm: React.FC<Props> = ({ selectedCompany, departments, networkID }) => {
+const UpdateNetworkForm: React.FC<Props> = ({ selectedCompany, networkID }) => {
     const isEditMode = !!networkID
     
     const [formData, setFormData] = useState<FormData>({
@@ -84,8 +78,8 @@ const UpdateNetworkForm: React.FC<Props> = ({ selectedCompany, departments, netw
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
-    const [errors, setErrors] = useState<FormErrors>({})
-    const [notification, setNotification] = useState<Notification>({
+    const [errors, ] = useState<FormErrors>({})
+    const [, setNotification] = useState<Notification>({
         type: "success",
         message: "",
         show: false,
