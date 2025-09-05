@@ -61,7 +61,7 @@ interface FormErrors {
     assignedToUserId?: string;
 }
 
-const UpdateDevices: React.FC<Props> = ({ users, departments, selectedCompany, deviceID }) => {
+const UpdateDevices: React.FC<Props> = ({ users, selectedCompany, deviceID }) => {
     // --- (NUEVO) Determinar si estamos en modo de edición ---
     const isEditMode = !!deviceID;
 

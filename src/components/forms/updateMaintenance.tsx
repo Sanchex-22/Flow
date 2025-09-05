@@ -169,7 +169,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
             if (!response.ok) throw new Error(result.error || 'Ocurrió un error inesperado.');
 
             setNotification({ show: true, type: 'success', message: `Mantenimiento ${isEditMode ? 'actualizado' : 'creado'} con éxito.` });
-            setTimeout(onSuccess, 1500);
+            setTimeout(() => onSuccess?.(),1500);
 
         } catch (error: any) {
             setNotification({ show: true, type: 'error', message: error.message });
