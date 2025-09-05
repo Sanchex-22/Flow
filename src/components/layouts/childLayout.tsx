@@ -56,7 +56,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         :
         <div className="min-h-screen bg-gray-900 text-white flex h-[90vh]">
         {/* <AdminNavbar 
-        currentPathname={currentPathname}
+        currentPathname={currentPathname
           isLogged={isLogged}
           profile={profile}/> */}
           <SlideBar 

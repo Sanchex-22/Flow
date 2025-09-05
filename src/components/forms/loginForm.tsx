@@ -1,18 +1,20 @@
+"use client"
 
+import type React from "react"
 
-import { useNavigate } from "react-router-dom";
-import useUser from "../../hook/useUser";
-import InputLabel from "./InputLabel";
-import LoginSubmitButton from "./LoginSubmitButton";
-import { useCompany } from "../../context/routerContext";
+import { useNavigate } from "react-router-dom"
+import useUser from "../../hook/useUser"
+import InputLabel from "./InputLabel"
+import LoginSubmitButton from "./LoginSubmitButton"
+import { useCompany } from "../../context/routerContext"
 
 interface LoginFormProps {
-  pending: boolean;
-  setPending: (value: boolean) => void;
-  showPassword: boolean;
-  setShowPassword: (value: boolean) => void;
-  error: Error | null;
-  setError: (error: Error | null) => void;
+  pending: boolean
+  setPending: (value: boolean) => void
+  showPassword: boolean
+  setShowPassword: (value: boolean) => void
+  error: Error | null
+  setError: (error: Error | null) => void
 }
 
 export default function LoginForm({
@@ -23,45 +25,35 @@ export default function LoginForm({
   error,
   setError,
 }: LoginFormProps) {
-  const navigate = useNavigate();
-  const { selectedCompany } = useCompany();
+  const navigate = useNavigate()
+  const { selectedCompany } = useCompany()
   const { login } = useUser()
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setPending(true);
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get("email")?.toString();
-    const password = formData.get("password")?.toString();
+    event.preventDefault()
+    setPending(true)
+    const formData = new FormData(event.currentTarget)
+    const email = formData.get("email")?.toString()
+    const password = formData.get("password")?.toString()
 
     if (!email || !password) {
-      setError(new Error("Todos los campos son obligatorios."));
-      setPending(false);
-      return;
+      setError(new Error("Todos los campos son obligatorios."))
+      setPending(false)
+      return
     }
 
     try {
-      await login({ email, password });
-      navigate(`/${selectedCompany?.code || 'code'}/dashboard/all`);
+      await login({ email, password })
+      navigate(`/${selectedCompany?.code || "code"}/select-company`)
     } catch (error) {
-      setError(
-        new Error(
-          error instanceof Error ? error.message : "Error al iniciar sesión."
-        )
-      );
+      setError(new Error(error instanceof Error ? error.message : "Error al iniciar sesión."))
     } finally {
-      setPending(false);
+      setPending(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <InputLabel
-        type="text"
-        required
-        placeholder="Add email here"
-        id="email"
-        name="email"
-      />
+      <InputLabel type="text" required placeholder="Add email here" id="email" name="email" />
 
       <div>
         <InputLabel
@@ -86,12 +78,8 @@ export default function LoginForm({
       {error && <p className="text-orange-500">{error.message}</p>}
 
       <div className="mt-4">
-        <LoginSubmitButton
-          pending={pending}
-          modelExists={false}
-          model="Login"
-        />
+        <LoginSubmitButton pending={pending} modelExists={false} model="Login" />
       </div>
     </form>
-  );
+  )
 }

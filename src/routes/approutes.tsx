@@ -32,7 +32,8 @@ import UpdateNetworkPage from "../pages/account/network/components/updateNetwork
 import UpdateMaintenancePage from "../pages/account/maintenance/components/updateMaintenance";
 import AllMaintenance from "../pages/account/maintenance/components/AllMaintenance";
 import MaintenancePage from "../pages/account/maintenance/page";
-
+import { CompanySelector } from "../pages/account/companies/companies";
+import ProtectedCompanyRoute from "./protectedCompanyRoute";
 
 // Tipado de usuario
 export interface User {
@@ -111,6 +112,19 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedLogin>
         }
       />
+
+      <Route
+        path={`/:${code}/select-company`}
+        element={
+          <ProtectedCompanyRoute
+            isLogged={isLogged}
+          >
+              <CompanySelector profile={profile}/>
+          </ProtectedCompanyRoute>
+        }
+      >
+      </Route>
+
       <Route
         path={`/:${code}/dashboard/*`}
         element={

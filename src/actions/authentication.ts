@@ -41,11 +41,16 @@ static async logout(jwt: string) {
     console.error(errorMessage, "Argumento recibido:", jwt);
     window.sessionStorage.removeItem('jwt');
     localStorage.removeItem('jwt');
+    
+    window.sessionStorage.removeItem('selectedCompany');
+    localStorage.removeItem('selectedCompany');
     window.location.href = '/login';
     throw new TypeError(errorMessage);
   }
   window.sessionStorage.removeItem('jwt');
   localStorage.removeItem('jwt');
+  window.sessionStorage.removeItem('selectedCompany');
+  localStorage.removeItem('selectedCompany');
 
   try {
     const response = await fetch(`${VITE_API_URL}/api/user/auth/logout`, {
@@ -161,6 +166,8 @@ static async logout(jwt: string) {
       const token = Token();
       if (!decoded) {
         sessionStorage.removeItem('jwt');
+        window.sessionStorage.removeItem('selectedCompany');
+        localStorage.removeItem('selectedCompany');
         return null;
       }
 
@@ -169,6 +176,8 @@ static async logout(jwt: string) {
       if (isExpired) {
         sessionStorage.removeItem('jwt');
         localStorage.removeItem('jwt');
+        window.sessionStorage.removeItem('selectedCompany');
+        localStorage.removeItem('selectedCompany');
         return null;
       }
 

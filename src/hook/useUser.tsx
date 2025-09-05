@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useState } from 'react';
 import Context from '../context/userContext';
 import { authServices } from '../actions/authentication';
-
 // Define types for the context value and hook return type
 interface UserContextValue {
   jwt: string | null;
@@ -36,12 +35,18 @@ export default function useUser(): UseUserReturn {
     }
   }, [setJWT]);
 
-  const logout = useCallback(async() : Promise<void> => {
-    if (jwt) {
-      authServices.logout(jwt.replace(/^"|"$/g, ''));
-      setJWT(null);
+const logout = useCallback(async (): Promise<void> => {
+  if (jwt) {
+    try {
+      await authServices.logout(jwt.replace(/^"|"$/g, ''));
+    } catch (err) {
+      console.error("Logout error:", err);
     }
-  }, [setJWT, jwt]);
+  }
+  setJWT(null);
+  window.sessionStorage.removeItem("jwt");
+}, [setJWT, jwt]);
+
 
   return {
     isLogged: Boolean(jwt),

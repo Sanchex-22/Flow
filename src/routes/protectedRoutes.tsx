@@ -1,5 +1,7 @@
-import { Navigate, useLocation} from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { User } from "./approutes";
+import { useCompany } from "../context/routerContext";
+
 interface ProtectedRouteProps {
   auth: User;
   allowedRoles: string[];
@@ -9,14 +11,33 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ auth, allowedRoles, children, isLogged }) => {
   const location = useLocation();
+  const { selectedCompany } = useCompany();
+
+  console.log("Selected Company in ProtectedRoute:", selectedCompany);
+
+  // 🔒 1. No está logueado → redirigir al login
   if (!isLogged) {
-    return <Navigate to="/" replace={false} state={{ from: location }} />
+    return <Navigate to="/" replace={false} state={{ from: location }} />;
   }
 
-  if (!auth.roles.some(role => allowedRoles.includes(role))) {
-    return <Navigate to={"/dashboard"} replace={false} state={{ from: location }} />
+  // 🔒 2. Logueado pero sin empresa válida seleccionada → redirigir a selector
+  if (!selectedCompany || selectedCompany.id === "na") {
+    return <Navigate to="/NOCODE/select-company" replace={false} state={{ from: location }} />;
   }
 
-  return children
-}
-export default ProtectedRoute
+  // 🔒 3. Verificar roles permitidos
+  if (!auth.roles.some((role) => allowedRoles.includes(role))) {
+    return (
+      <Navigate
+        to={`/${selectedCompany.code}/dashboard`}
+        replace={false}
+        state={{ from: location }}
+      />
+    );
+  }
+
+  // ✅ Todo bien → mostrar el contenido
+  return children;
+};
+
+export default ProtectedRoute;

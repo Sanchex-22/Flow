@@ -56,7 +56,6 @@ const SlideBar: React.FC<DashboardProps> = ({
   const location = currentPathname.name || "";
 
   const baseRoute = location.split("/")[2] || "";
-  console.log("Base Route:", selectedCompany?.code || 'code');
 
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
   const filteredNavLinks =

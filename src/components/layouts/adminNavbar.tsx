@@ -105,13 +105,13 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     >
       <div className="max-w-7xl mx-auto main-content w-full px-6 md:px-5 flex justify-between h-12 md:h-16 items-center *:text-black">
         <div className="flex *:px-4 items-center h-full">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <img
               src={Images?.logo || "#"}
               alt="logo"
-              width={50}
-              height={50}
-              className="p-1"
+              width={100}
+              height={100}
+              className="w-full h-full"
             />
           </div>
           {filteredNavLinks.length > 0 ? (

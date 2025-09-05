@@ -1,6 +1,6 @@
 "use client"
 import useSWR from "swr";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Company, useCompany } from "../../context/routerContext";
 const { VITE_API_URL } = import.meta.env;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
