@@ -35,6 +35,7 @@ import MaintenancePage from "../pages/account/maintenance/page";
 import { CompanySelector } from "../pages/account/companies/companies";
 import ProtectedCompanyRoute from "./protectedCompanyRoute";
 import NetworkProvidersPage from "../pages/account/network/components/AllProvider";
+import UpdateNetworkProviderPage from "../pages/account/network/components/updateNetworkProvider";
 
 // Tipado de usuario
 export interface User {
@@ -272,6 +273,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         <Route path="providers" element={<NetworkProvidersPage/>} />
         <Route path="create" element={<UpdateNetworkPage/>} />
         <Route path="edit/:id" element={<UpdateNetworkPage/>} />
+        <Route path="create-provider" element={<UpdateNetworkProviderPage/>} />
+        <Route path="edit-provider/:id" element={<UpdateNetworkProviderPage/>} />
       </Route>
 
       <Route

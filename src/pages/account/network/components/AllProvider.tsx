@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
 import useSWR from "swr";
 
 const { VITE_API_URL } = import.meta.env;
@@ -143,7 +142,7 @@ const mapApiProviderToFrontend = (item: ApiNetworkProvider): FrontendNetworkProv
 // ====================================
 const NetworkProvidersPage = () => {
     // data ahora podría ser null si el fetcher devuelve null (ej. 404)
-    const { data, error, isLoading } = useSWR<ApiNetworkProvider[] | null>(`${VITE_API_URL}/api/network-providers`, fetcher);
+    const { data, error, isLoading } = useSWR<ApiNetworkProvider[] | null>(`${VITE_API_URL}/api/network/providers/all`, fetcher);
 
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -243,7 +242,7 @@ const NetworkProvidersPage = () => {
                             </td>
                             <td className="py-4 px-6">
                                 <div className="flex items-center gap-2">
-                                    <Link to={`edit-provider/${p.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors duration-150">
+                                    <a href={`edit-provider/${p.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors duration-150">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 strokeLinecap="round"
@@ -252,7 +251,7 @@ const NetworkProvidersPage = () => {
                                                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                                             />
                                         </svg>
-                                    </Link>
+                                    </a>
                                     <button
                                         onClick={() => alert(`Eliminar proveedor ${p.nombre}`)}
                                         className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors duration-150"
@@ -285,10 +284,10 @@ const NetworkProvidersPage = () => {
                         <p className="text-gray-400">Gestiona la información de tus proveedores de servicios de red</p>
                     </div>
                     {/* El botón "Agregar Proveedor" siempre visible */}
-                    <Link to="create-provider" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2">
+                    <a href="create-provider" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2">
                         <span>+</span>
                         Agregar Proveedor
-                    </Link>
+                    </a>
                 </div>
 
                 {/* Stats Cards (Opcional, puedes adaptar las de AllNetwork) */}
