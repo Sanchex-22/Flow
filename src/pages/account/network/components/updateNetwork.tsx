@@ -44,14 +44,14 @@ const UpdateNetworkPage: React.FC<Props> = ({ }) => {
 
     // 🔹 Consulta 2: Usuarios
     const { data: users, error: errorUsers, isLoading: isLoadingUsers } = useSWR<UsuarioFull[]>( // Añadido isLoading
-        `${VITE_API_URL}/api/users/full`,
+        `${VITE_API_URL}/api/users/getAll`,
         fetcher
     );
 
     // ✅ Lógica corregida para manejo de carga y errores
     if (errorUsers) return <div>Error al cargar usuarios: {errorUsers.message}</div>; // Muestra el error específico
-    if (isLoadingUsers || !users) return <div>Cargando usuarios...</div>; // Si está cargando o users es null/undefined, muestra cargando
-
+    if (isLoadingUsers || !users ) return <div>Cargando usuarios...</div>; // Si está cargando o users es null/undefined, muestra cargando
+    if (!users || !Array.isArray(users)) return <div>No se encontraron usuarios o el formato es incorrecto.</div>;
     if (errorDepartments) return <div>Error al cargar departamentos: {errorDepartments.message}</div>; // Muestra el error específico
     if (isLoadingDepartments || !departments) return <div>Cargando departamentos...</div>; // Si está cargando o departments es null/undefined, muestra cargando
 

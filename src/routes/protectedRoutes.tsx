@@ -13,8 +13,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ auth, allowedRoles, chi
   const location = useLocation();
   const { selectedCompany } = useCompany();
 
-  console.log("Selected Company in ProtectedRoute:", selectedCompany);
-
   // 🔒 1. No está logueado → redirigir al login
   if (!isLogged) {
     return <Navigate to="/" replace={false} state={{ from: location }} />;
