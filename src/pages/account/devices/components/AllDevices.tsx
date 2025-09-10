@@ -2,6 +2,7 @@
 
 import useSWR, { mutate } from "swr"
 import { useEffect, useState } from "react"
+import Loader from "../../../../components/loaders/loader"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -90,9 +91,7 @@ export default function AllDevices() {
     // =========================================================
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-                <span>Cargando dispositivos...</span>
-            </div>
+            <Loader/>
         )
     }
 

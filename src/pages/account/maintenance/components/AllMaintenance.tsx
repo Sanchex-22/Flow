@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { mutate } from "swr"
 import DeleteConfirmationModal from "./deleteModal"
+import Loader from "../../../../components/loaders/loader"
 const { VITE_API_URL } = import.meta.env
 
 interface SubRoutesProps {
@@ -258,7 +259,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
   }, 0)
 
   if (loading) {
-    return <div className="text-center p-8">Cargando...</div>
+    return <Loader/>
   }
 
   if (error) {

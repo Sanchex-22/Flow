@@ -1,10 +1,8 @@
 // CompanySelectorComponent.tsx
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Importa useLocation
 import { useCompany } from '../../context/routerContext';
-// CORRECTED IMPORT PATH
+import { useCallback } from 'react';
 
-// You don't need to redefine the Company interface here if it's already in CompanyContext.jsx
-// but if it's used elsewhere, keep it consistent.
 export interface Company {
   id: string;
   code: string;
@@ -25,24 +23,26 @@ export interface Company {
   };
 }
 
-// Remove CompanyProps, as companies will come from context
-// type CompanyProps = {
-//   companies?: Company[];
-// };
-
-// Adjust the component signature: no longer receiving companies as a prop
 const CompanySelectorComponent: React.FC = () => {
-  // Get companies, selectedCompany, and handleCompanyChange from the context
   const { selectedCompany, handleCompanyChange, companies } = useCompany();
   const navigate = useNavigate();
+  const location = useLocation(); // Usa useLocation para obtener la ruta actual
 
-  const handleChangeAndNavigate = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChangeAndNavigate = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
     handleCompanyChange(event);
     const newCompanyCode = event.target.value;
-    // Log the actual selected company code to confirm
     console.log("New Company Code selected:", newCompanyCode);
-    navigate(`/${newCompanyCode}/dashboard/all`);
-  };
+    const currentPath = location.pathname;
+    const pathSegments = currentPath.split('/');
+
+    if (pathSegments.length >= 2) {
+      pathSegments[1] = newCompanyCode;
+      const newPath = pathSegments.join('/');
+      navigate(newPath);
+    } else {
+      navigate(`/${newCompanyCode}/dashboard/all`);
+    }
+  }, [handleCompanyChange, navigate, location.pathname]);
 
   return (
     <div className="p-4 border-b border-gray-800">
@@ -53,13 +53,12 @@ const CompanySelectorComponent: React.FC = () => {
         <select
           className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm appearance-none cursor-pointer hover:bg-gray-750 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleChangeAndNavigate}
-          value={selectedCompany ? selectedCompany.code : ''} // Use selectedCompany from context
+          value={selectedCompany ? selectedCompany.code : ''}
         >
-          {/* Use companies from context */}
           {companies && companies.length > 0 ? (
             companies.map((company) => (
-              <option key={company.id} value={company.code}>
-                {company.code}
+              <option key={company?.id} value={company?.code}>
+                {company?.name}
               </option>
             ))
           ) : (

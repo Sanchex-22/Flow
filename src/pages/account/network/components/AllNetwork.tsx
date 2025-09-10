@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useMemo, useRef } from "react"
 import useSWR, { mutate } from "swr"
 import DeleteConfirmationModal from "./deleteModal"
+import Loader from "../../../../components/loaders/loader"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -297,7 +298,7 @@ export default function AllNetwork() {
   // Renderizado condicional
   // ====================================
   if (isLoading) {
-    return <div className="text-white">Cargando conexiones...</div>
+    return <Loader/>
   }
 
   if (error) {
@@ -1055,7 +1056,6 @@ export default function AllNetwork() {
         </div>
       </div>
 
-      {/* Modal de confirmación */}
       <DeleteConfirmationModal
         isOpen={isModalOpen}
         onClose={closeDeleteModal}

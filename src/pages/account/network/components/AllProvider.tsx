@@ -3,6 +3,7 @@
 
 import { useState, useMemo } from "react";
 import useSWR from "swr";
+import Loader from "../../../../components/loaders/loader";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -169,7 +170,7 @@ const NetworkProvidersPage = () => {
     const renderTableContent = () => {
         if (isLoading) {
             return (
-                <div className="p-8 text-center text-gray-400">Cargando proveedores...</div>
+                <Loader/>
             );
         }
 

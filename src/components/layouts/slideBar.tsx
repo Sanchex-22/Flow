@@ -7,6 +7,7 @@ import { LogOut } from "lucide-react";
 import { InventoryIcon } from "../icons/icons";
 import CompanySelectorComponent from "../selector/CompanySelectorComponent";
 import { useCompany } from "../../context/routerContext";
+import { Link } from "react-router-dom";
 
 export interface Company {
   id: string;
@@ -102,24 +103,24 @@ const SlideBar: React.FC<DashboardProps> = ({
         {/* Navigation */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
-            {filteredNavLinks.length > 0 ? (
-              filteredNavLinks.map((link, index) => {
+            {filteredNavLinks?.length > 0 ? (
+              filteredNavLinks?.map((link, index) => {
                 const linkBase = link.href.split("/")[1] || "";
                 const isActive = baseRoute === linkBase;
 
                 return (
                   <li key={index}>
-                    <a
-                      href={`/${selectedCompany?.code || 'code'}${link.href}`}
+                    <Link
+                      to={`/${selectedCompany?.code || 'code'}${link?.href}`}
                       className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                         isActive
                           ? "bg-blue-600 text-white"
                           : "bg-gray-800 text-white hover:bg-gray-700"
                       }`}
                     >
-                      {link.icon || <InventoryIcon />}
-                      <span className="text-sm">{link.name}</span>
-                    </a>
+                      {link?.icon || <InventoryIcon />}
+                      <span className="text-sm">{link?.name}</span>
+                    </Link>
                   </li>
                 );
               })

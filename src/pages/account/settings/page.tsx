@@ -1,11 +1,32 @@
 "use client"
 
 import { useState } from "react"
+import { Company, useCompany } from "../../../context/routerContext"
+import useSWR from "swr";
+import Loader from "../../../components/loaders/loader";
+
+const { VITE_API_URL } = import.meta.env;
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("General")
   const [modoMantenimiento, setModoMantenimiento] = useState(false)
   const [autoAsignacionIds, setAutoAsignacionIds] = useState(true)
+  const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
+  const { data: departments, error: errorDepartments, isLoading: isLoadingDepartments } = useSWR( // Añadido isLoading
+    selectedCompany ? `${VITE_API_URL}/api/companies/${selectedCompany.code}/departments` : null,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      shouldRetryOnError: true,
+      errorRetryInterval: 5000,
+      errorRetryCount: 10,
+    }
+  );
+
+  if (errorDepartments) return <div>Error al cargar departamentos: {errorDepartments.message}</div>;
+  if (isLoadingDepartments || !departments) return <Loader/>; 
+
 
   const tabs = ["General", "Notificaciones", "Seguridad", "Integraciones", "Respaldo"]
 
@@ -24,9 +45,8 @@ export default function SettingsPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === tab ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white hover:bg-gray-700"
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === tab ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white hover:bg-gray-700"
+                }`}
             >
               {tab}
             </button>
@@ -64,7 +84,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Nombre de la Empresa</label>
                 <input
                   type="text"
-                  defaultValue="Mi Empresa S.A."
+                  value={selectedCompany?.name || "Cargando..."}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -73,7 +93,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Código de Empresa</label>
                 <input
                   type="text"
-                  defaultValue="EMP001"
+                  value={selectedCompany?.code || "Cargando..."}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -82,7 +102,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Dirección</label>
                 <textarea
                   rows={3}
-                  defaultValue="Av. Principal 123, Ciudad, País"
+                  value={selectedCompany?.address || "Cargando..."}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
@@ -91,7 +111,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
                 <input
                   type="tel"
-                  defaultValue="+1 234-567-8900"
+                  value={selectedCompany?.phone || "Cargando..."}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -100,7 +120,7 @@ export default function SettingsPage() {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                 <input
                   type="email"
-                  defaultValue="contacto@empresa.com"
+                  value={selectedCompany?.email || "Cargando..."}
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -182,14 +202,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => setModoMantenimiento(!modoMantenimiento)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    modoMantenimiento ? "bg-blue-600" : "bg-gray-600"
-                  }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${modoMantenimiento ? "bg-blue-600" : "bg-gray-600"
+                    }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      modoMantenimiento ? "translate-x-6" : "translate-x-1"
-                    }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${modoMantenimiento ? "translate-x-6" : "translate-x-1"
+                      }`}
                   />
                 </button>
               </div>
@@ -201,14 +219,12 @@ export default function SettingsPage() {
                 </div>
                 <button
                   onClick={() => setAutoAsignacionIds(!autoAsignacionIds)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    autoAsignacionIds ? "bg-blue-600" : "bg-gray-600"
-                  }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoAsignacionIds ? "bg-blue-600" : "bg-gray-600"
+                    }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      autoAsignacionIds ? "translate-x-6" : "translate-x-1"
-                    }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoAsignacionIds ? "translate-x-6" : "translate-x-1"
+                      }`}
                   />
                 </button>
               </div>

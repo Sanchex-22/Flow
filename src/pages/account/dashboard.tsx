@@ -1,29 +1,37 @@
-"use client"
+// src/pages/Dashboard.tsx
+"use client";
 import useSWR from "swr";
 import React from 'react';
-import { Company, useCompany } from "../../context/routerContext";
-const { VITE_API_URL } = import.meta.env;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { useCompany } from "../../context/routerContext";
+import Loader from "../../components/loaders/loader";
+const { VITE_API_URL } = import.meta.env; // Asegúrate de que VITE_API_URL esté definida en .env
+
+const fetcher = (url: string) => fetch(url).then((res) => {
+  if (!res.ok) {
+    throw new Error(`Error ${res.status}: ${res.statusText}`);
+  }
+  return res.json();
+});
 
 // Tipos para los datos de la API
-type Kpi = {
+export type Kpi = {
   count: number;
   change: number;
 };
 
-type InventoryCategory = {
+export type InventoryCategory = {
   name: string;
   count: number;
 };
 
-type RecentActivity = {
+export type RecentActivity = {
   type: string;
   description: string;
   date: string;
   icon: string;
 };
 
-type DashboardData = {
+export type DashboardData = {
   kpi: {
     totalEquipments: Kpi;
     pendingMaintenances: Kpi;
@@ -34,13 +42,13 @@ type DashboardData = {
   recentActivity: RecentActivity[];
 };
 
-type Subroutes = {
+export type Subroutes = {
   name: string;
   href: string;
 }
 
-type DashboardProps = {
-  subroutes: Subroutes[];
+export type DashboardProps = {
+  subroutes?: Subroutes[];
 }
 
 // Helper para formatear la fecha
@@ -94,29 +102,33 @@ const ActivityIcon: React.FC<{ icon: string }> = ({ icon }) => {
 
 
 const Dashboard: React.FC<DashboardProps> = () => {
-  const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
+  const { selectedCompany } = useCompany(); // Obtiene la empresa seleccionada del contexto
 
-  const { data: dashboardData, error, isLoading } = useSWR<DashboardData>( // <-- Tipado opcional para `data`
+  // La clave de useSWR dependerá de selectedCompany.id
+  // Si selectedCompany es null, la clave será null y useSWR no hará la petición.
+  const { data: dashboardData, error, isLoading, isValidating } = useSWR<DashboardData>(
     selectedCompany ? `${VITE_API_URL}/api/dashboard/${selectedCompany.id}` : null,
     fetcher,
     {
       revalidateOnFocus: true,
       shouldRetryOnError: true,
-      errorRetryInterval: 5000,
+      errorRetryInterval: 0,
       errorRetryCount: 10,
     }
   );
 
-  if (isLoading) {
-    return <div className="flex-1 p-6 text-center">Cargando dashboard...</div>;
+  // console.log("Dashboard rendering. Selected Company:", selectedCompany?.name, "Data:", dashboardData); // Para depuración
+
+  if (isLoading || isValidating) {
+    return <Loader/>;
   }
 
   if (error) {
-    return <div className="flex-1 p-6 text-center text-red-500">Error: {error}</div>;
+    return <div className="flex-1 p-6 text-center text-red-500">Error al cargar el dashboard: {error.message}</div>;
   }
 
   if (!dashboardData) {
-    return null;
+    return <div className="flex-1 p-6 text-center text-gray-400">No hay datos disponibles para el dashboard de esta empresa.</div>;
   }
   
   const totalInventoryCount = dashboardData.inventoryByCategory.reduce((sum, category) => sum + category.count, 0) || 1;
@@ -128,7 +140,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div className="flex-1 p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Dashboard IT - Empresa Principal S.A.</h1>
+          {/* Muestra el nombre de la empresa seleccionada del contexto */}
+          <h1 className="text-2xl font-bold">Dashboard IT - {selectedCompany?.name || 'Cargando...'}</h1>
           <button className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
             Generar Reporte
           </button>
@@ -240,11 +253,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Acciones Rápidas (Estático por ahora) */}
-         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-             {/* ... */}
         </div>
       </div>
     </>

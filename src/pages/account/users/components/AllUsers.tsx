@@ -2,6 +2,7 @@
 import type React from "react"
 import { useState, useEffect, useMemo } from "react"
 import useSWR, { mutate } from "swr"
+import Loader from "../../../../components/loaders/loader"
 
 const { VITE_API_URL } = import.meta.env
 
@@ -185,7 +186,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <span>Cargando usuarios...</span>
+        <Loader/>
       </div>
     )
   }
