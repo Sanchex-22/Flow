@@ -135,7 +135,7 @@ export default function AllNetwork() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
   const { selectedCompany } = useCompany();
-  const { data, error, isLoading } = useSWR<ApiNetworkDevice[]>(`${VITE_API_URL}/api/network/${selectedCompany?.id}/all`, fetcher)
+  const { data, isLoading } = useSWR<ApiNetworkDevice[]>(`${VITE_API_URL}/api/network/${selectedCompany?.id}/all`, fetcher)
   // ====================================
   // Manejo de modal
   // ====================================
