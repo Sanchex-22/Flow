@@ -3,6 +3,7 @@
 import useSWR, { mutate } from "swr"
 import { useEffect, useState } from "react"
 import Loader from "../../../../components/loaders/loader"
+import { useCompany } from "../../../../context/routerContext"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -53,21 +54,16 @@ interface DeleteConfirmation {
 }
 
 export default function AllDevices() {
-    // =========================================================
-    // CORRECCIÓN: Todos los Hooks se declaran al inicio del componente
-    // =========================================================
-    const { data, error, isLoading } = useSWR<CreateEquipmentData[]>(`${VITE_API_URL}/api/devices/all`, fetcher)
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedType, setSelectedType] = useState("Todos los...")
     const [activeTab, setActiveTab] = useState("Todos los Equipos")
-
-    // Estados para notificaciones
+    const { selectedCompany } = useCompany();
     const [notification, setNotification] = useState<Notification>({
         type: "success",
         message: "",
         show: false,
     })
-
+    const { data, error, isLoading } = useSWR<CreateEquipmentData[]>(`${VITE_API_URL}/api/devices/${selectedCompany?.id}/all`, fetcher)
     // Estados para el modal de confirmación
     const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({
         show: false,
@@ -104,18 +100,18 @@ export default function AllDevices() {
     }
     
     // El resto de la lógica y variables que dependen de `data` permanecen aquí
-    const equipos = data || []
+    const equipos = Array.isArray(data) ? data : [];
 
-    const filteredEquipos = equipos.filter(equipo => {
+    const filteredEquipos = equipos?.filter(equipo => {
         const searchTermLower = searchTerm.toLowerCase()
         const matchesSearch =
-            equipo.model.toLowerCase().includes(searchTermLower) ||
-            equipo.brand.toLowerCase().includes(searchTermLower) ||
-            equipo.serialNumber.toLowerCase().includes(searchTermLower) ||
-            equipo.assignedToUser?.person.fullName.toLowerCase().includes(searchTermLower) ||
-            equipo.plateNumber.toLowerCase().includes(searchTermLower)
+            equipo?.model?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.brand?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.serialNumber?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.assignedToUser?.person?.fullName?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
 
-        const matchesType = selectedType === "Todos los..." || equipo.type === selectedType
+        const matchesType = selectedType === "Todos los..." || equipo?.type === selectedType
 
         return matchesSearch && matchesType
     })
@@ -130,8 +126,8 @@ export default function AllDevices() {
             if (!equipo.warrantyDetails) return false;
             try {
                 // Evitar parsear fechas inválidas
-                if (isNaN(new Date(equipo.warrantyDetails).getTime())) return false;
-                const fechaGarantia = new Date(equipo.warrantyDetails);
+                if (isNaN(new Date(equipo?.warrantyDetails).getTime())) return false;
+                const fechaGarantia = new Date(equipo?.warrantyDetails);
                 return fechaGarantia <= proximos30Dias && fechaGarantia >= new Date();
             } catch (e) {
                 return false;
@@ -190,7 +186,7 @@ export default function AllDevices() {
         setDeleteConfirmation((prev) => ({ ...prev, isDeleting: true }))
 
         try {
-            const response = await fetch(`${VITE_API_URL}/api/devices/${deleteConfirmation.equipo.id}`, {
+            const response = await fetch(`${VITE_API_URL}/api/devices/${deleteConfirmation?.equipo?.id}`, {
                 method: "DELETE",
             })
 
@@ -199,8 +195,8 @@ export default function AllDevices() {
                 throw new Error(errorData.message || "Error al eliminar el equipo")
             }
 
-            mutate(`${VITE_API_URL}/api/devices/all`)
-            showNotification("success", `Equipo ${deleteConfirmation.equipo.model} eliminado exitosamente.`)
+            mutate(`${VITE_API_URL}/api/devices/${selectedCompany?.id}/all`)
+            showNotification("success", `Equipo ${deleteConfirmation?.equipo?.model} eliminado exitosamente.`)
             closeDeleteConfirmation()
         } catch (error: any) {
             console.error("Error al eliminar equipo:", error)
@@ -240,10 +236,10 @@ export default function AllDevices() {
                         <tr key={index} className="border-b border-gray-700 hover:bg-gray-750">
                             <td className="p-4">
                                 <div>
-                                    <div className="font-medium">{equipo.model || "N/A"}</div>
-                                    <div className="text-sm text-gray-400">{equipo.brand || "N/A"}</div>
+                                    <div className="font-medium">{equipo?.model || "N/A"}</div>
+                                    <div className="text-sm text-gray-400">{equipo?.brand || "N/A"}</div>
                                     <div className="text-xs text-gray-500 mt-1">
-                                        {equipo.plateNumber || "N/A"} | {equipo.serialNumber || "N/A"}
+                                        {equipo?.plateNumber || "N/A"} | {equipo?.serialNumber || "N/A"}
                                     </div>
                                 </div>
                             </td>
@@ -255,21 +251,21 @@ export default function AllDevices() {
                                         <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
                                     </svg>
                                     <div>
-                                        <div className="text-sm font-medium">{equipo.assignedToUser?.person.fullName || "Sin asignar"}</div>
+                                        <div className="text-sm font-medium">{equipo?.assignedToUser?.person?.fullName || "Sin asignar"}</div>
                                         <div className="flex items-center space-x-1 text-xs text-gray-400 mt-1">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
                                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                                                 <circle cx="12" cy="10" r="3" />
                                             </svg>
-                                            <span>{equipo.company.name || "N/A"}</span>
+                                            <span>{equipo?.company?.name || "N/A"}</span>
                                         </div>
-                                        <div className="text-xs text-gray-500 mt-1">{equipo.location || "N/A"}</div>
+                                        <div className="text-xs text-gray-500 mt-1">{equipo?.location || "N/A"}</div>
                                     </div>
                                 </div>
                             </td>
                             <td className="p-4">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(equipo.status || "Activo")}`}>
-                                    {equipo.status || "Activo"}
+                                    {equipo?.status || "Activo"}
                                 </span>
                             </td>
                             <td className="p-4">
@@ -280,13 +276,13 @@ export default function AllDevices() {
                                         <line x1="8" y1="2" x2="8" y2="6" />
                                         <line x1="3" y1="10" x2="21" y2="10" />
                                     </svg>
-                                    <span>{equipo.warrantyDetails || "N/A"}</span>
+                                    <span>{equipo?.warrantyDetails || "N/A"}</span>
                                 </div>
                             </td>
-                            <td className="p-4 text-sm font-medium">{equipo.cost || "N/A"}</td>
+                            <td className="p-4 text-sm font-medium">{equipo?.cost || "N/A"}</td>
                             <td className="p-4">
                                 <div className="flex space-x-2">
-                                    <a href={`edit/${equipo.id}`} className="p-1 text-gray-400 hover:text-white transition-colors">
+                                    <a href={`edit/${equipo?.id}`} className="p-1 text-gray-400 hover:text-white transition-colors">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
