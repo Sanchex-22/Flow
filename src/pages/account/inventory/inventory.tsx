@@ -18,6 +18,7 @@ interface Equipment {
   status: string;
   cost?: number | null;
 }
+const { VITE_API_URL } = import.meta.env
 
 export default function Inventory() {
   const [inventory, setInventory] = useState<Equipment[] | { message: string }>([]);
@@ -91,7 +92,7 @@ export default function Inventory() {
       formData.append("csvFile", file);
 
       const res = await fetch(
-        `http://localhost:3000/api/inventory/${selectedCompany.id}/inventory/import`,
+        `${VITE_API_URL}/api/inventory/${selectedCompany.id}/inventory/import`,
         {
           method: "POST",
           body: formData,
@@ -124,7 +125,7 @@ export default function Inventory() {
     if (!confirm("¿Estás seguro de que deseas eliminar este equipo?")) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/inventory/${selectedCompany?.id}/inventory/${id}`, {
+      const res = await fetch(`${VITE_API_URL}/api/inventory/${selectedCompany?.id}/inventory/${id}`, {
         method: "DELETE",
       });
 
@@ -141,7 +142,7 @@ export default function Inventory() {
     if (!editingEquipment) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/inventory/${selectedCompany?.id}/inventory/${editingEquipment.id}`, {
+      const res = await fetch(`${VITE_API_URL}/api/inventory/${selectedCompany?.id}/inventory/${editingEquipment.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -173,7 +174,7 @@ export default function Inventory() {
     if (!selectedCompany?.id) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/inventory/${selectedCompany?.id}/inventory/create`, {
+      const res = await fetch(`${VITE_API_URL}/api/inventory/${selectedCompany?.id}/inventory/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
