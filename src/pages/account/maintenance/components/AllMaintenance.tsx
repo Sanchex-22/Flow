@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { mutate } from "swr"
 import DeleteConfirmationModal from "./deleteModal"
 import Loader from "../../../../components/loaders/loader"
+import { useCompany } from "../../../../context/routerContext"
 const { VITE_API_URL } = import.meta.env
 
 interface SubRoutesProps {
@@ -56,7 +57,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceFrontend | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-
+  const { selectedCompany } = useCompany();
   // ====================================
   // Manejo de modal
   // ====================================
@@ -77,12 +78,12 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
     setIsDeleting(true)
 
     try {
-      const res = await fetch(`${VITE_API_URL}/api/maintenances/${selectedMaintenance.id}`, {
+      const res = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany?.id}/${selectedMaintenance.id}`, {
         method: "DELETE",
       })
       if (!res.ok) throw new Error("Error al eliminar conexión")
 
-      mutate(`${VITE_API_URL}/api/maintenances/all`)
+      mutate(`${VITE_API_URL}/api/maintenances/${selectedCompany?.id}/all`)
       setIsDeleting(false)
       closeDeleteModal()
     } catch (err) {
@@ -91,26 +92,31 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
     }
   }
 
-  useEffect(() => {
-    const fetchMaintenances = async () => {
-      try {
-        // Asume que tu API está en /api/maintenances
-        const response = await fetch(`${VITE_API_URL}/api/maintenances/all`)
-        if (!response.ok) {
-          throw new Error("Error al obtener los datos de mantenimiento")
-        }
-        const data: MaintenanceBackend[] = await response.json()
-        const mappedData = data.map(mapApiToFrontend)
-        setMaintenanceData(mappedData)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
+useEffect(() => {
+  if (!selectedCompany?.id) return;
 
-    fetchMaintenances()
-  }, [])
+  const fetchMaintenances = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany.id}/all`);
+      if (!response.ok) {
+        throw new Error("Error al obtener los datos de mantenimiento");
+      }
+
+      const data: MaintenanceBackend[] = await response.json();
+      const mappedData = data.map(mapApiToFrontend);
+      setMaintenanceData(mappedData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchMaintenances();
+}, [selectedCompany?.id]);  
+
 
   // Función para mapear los datos del backend al formato del frontend
   const mapApiToFrontend = (

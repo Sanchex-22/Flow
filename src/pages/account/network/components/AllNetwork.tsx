@@ -6,6 +6,7 @@ import { useState, useMemo, useRef } from "react"
 import useSWR, { mutate } from "swr"
 import DeleteConfirmationModal from "./deleteModal"
 import Loader from "../../../../components/loaders/loader"
+import { useCompany } from "../../../../context/routerContext"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -110,8 +111,6 @@ const mapApiDataToFrontend = (item: ApiNetworkDevice): FrontendNetworkConnection
 // Componente principal
 // ====================================
 export default function AllNetwork() {
-  const { data, error, isLoading } = useSWR<ApiNetworkDevice[]>(`${VITE_API_URL}/api/network/all`, fetcher)
-
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("Todos los tipos")
   const [activeView, setActiveView] = useState<"lista" | "topologia">("lista")
@@ -135,7 +134,8 @@ export default function AllNetwork() {
   const [hoveredDevice, setHoveredDevice] = useState<any>(null)
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const svgRef = useRef<SVGSVGElement>(null)
-
+  const { selectedCompany } = useCompany();
+  const { data, error, isLoading } = useSWR<ApiNetworkDevice[]>(`${VITE_API_URL}/api/network/${selectedCompany?.id}/all`, fetcher)
   // ====================================
   // Manejo de modal
   // ====================================
@@ -156,12 +156,12 @@ export default function AllNetwork() {
     setIsDeleting(true)
 
     try {
-      const res = await fetch(`${VITE_API_URL}/api/network/${selectedConnection.id}`, {
+      const res = await fetch(`${VITE_API_URL}/api/network/${selectedCompany?.id}/${selectedConnection.id}`, {
         method: "DELETE",
       })
       if (!res.ok) throw new Error("Error al eliminar conexión")
 
-      mutate(`${VITE_API_URL}/api/network/all`)
+      mutate(`${VITE_API_URL}/api/network/${selectedCompany?.id}/all`)
       setIsDeleting(false)
       closeDeleteModal()
     } catch (err) {
@@ -294,20 +294,10 @@ export default function AllNetwork() {
     return current
   }, [conexiones, filterType, searchTerm])
 
-  // ====================================
-  // Renderizado condicional
-  // ====================================
   if (isLoading) {
     return <Loader/>
   }
 
-  if (error) {
-    return <div className="text-red-500">Error al cargar conexiones</div>
-  }
-
-  // ====================================
-  // Render principal
-  // ====================================
   return (
     <>
       <div className="min-h-screen bg-slate-900 text-gray-100">
