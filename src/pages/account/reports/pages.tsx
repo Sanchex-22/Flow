@@ -141,15 +141,6 @@ export default function ReportsPage() {
       }
     })
   }, [data])
-
-  const reportesRapidos = [
-    { titulo: "Inventario Actual", icono: "cube" },
-    { titulo: "Mantenimientos Mes", icono: "wrench" },
-    { titulo: "Asignaciones Activas", icono: "users" },
-    { titulo: "Costos Mensuales", icono: "dollar" },
-  ]
-
-  // --- MANEJADORES DE EVENTOS PARA BOTONES ---
   const handleViewReport = (reporte: Report) => {
     setSelectedReport(reporte)
     setIsModalOpen(true)

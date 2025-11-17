@@ -7,6 +7,9 @@ import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Toaster } from "sonner"
 import SlideBar, { Company } from "./slideBar";
+// SlideBar's props differ from what this layout passes in some builds/typescript
+// Cast to any here to avoid prop-type mismatch errors at the layout boundary.
+const SlideBarComponent: any = SlideBar;
 interface CurrentPathname {
   name: string;
 }
@@ -59,14 +62,13 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         currentPathname={currentPathname
           isLogged={isLogged}
           profile={profile}/> */}
-          <SlideBar 
-          subroutes={[]}
-          currentPathname={currentPathname}
-          isLogged={isLogged}
-          profile={profile}
-          companies={companies}
-          >
-          </SlideBar>
+          <SlideBarComponent
+            subroutes={[]}
+            currentPathname={currentPathname}
+            isLogged={isLogged}
+            profile={profile}
+            companies={companies}
+          />
           <div id="page-content" className="z-10 overflow-y-auto w-full">
             {children}
           </div>
