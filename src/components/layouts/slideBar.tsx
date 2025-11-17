@@ -7,7 +7,7 @@ import { LogOut } from "lucide-react";
 import { InventoryIcon } from "../icons/icons";
 import CompanySelectorComponent from "../selector/CompanySelectorComponent";
 import { useCompany } from "../../context/routerContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Importa useLocation
 
 export interface Company {
   id: string;
@@ -34,27 +34,23 @@ type Subroutes = {
   href: string;
 };
 
-interface CurrentPathname {
-  name: string;
-}
-
 type DashboardProps = {
-  subroutes: Subroutes[];
-  currentPathname: CurrentPathname;
+  subroutes?: Subroutes[];
   isLogged: boolean;
   profile: UserProfile | null;
   companies?: Company[];
 };
 
 const SlideBar: React.FC<DashboardProps> = ({
-  currentPathname,
   profile,
 }) => {
   const { logout } = useUser();
   const { selectedCompany } = useCompany();
-  const location = currentPathname.name || "";
+  const location = useLocation();
 
-  const baseRoute = location.split("/")[2] || "";
+  const currentPathSegments = location.pathname.split("/").filter(Boolean);
+  const baseRoute = currentPathSegments.length > 1 ? currentPathSegments[1] : "";
+  console.log("Current Base Route (from useLocation):", baseRoute);
 
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
   const filteredNavLinks =
@@ -72,7 +68,6 @@ const SlideBar: React.FC<DashboardProps> = ({
             : undefined,
       }))
     ) || [];
-
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex h-[90vh]">
@@ -96,16 +91,14 @@ const SlideBar: React.FC<DashboardProps> = ({
             <h2 className="text-lg font-bold">Sistema IT</h2>
           </div>
         </div>
-
-        {/* Company Selector */}
-        <CompanySelectorComponent/>
-
-        {/* Navigation */}
+        <CompanySelectorComponent />
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
             {filteredNavLinks?.length > 0 ? (
               filteredNavLinks?.map((link, index) => {
-                const linkBase = link.href.split("/")[1] || "";
+                const linkBase = link.href.split("/").filter(Boolean)[0] || "";
+                console.log("Link Base (for link):", linkBase);
+
                 const isActive = baseRoute === linkBase;
 
                 return (
@@ -134,15 +127,20 @@ const SlideBar: React.FC<DashboardProps> = ({
 
         {/* Footer / Help */}
         <div className="p-4 border-t border-gray-800 flex flex-col space-y-2">
-          <a
-            href={`/${selectedCompany?.code || 'code'}/profile/1`}
-            className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+          {/* Aquí también podemos aplicar la lógica de activo si queremos resaltar el perfil */}
+          <Link
+            to={`/${selectedCompany?.code || 'code'}/profile/1`}
+            className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+              baseRoute === "profile" // Compara si la ruta base actual es "profile"
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:bg-gray-800 hover:text-white"
+            }`}
           >
             <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold">
-              N
+              {profile?.username ? profile.username[0].toUpperCase() : "U"}
             </div>
             <span className="text-sm">{profile?.username || "user"}</span>
-          </a>
+          </Link>
 
           <button
             className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"

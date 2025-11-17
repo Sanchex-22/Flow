@@ -24,6 +24,7 @@ interface CreateUserData {
   phoneNumber: string
   department: string // This will hold the department ID for the form
   position: string
+  userCode?: string
 }
 
 interface Props {
@@ -105,13 +106,14 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
           }
           // Cast the fetched data to UsuarioFull interface
           const userData: UsuarioFull = await response.json()
-
+          console.log("Fetched user data:", userData)
           // Populate form data with fetched user data, accessing nested 'person' properties
           setFormData({
             username: userData.username,
             email: userData.email,
             password: "", // Password should not be pre-filled for security
             role: userData.role,
+            userCode: userData?.person?.userCode || "",
             companyId: userData.companyId || "", // Handle potential null companyId
             firstName: userData.person.firstName,
             lastName: userData.person.lastName,
@@ -195,7 +197,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     setIsLoading(true)
     const isEditing = !!userID
     const method = isEditing ? "PUT" : "POST"
-    const endpoint = isEditing ? `${VITE_API_URL}/api/users/${userID}` : `${VITE_API_URL}/api/users/create`
+    const endpoint = isEditing ? `${VITE_API_URL}/api/users/edit/${userID}` : `${VITE_API_URL}/api/users/create`
 
     try {
       // Build the payload for the API
@@ -212,6 +214,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
         position: formData.position,
         status: "Activo", // Assuming status is always "Activo"
         departmentId: formData.department, // Send department ID
+        userCode: formData.userCode || "", // Include userCode if available
       }
 
       // Only include password if it's a new user or if it's provided for an update

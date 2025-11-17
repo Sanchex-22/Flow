@@ -36,6 +36,8 @@ import { CompanySelector } from "../pages/account/companies/companies";
 import ProtectedCompanyRoute from "./protectedCompanyRoute";
 import NetworkProvidersPage from "../pages/account/network/components/AllProvider";
 import UpdateNetworkProviderPage from "../pages/account/network/components/updateNetworkProvider";
+import TicketPage from "../pages/account/tickets/page";
+import AllTickets from "../pages/account/tickets/components/AllTickets";
 
 // Tipado de usuario
 export interface User {
@@ -383,6 +385,41 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         }
       >
         <Route path="all" element={<></>} />
+      </Route>
+
+      <Route
+        path={`/:${code}/tickets/*`}
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="tickets"
+              description="tickets"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <TicketPage
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "reports")
+                //     ?.subroutes || []
+                // }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<AllTickets></AllTickets>} />
       </Route>
 
       <Route

@@ -274,19 +274,6 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      <div>
-        <h2 className="text-xl font-bold mb-2">Reportes Rápidos</h2>
-        <p className="text-gray-400 text-sm mb-6">Genera reportes instantáneos con datos actuales</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {reportesRapidos.map((reporte, index) => (
-            <button key={index} className="bg-gray-800 hover:bg-gray-700 rounded-lg p-6 text-center transition-colors border border-gray-700">
-              <div className="w-8 h-8 mx-auto mb-3 text-gray-400">{getIcon(reporte.icono)}</div>
-              <span className="text-sm font-medium">{reporte.titulo}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       <ReportModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
