@@ -13,6 +13,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage({ userId }: ProfilePageProps) {
   // Datos del usuario desde el JSON proporcionado
+  console.log("Fetching profile for user ID in ProfilePage:", userId)
   const { data, error, isLoading } = useSWR(`${VITE_API_URL}/api/users/profile/${userId}`, fetcher)
     console.log("User Data:", data)
   // Show loading or error states
@@ -79,37 +80,6 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      {/* Top Header */}
-      <div className="bg-gray-100 text-gray-900 p-4 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-6 h-6">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-full h-full text-blue-600"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-semibold text-blue-600">Perfil de Usuario</h3>
-            <p className="text-sm text-gray-600">Información personal y configuración de cuenta</p>
-          </div>
-        </div>
-        <div className="w-80">
-          <input
-            type="text"
-            placeholder=""
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
-      {/* Main Content */}
       <div className="p-6">
         {/* Profile Header */}
         <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 mb-8">
@@ -117,23 +87,23 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
             <div className="flex items-center space-x-6">
               {/* Avatar */}
               <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                {getInitials(formatValue(userData.person.fullName))}
+                {getInitials(formatValue(userData?.person?.fullName))}
               </div>
 
               {/* Basic Info */}
               <div>
-                <h1 className="text-3xl font-bold mb-2">{formatValue(userData.person.fullName)}</h1>
-                <p className="text-gray-400 text-lg mb-3">{formatValue(userData.person.position)}</p>
+                <h1 className="text-3xl font-bold mb-2">{formatValue(userData?.person?.fullName)}</h1>
+                <p className="text-gray-400 text-lg mb-3">{formatValue(userData?.person?.position)}</p>
                 <div className="flex items-center space-x-4">
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleBadge(userData.role)}`}
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleBadge(userData?.role)}`}
                   >
-                    {userData.role.replace("_", " ")}
+                    {userData?.role?.replace("_", " ")}
                   </span>
                   <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(userData.person.status, userData.isActive)}`}
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(userData?.person?.status, userData?.isActive)}`}
                   >
-                    {userData.isActive ? userData.person.status : "Inactivo"}
+                    {userData?.isActive ? userData?.person?.status : "Inactivo"}
                   </span>
                 </div>
               </div>
@@ -184,27 +154,27 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Nombre</label>
-                  <p className="text-white">{formatValue(userData.person.firstName)}</p>
+                  <p className="text-white">{formatValue(userData?.person?.firstName)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Apellido</label>
-                  <p className="text-white">{formatValue(userData.person.lastName)}</p>
+                  <p className="text-white">{formatValue(userData?.person?.lastName)}</p>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Nombre Completo</label>
-                <p className="text-white">{formatValue(userData.person.fullName)}</p>
+                <p className="text-white">{formatValue(userData?.person?.fullName)}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Código de Usuario</label>
-                <p className="text-white font-mono">{formatValue(userData.person.userCode)}</p>
+                <p className="text-white font-mono">{formatValue(userData?.person?.userCode)}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">ID de Usuario</label>
-                <p className="text-white font-mono text-sm">{formatValue(userData.id)}</p>
+                <p className="text-white font-mono text-sm">{formatValue(userData?.id)}</p>
               </div>
             </div>
           </div>
@@ -241,7 +211,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                     <polyline points="22,6 12,13 2,6" />
                   </svg>
-                  <p className="text-white">{formatValue(userData.email)}</p>
+                  <p className="text-white">{formatValue(userData?.email)}</p>
                 </div>
               </div>
 
@@ -258,7 +228,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                     <polyline points="22,6 12,13 2,6" />
                   </svg>
-                  <p className="text-white">{formatValue(userData.person.contactEmail)}</p>
+                  <p className="text-white">{formatValue(userData?.person?.contactEmail)}</p>
                 </div>
               </div>
 
@@ -274,13 +244,13 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                   >
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                   </svg>
-                  <p className="text-white">{formatValue(userData.person.phoneNumber)}</p>
+                  <p className="text-white">{formatValue(userData?.person?.phoneNumber)}</p>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Nombre de Usuario</label>
-                <p className="text-white font-mono">{formatValue(userData.username)}</p>
+                <p className="text-white font-mono">{formatValue(userData?.username)}</p>
               </div>
             </div>
           </div>
@@ -307,35 +277,35 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Departamento</label>
-                <p className="text-white">{formatValue(userData.person.department.description)}</p>
+                <p className="text-white">{formatValue(userData?.person?.department.description)}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Posición</label>
-                <p className="text-white">{formatValue(userData.person.position)}</p>
+                <p className="text-white">{formatValue(userData?.person?.position)}</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Rol del Sistema</label>
                 <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleBadge(userData.role)}`}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleBadge(userData?.role)}`}
                 >
-                  {userData.role.replace("_", " ")}
+                  {userData?.role?.replace("_", " ")}
                 </span>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Estado</label>
                 <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(userData.person.status, userData.isActive)}`}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(userData?.person?.status, userData?.isActive)}`}
                 >
-                  {userData.isActive ? userData.person.status : "Inactivo"}
+                  {userData?.isActive ? userData?.person?.status : "Inactivo"}
                 </span>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">ID de Empresa</label>
-                <p className="text-white">{userData.companyId || "No asignada"}</p>
+                <p className="text-white">{userData?.companyId || "No asignada"}</p>
               </div>
             </div>
           </div>
@@ -375,7 +345,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                     <line x1="8" y1="2" x2="8" y2="6" />
                     <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
-                  <p className="text-white">{formatValue(formatDate(userData.createdAt))}</p>
+                  <p className="text-white">{formatValue(formatDate(userData?.createdAt))}</p>
                 </div>
               </div>
 
@@ -394,13 +364,13 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                     <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
                     <path d="M8 16H3v5" />
                   </svg>
-                  <p className="text-white">{formatValue(formatDate(userData.updatedAt))}</p>
+                  <p className="text-white">{formatValue(formatDate(userData?.updatedAt))}</p>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">ID de Persona</label>
-                <p className="text-white font-mono text-sm">{formatValue(userData.person.id)}</p>
+                <p className="text-white font-mono text-sm">{formatValue(userData?.person?.id)}</p>
               </div>
 
               <div>
@@ -430,7 +400,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                       <line x1="9" y1="9" x2="15" y2="15" />
                     </svg>
                   )}
-                  <p className="text-white">{userData.isActive ? "Sí" : "No"}</p>
+                  <p className="text-white">{userData?.isActive ? "Sí" : "No"}</p>
                 </div>
               </div>
             </div>
