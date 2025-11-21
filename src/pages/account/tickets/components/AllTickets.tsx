@@ -12,6 +12,9 @@ export default function Home() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  // users list and current user id to satisfy CreateTicketModal props
+  const [users, setUsers] = useState<any[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string>("")
 
   // const [tickets, setTickets] = useState<Ticket[]>(mockTickets)
   // useEffect(() => {
@@ -20,15 +23,31 @@ export default function Home() {
   //     .then(data => setTickets(data))
   // }, [])
 
-  const handleCreateTicket = (newTicketData: Omit<Ticket, "id" | "createdAt" | "updatedAt">) => {
-    const newTicket: Ticket = {
-      ...newTicketData,
-      id: `TKT-${String(tickets.length + 1).padStart(3, "0")}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+const handleCreateTicket = async (newTicketData: Omit<Ticket, "id" | "createdAt" | "updatedAt">) => {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tickets/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(newTicketData),
+    })
+
+    if (!res.ok) {
+      console.error("Error al crear ticket:", await res.text())
+      return
     }
-    setTickets([newTicket, ...tickets])
+
+    const savedTicket = await res.json()
+
+    // añadir al estado para reflejarlo inmediatamente en la UI
+    setTickets([savedTicket, ...tickets])
+
+  } catch (err) {
+    console.error("Error de conexión:", err)
   }
+}
+
 
   const openDeleteModal = (ticket: Ticket) => {
     setSelectedTicket(ticket)
@@ -333,6 +352,8 @@ export default function Home() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreateTicket={handleCreateTicket}
+        currentUserId={currentUserId}
+        users={users}
       />
 
       <DeleteConfirmationModal

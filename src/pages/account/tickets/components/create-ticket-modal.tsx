@@ -1,183 +1,158 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { X, Plus } from "lucide-react"
-import { Ticket } from "../../../../utils/ticketFull"
+import { useState } from "react";
+import { X, Plus } from "lucide-react";
 
 interface CreateTicketModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onCreateTicket: (ticket: Omit<Ticket, "id" | "createdAt" | "updatedAt">) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onCreateTicket: (ticket: any) => void;
+  currentUserId: string;
+  users: any[];
 }
 
-export function CreateTicketModal({ isOpen, onClose, onCreateTicket }: CreateTicketModalProps) {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium")
-  const [userName, setUserName] = useState("")
-  const [userEmail, setUserEmail] = useState("")
-  const [companyName, setCompanyName] = useState("")
-  const [assignedTo, setAssignedTo] = useState("")
-  const [tags, setTags] = useState("")
+export function CreateTicketModal({
+  isOpen,
+  onClose,
+  onCreateTicket,
+  currentUserId,
+  users
+}: CreateTicketModalProps) {
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    img: "",
+    comment: "",
+    type: "ticket",
+    priority: "medium",
+    status: "open",
+    startDate: "",
+    endDate: "",
+    requestDays: "",
+    approvedDays: "",
+    reviewed: false,
+    view: false,
+    sendToId: "",
+  });
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
+
+  const updateField = (key: string, value: any) =>
+    setForm(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const newTicket: Omit<Ticket, "id" | "createdAt" | "updatedAt"> = {
-      title,
-      description,
-      status: "open",
-      priority,
-      userId: "", // Se puede generar o asignar desde la API
-      userName,
-      userEmail,
-      companyId: "", // Se puede generar o asignar desde la API
-      companyName,
-      assignedTo: assignedTo || undefined,
-      tags: tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-    }
+    const payload = {
+      title: form.title,
+      description: form.description,
+      img: form.img || null,
+      comment: form.comment || null,
+      type: form.type,
+      priority: form.priority,
+      status: form.status,
+      startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
+      endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
+      requestDays: Number(form.requestDays) || 0,
+      approvedDays: Number(form.approvedDays) || 0,
+      reviewed: String(form.reviewed),
+      view: form.view,
+      sendById: currentUserId,
+      sendToId: form.sendToId || null,
+    };
 
-    onCreateTicket(newTicket)
+    onCreateTicket(payload);
+    onClose();
+  };
 
-    // Reset form
-    setTitle("")
-    setDescription("")
-    setPriority("medium")
-    setUserName("")
-    setUserEmail("")
-    setCompanyName("")
-    setAssignedTo("")
-    setTags("")
-    onClose()
-  }
+  const inputClass = "w-full rounded-md border border-gray-400 bg-white text-black px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card border border-border rounded-lg shadow-2xl">
-        {/* Header */}
-        <div className="sticky top-0 bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-gray-300 overflow-hidden">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300 bg-white">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Plus className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Plus className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground">Crear Nuevo Ticket</h2>
-              <p className="text-sm text-muted-foreground">Completa la información del ticket</p>
+              <h2 className="text-lg font-semibold text-black">Crear Ticket</h2>
+              <p className="text-sm text-gray-600">Ingresa los datos del ticket</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-10 w-10 rounded-full hover:bg-accent flex items-center justify-center transition-colors"
-          >
-            <X className="h-5 w-5" />
+          <button onClick={onClose} className="hover:bg-gray-200 rounded-full p-2 transition">
+            <X className="h-5 w-5 text-black" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Title */}
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium text-foreground block">
-              Título del Ticket *
-            </label>
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Título */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Título *</label>
             <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej: Error en el sistema de autenticación"
+              value={form.title}
+              onChange={(e) => updateField("title", e.target.value)}
+              className={inputClass}
               required
-              className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
           </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-foreground block">
-              Descripción *
-            </label>
+          {/* Descripción */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Descripción *</label>
             <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe el problema o solicitud en detalle..."
-              required
               rows={4}
-              className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
+              value={form.description}
+              onChange={(e) => updateField("description", e.target.value)}
+              className={`${inputClass} resize-none`}
+              required
             />
           </div>
 
-          {/* User Info Row */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* User Name */}
-            <div className="space-y-2">
-              <label htmlFor="userName" className="text-sm font-medium text-foreground block">
-                Nombre del Usuario *
-              </label>
-              <input
-                id="userName"
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="Ej: Juan Pérez"
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-              />
-            </div>
-
-            {/* User Email */}
-            <div className="space-y-2">
-              <label htmlFor="userEmail" className="text-sm font-medium text-foreground block">
-                Email del Usuario *
-              </label>
-              <input
-                id="userEmail"
-                type="email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                placeholder="Ej: juan@empresa.com"
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-              />
-            </div>
+          {/* Imagen URL */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Imagen (URL)</label>
+            <input
+              value={form.img}
+              onChange={(e) => updateField("img", e.target.value)}
+              className={inputClass}
+              placeholder="https://..."
+            />
           </div>
 
-          {/* Company and Priority Row */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Company Name */}
-            <div className="space-y-2">
-              <label htmlFor="companyName" className="text-sm font-medium text-foreground block">
-                Compañía *
-              </label>
-              <input
-                id="companyName"
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Ej: Acme Corporation"
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-              />
-            </div>
+          {/* Comentario */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Comentario</label>
+            <input
+              value={form.comment}
+              onChange={(e) => updateField("comment", e.target.value)}
+              className={inputClass}
+              placeholder="Comentario opcional"
+            />
+          </div>
 
-            {/* Priority */}
-            <div className="space-y-2">
-              <label htmlFor="priority" className="text-sm font-medium text-foreground block">
-                Prioridad *
-              </label>
+          {/* Tipo */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Tipo *</label>
+            <select
+              value={form.type}
+              onChange={(e) => updateField("type", e.target.value)}
+              className={inputClass}
+            >
+              <option value="ticket">Ticket</option>
+              <option value="vacations">Vacaciones</option>
+              <option value="permission">Permiso</option>
+            </select>
+          </div>
+
+          {/* Prioridad / Estado */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-black">Prioridad *</label>
               <select
-                id="priority"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent appearance-none cursor-pointer"
+                value={form.priority}
+                onChange={(e) => updateField("priority", e.target.value)}
+                className={inputClass}
               >
                 <option value="low">Baja</option>
                 <option value="medium">Media</option>
@@ -185,52 +160,114 @@ export function CreateTicketModal({ isOpen, onClose, onCreateTicket }: CreateTic
                 <option value="urgent">Urgente</option>
               </select>
             </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-black">Estado *</label>
+              <select
+                value={form.status}
+                onChange={(e) => updateField("status", e.target.value)}
+                className={inputClass}
+              >
+                <option value="open">Abierto</option>
+                <option value="pending">Pendiente</option>
+                <option value="in_process">En proceso</option>
+                <option value="resolved">Resuelto</option>
+              </select>
+            </div>
           </div>
 
-          {/* Assigned To */}
-          <div className="space-y-2">
-            <label htmlFor="assignedTo" className="text-sm font-medium text-foreground block">
-              Asignado a
-            </label>
+          {/* Fechas */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-black">Fecha inicio</label>
+              <input
+                type="date"
+                value={form.startDate}
+                onChange={(e) => updateField("startDate", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-black">Fecha final</label>
+              <input
+                type="date"
+                value={form.endDate}
+                onChange={(e) => updateField("endDate", e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          {/* Días solicitados */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Días solicitados</label>
             <input
-              id="assignedTo"
-              type="text"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              placeholder="Ej: Equipo de Backend"
-              className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              type="number"
+              value={form.requestDays}
+              onChange={(e) => updateField("requestDays", e.target.value)}
+              className={inputClass}
             />
           </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <label htmlFor="tags" className="text-sm font-medium text-foreground block">
-              Etiquetas
-            </label>
+          {/* Días aprobados */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Días aprobados</label>
             <input
-              id="tags"
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="Ej: bug, authentication, critical (separadas por comas)"
-              className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              type="number"
+              value={form.approvedDays}
+              onChange={(e) => updateField("approvedDays", e.target.value)}
+              className={inputClass}
             />
-            <p className="text-xs text-muted-foreground">Separa las etiquetas con comas</p>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+          {/* Asignar a */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-black">Asignar a</label>
+            <select
+              value={form.sendToId}
+              onChange={(e) => updateField("sendToId", e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Sin asignar</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.username}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Revisado + Visto */}
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-black">
+              <input
+                type="checkbox"
+                checked={form.reviewed}
+                onChange={(e) => updateField("reviewed", e.target.checked)}
+              />
+              Revisado
+            </label>
+            <label className="flex items-center gap-2 text-black">
+              <input
+                type="checkbox"
+                checked={form.view}
+                onChange={(e) => updateField("view", e.target.checked)}
+              />
+              Visto
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-300">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-input rounded-md text-foreground hover:bg-accent transition-colors"
+              className="border border-gray-400 text-black px-4 py-2 rounded-md hover:bg-gray-200"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={!title || !description || !userName || !userEmail || !companyName}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
             >
               Crear Ticket
             </button>
@@ -238,5 +275,5 @@ export function CreateTicketModal({ isOpen, onClose, onCreateTicket }: CreateTic
         </form>
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,5 @@
 
+import { TicketIcon } from "lucide-react";
 import { DashboardIcon, DevicesIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
@@ -69,6 +70,15 @@ const routesConfig = [
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
       { name: "Sales Reports", href: "/reports/all" },
+    ]
+  },
+  {
+    icon: TicketIcon,
+    name: "tickets",
+    href: "/tickets/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "Tickets", href: "/tickets/all" },
     ]
   },
   {
