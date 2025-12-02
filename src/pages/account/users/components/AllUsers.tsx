@@ -166,10 +166,10 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
       // Lógica de filtrado por estado
       const statusMatch =
         statusFilter === "Todos" ||
-        (statusFilter === "Activos" && user.isActive) ||
-        (statusFilter === "Inactivos" && !user.isActive) ||
-        (statusFilter === "Con Equipos" && user.person.status === "Con Equipos") ||
-        (statusFilter === "Sin Equipos" && user.person.status === "Sin Equipos")
+        (statusFilter === "Activos" && user?.isActive) ||
+        (statusFilter === "Inactivos" && !user?.isActive) ||
+        (statusFilter === "Con Equipos" && user.person?.status === "Con Equipos") ||
+        (statusFilter === "Sin Equipos" && user.person?.status === "Sin Equipos")
 
       // Lógica de búsqueda por término
       const searchMatch =
@@ -200,7 +200,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
   }
 
   const getStatusBadge = (user: UsuarioFull) => {
-    if (user.person.status === "Con Equipos") {
+    if (user.person?.status === "Con Equipos") {
       return "bg-blue-600 text-blue-100"
     }
     if (user.isActive) {
@@ -220,7 +220,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
       "bg-teal-600",
       "bg-red-600",
     ]
-    const index = nombre.length % colors.length
+    const index = nombre?.length % colors?.length
     return colors[index]
   }
 
@@ -284,7 +284,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
               </svg>
             </div>
           </div>
-          <div className="text-3xl font-bold mb-1">{data?.filter((u) => u.person.status === "Con Equipos").length || 0}</div>
+          <div className="text-3xl font-bold mb-1">{data?.filter((u) => u.person?.status === "Con Equipos").length || 0}</div>
           <div className="text-sm text-gray-400">Tienen equipos asignados</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -299,7 +299,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
             </div>
           </div>
           <div className="text-3xl font-bold mb-1">
-            {Array.from(new Set(data?.map((u) => u.person.department?.name).filter(Boolean))).length || 0}
+            {Array.from(new Set(data?.map((u) => u.person?.department?.name).filter(Boolean))).length || 0}
           </div>
           <div className="text-sm text-gray-400">Diferentes áreas</div>
         </div>
@@ -366,13 +366,13 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                   <td className="p-4">
                     <div className="flex items-center space-x-3">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(usuario.person.fullName)}`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(usuario?.person?.fullName)}`}
                       >
-                        {usuario.person.fullName.charAt(0).toUpperCase()}
+                        {usuario?.person?.fullName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-sm">{usuario.person.fullName}</div>
-                        <div className="text-xs text-gray-400">{usuario.id}</div>
+                        <div className="font-medium text-sm">{usuario?.person?.fullName}</div>
+                        <div className="text-xs text-gray-400">{usuario?.id}</div>
                       </div>
                     </div>
                   </td>
@@ -389,14 +389,14 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3 text-gray-400">
                           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                         </svg>
-                        <span>{usuario.person.phoneNumber}</span>
+                        <span>{usuario?.person?.phoneNumber}</span>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
                     <div>
-                      <div className="font-medium text-sm">{usuario.person.department?.name || "Sin departamento"}</div>
-                      <div className="text-xs text-gray-400">{usuario.person.position}</div>
+                      <div className="font-medium text-sm">{usuario.person?.department?.name || "Sin departamento"}</div>
+                      <div className="text-xs text-gray-400">{usuario.person?.position}</div>
                     </div>
                   </td>
                   <td className="p-4">

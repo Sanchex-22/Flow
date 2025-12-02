@@ -19,18 +19,18 @@ export function CreateTicketModal({
   currentUserId,
   users
 }: CreateTicketModalProps) {
+  // 1. MODIFICACIÓN DEL ESTADO INICIAL ⚙️
   const [form, setForm] = useState({
     title: "",
     description: "",
     img: "",
     comment: "",
-    type: "ticket",
-    priority: "medium",
-    status: "open",
+    type: "ticket", // Valores del Enum TicketType (minúsculas)
+    priority: "medium", // Valores del Enum TicketPriority (minúsculas)
+    status: "open", // Valores del Enum TicketStatus (minúsculas)
     startDate: "",
     endDate: "",
-    requestDays: "",
-    approvedDays: "",
+    // ELIMINADOS: requestDays, approvedDays
     reviewed: false,
     view: false,
     sendToId: "",
@@ -44,6 +44,7 @@ export function CreateTicketModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 2. MODIFICACIÓN DEL PAYLOAD DE ENVÍO (handleSubmit) 📦
     const payload = {
       title: form.title,
       description: form.description,
@@ -54,13 +55,13 @@ export function CreateTicketModal({
       status: form.status,
       startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
       endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
-      requestDays: Number(form.requestDays) || 0,
-      approvedDays: Number(form.approvedDays) || 0,
-      reviewed: String(form.reviewed),
+      // ELIMINADOS: requestDays y approvedDays del payload
+      reviewed: form.reviewed, // Enviando como booleano (Prisma lo maneja)
       view: form.view,
       sendById: currentUserId,
       sendToId: form.sendToId || null,
     };
+    
     console.log("Creating ticket with payload:", payload);
     onCreateTicket(payload);
     onClose();
@@ -71,7 +72,8 @@ export function CreateTicketModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-gray-300 overflow-hidden">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300 bg-white">
+        {/* ... Encabezado del Modal ... */}
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300 bg-white">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Plus className="h-5 w-5 text-blue-600" />
@@ -169,10 +171,14 @@ export function CreateTicketModal({
                 onChange={(e) => updateField("status", e.target.value)}
                 className={inputClass}
               >
+                {/* 3. MODIFICACIÓN DEL SELECT DE ESTADO (JSX) 👇 */}
                 <option value="open">Abierto</option>
                 <option value="pending">Pendiente</option>
-                <option value="in_process">En proceso</option>
+                <option value="in_process">En proceso</option>
+                <option value="approved">Aprobado</option> 
+                <option value="rejected">Rechazado</option>
                 <option value="resolved">Resuelto</option>
+                <option value="closed">Cerrado</option> 
               </select>
             </div>
           </div>
@@ -199,28 +205,9 @@ export function CreateTicketModal({
             </div>
           </div>
 
-          {/* Días solicitados */}
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-black">Días solicitados</label>
-            <input
-              type="number"
-              value={form.requestDays}
-              onChange={(e) => updateField("requestDays", e.target.value)}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Días aprobados */}
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-black">Días aprobados</label>
-            <input
-              type="number"
-              value={form.approvedDays}
-              onChange={(e) => updateField("approvedDays", e.target.value)}
-              className={inputClass}
-            />
-          </div>
-
+          {/* 🛑 ELIMINACIÓN DE CAMPOS OBSOLETOS 👇 */}
+          {/* Se eliminan los div de "Días solicitados" y "Días aprobados" */}
+          
           {/* Asignar a */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-black">Asignar a</label>
@@ -258,6 +245,7 @@ export function CreateTicketModal({
             </label>
           </div>
 
+          {/* ... Botones de acción ... */}
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-300">
             <button
               type="button"
