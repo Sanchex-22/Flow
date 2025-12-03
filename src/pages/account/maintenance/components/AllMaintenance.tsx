@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { mutate } from "swr"
+import * as XLSX from 'xlsx'
 import DeleteConfirmationModal from "./deleteModal"
 import Loader from "../../../../components/loaders/loader"
 import { useCompany } from "../../../../context/routerContext"
@@ -58,6 +59,44 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceFrontend | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const { selectedCompany } = useCompany();
+
+  // ====================================
+  // Función para exportar a Excel
+  // ====================================
+  const exportToExcel = () => {
+    const excelData = filteredMantenimientos.map((mantenimiento) => ({
+      'ID': mantenimiento.id,
+      'Equipo': mantenimiento.equipo,
+      'Serial del Equipo': mantenimiento.equipoId,
+      'Tipo': mantenimiento.tipo,
+      'Estado': mantenimiento.estado,
+      'Prioridad': mantenimiento.prioridad,
+      'Técnico Asignado': mantenimiento.tecnico,
+      'Fecha Programada': mantenimiento.fecha,
+      'Costo': mantenimiento.costo
+    }));
+
+    // Crear un libro de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Mantenimientos');
+
+    // Ajustar el ancho de las columnas automáticamente
+    const maxWidth = 50;
+    const columnWidths = Object.keys(excelData[0] || {}).map(key => {
+      const maxLength = Math.max(
+        key.length,
+        ...excelData.map(row => String(row[key as keyof typeof row]).length)
+      );
+      return { wch: Math.min(maxLength + 2, maxWidth) };
+    });
+    worksheet['!cols'] = columnWidths;
+
+    // Generar el archivo Excel
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `mantenimientos_${timestamp}.xlsx`);
+  };
+
   // ====================================
   // Manejo de modal
   // ====================================
@@ -92,30 +131,30 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
     }
   }
 
-useEffect(() => {
-  if (!selectedCompany?.id) return;
+  useEffect(() => {
+    if (!selectedCompany?.id) return;
 
-  const fetchMaintenances = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany.id}/all`);
-      if (!response.ok) {
-        throw new Error("Error al obtener los datos de mantenimiento");
+    const fetchMaintenances = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany.id}/all`);
+        if (!response.ok) {
+          throw new Error("Error al obtener los datos de mantenimiento");
+        }
+
+        const data: MaintenanceBackend[] = await response.json();
+        const mappedData = data.map(mapApiToFrontend);
+        setMaintenanceData(mappedData);
+        setError(null);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data: MaintenanceBackend[] = await response.json();
-      const mappedData = data.map(mapApiToFrontend);
-      setMaintenanceData(mappedData);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchMaintenances();
-}, [selectedCompany?.id]);  
+    fetchMaintenances();
+  }, [selectedCompany?.id]);  
 
 
   // Función para mapear los datos del backend al formato del frontend
@@ -281,7 +320,24 @@ useEffect(() => {
             Gestiona el mantenimiento preventivo y correctivo de equipos
           </p>
         </div>
-        <div>
+        <div className="flex space-x-3">
+          <button
+            onClick={exportToExcel}
+            className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="w-4 h-4"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Exportar</span>
+          </button>
           <a
             href="create"
             className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"

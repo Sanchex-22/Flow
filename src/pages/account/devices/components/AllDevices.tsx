@@ -1,7 +1,9 @@
+
 "use client"
 
 import useSWR, { mutate } from "swr"
 import { useEffect, useState } from "react"
+import * as XLSX from 'xlsx'
 import Loader from "../../../../components/loaders/loader"
 import { useCompany } from "../../../../context/routerContext"
 
@@ -81,10 +83,47 @@ export default function AllDevices() {
         }
     }, [notification.show])
 
+    // Función para exportar datos a Excel
+    const exportToExcel = () => {
+        const excelData = filteredEquipos.map((equipo) => ({
+            'Modelo': equipo?.model || 'N/A',
+            'Marca': equipo?.brand || 'N/A',
+            'Número de Placa': equipo?.plateNumber || 'N/A',
+            'Número de Serie': equipo?.serialNumber || 'N/A',
+            'Usuario Asignado': equipo?.assignedToUser?.person?.fullName || 'Sin asignar',
+            'Empresa': equipo?.company?.name || 'N/A',
+            'Ubicación': equipo?.location || 'N/A',
+            'Estado': equipo?.status || 'Activo',
+            'Garantía': equipo?.warrantyDetails || 'N/A',
+            'Costo': equipo?.cost || 'N/A',
+            'Tipo': equipo?.type || 'N/A',
+            'Fecha de Adquisición': equipo?.acquisitionDate || 'N/A'
+        }));
 
-    // =========================================================
-    // La lógica condicional de renderizado ahora está después de los Hooks
-    // =========================================================
+        // Crear un libro de trabajo
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Equipos');
+
+        // Ajustar el ancho de las columnas automáticamente
+        const maxWidth = 50;
+        const columnWidths = Object.keys(excelData[0] || {}).map(key => {
+            const maxLength = Math.max(
+                key.length,
+                ...excelData.map(row => String(row[key as keyof typeof row]).length)
+            );
+            return { wch: Math.min(maxLength + 2, maxWidth) };
+        });
+        worksheet['!cols'] = columnWidths;
+
+        // Generar el archivo Excel
+        const timestamp = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(workbook, `equipos_${timestamp}.xlsx`);
+        
+        // Mostrar notificación de éxito
+        showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} equipos.`);
+    };
+
     if (isLoading) {
         return (
             <Loader/>
@@ -359,7 +398,10 @@ export default function AllDevices() {
                     <p className="text-gray-400">Administra el ciclo de vida completo de los equipos tecnológicos</p>
                 </div>
                 <div className="flex space-x-3">
-                    <button className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <button 
+                        onClick={exportToExcel}
+                        className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                             <polyline points="7,10 12,15 17,10" />

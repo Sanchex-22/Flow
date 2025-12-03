@@ -10,7 +10,6 @@ const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 // --- TIPOS DE DATOS ---
-// Se añade 'reportKey' para identificar el reporte y 'apiData' para la descarga.
 export type Report = {
   id: number
   titulo: string
@@ -23,7 +22,6 @@ export type Report = {
   apiData: any[]
 }
 
-// Estructura esperada de la respuesta de la API
 export type ApiReport = {
   title: string
   type: string
@@ -36,7 +34,6 @@ type DashboardApiResponse = {
 
 // --- FUNCIONES DE AYUDA (HELPERS) ---
 
-// Mapeo para añadir metadatos (descripción, icono) a los reportes de la API
 const reportMetadata: { [key: string]: { descripcion: string; icono: string; estado: "Actualizado" | "Pendiente" } } = {
   inventoryReport: { descripcion: "Distribución de equipos por tipo y estado", icono: "cube", estado: "Actualizado" },
   maintenanceCostsReport: { descripcion: "Análisis de gastos en mantenimiento mensual", icono: "dollar", estado: "Actualizado" },
@@ -46,7 +43,6 @@ const reportMetadata: { [key: string]: { descripcion: string; icono: string; est
   itPerformanceReport: { descripcion: "Métricas de eficiencia y productividad", icono: "chart", estado: "Pendiente" },
 }
 
-// Función para obtener los iconos SVG
 const getIcon = (iconName: string) => {
   const iconProps = {
     className: "w-full h-full",
@@ -56,7 +52,7 @@ const getIcon = (iconName: string) => {
     strokeWidth: "1.5",
     strokeLinecap: "round",
     strokeLinejoin: "round",
-  } as const; // <--- LA SOLUCIÓN ESTÁ AQUÍ
+  } as const;
 
   switch (iconName) {
     case "cube":
@@ -118,14 +114,14 @@ const getIcon = (iconName: string) => {
 export default function ReportsPage() {
   const { selectedCompany } = useCompany()
   const { data, error, isLoading } = useSWR<DashboardApiResponse>(`${VITE_API_URL}/api/reports/${selectedCompany?.id}/all`, fetcher)
-    // ESTADO PARA EL MODAL
+  
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
-  // --- TRANSFORMACIÓN DE DATOS (Corregida para ser dinámica) ---
+
+  // --- TRANSFORMACIÓN DE DATOS ---
   const reportsData: Report[] = useMemo(() => {
     if (!data) return []
 
-    // Itera sobre las llaves del objeto de respuesta de la API (ej: 'inventoryReport', 'maintenanceCostsReport')
     return Object.keys(data).map((key, index) => {
       const apiReport = data[key]
       const meta = reportMetadata[key] || { descripcion: "Descripción no disponible", icono: "default", estado: "Pendiente" }
@@ -138,11 +134,12 @@ export default function ReportsPage() {
         estado: meta.estado,
         tipo: apiReport.type,
         ultimaActualizacion: new Date().toISOString().split("T")[0],
-        reportKey: key, // Guardamos la clave para referencias futuras
-        apiData: apiReport.data, // Guardamos los datos crudos para la descarga
+        reportKey: key,
+        apiData: apiReport.data,
       }
     })
   }, [data])
+
   const handleViewReport = (reporte: Report) => {
     setSelectedReport(reporte)
     setIsModalOpen(true)
@@ -155,27 +152,39 @@ export default function ReportsPage() {
 
   const handleDownloadReport = (reporte: Report) => {
     if (!reporte.apiData || reporte.apiData.length === 0) {
-      // Puedes usar una notificación más amigable si tienes un sistema para ello
       alert("No hay datos disponibles para descargar en este reporte.")
       return
     }
 
-    // Paso 1: Crear una "hoja de trabajo" (worksheet) a partir de tus datos JSON
+    // Crear worksheet a partir de los datos JSON
     const worksheet = XLSX.utils.json_to_sheet(reporte.apiData)
 
-    // Paso 2: Crear un "libro de trabajo" (workbook) nuevo
+    // Crear workbook
     const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, reporte.titulo.substring(0, 30)) // Limitar nombre de hoja a 30 chars
 
-    // Paso 3: Añadir la hoja de trabajo al libro, dándole un nombre a la pestaña (ej: "Datos")
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Datos")
+    // Ajustar el ancho de las columnas automáticamente
+    const maxWidth = 50;
+    if (reporte.apiData.length > 0) {
+      const columnWidths = Object.keys(reporte.apiData[0]).map(key => {
+        const maxLength = Math.max(
+          key.length,
+          ...reporte.apiData.map(row => {
+            const value = row[key];
+            return value ? String(value).length : 0;
+          })
+        );
+        return { wch: Math.min(maxLength + 2, maxWidth) };
+      });
+      worksheet['!cols'] = columnWidths;
+    }
 
-    // Paso 4: Generar el archivo .xlsx y disparar la descarga
-    // El nombre del archivo será algo como "inventoryReport.xlsx"
-    XLSX.writeFile(workbook, `${reporte.reportKey}.xlsx`)
+    // Generar el archivo .xlsx con fecha
+    const timestamp = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(workbook, `${reporte.reportKey}_${timestamp}.xlsx`)
   }
 
-
-  // --- FUNCIONES DE ESTILO (sin cambios) ---
+  // --- FUNCIONES DE ESTILO ---
   const getStatusBadge = (estado: string) => {
     switch (estado) {
       case "Actualizado":
@@ -255,6 +264,7 @@ export default function ReportsPage() {
               <button
                 onClick={() => handleDownloadReport(reporte)}
                 className="p-2.5 bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white rounded-lg transition-colors"
+                title="Descargar Excel"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
