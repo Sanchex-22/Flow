@@ -2,7 +2,6 @@
 import Headers from "../meta/headers";
 import { UserProfile } from "../../context/userProfileContext";
 import Footer from "./footer";
-import Navbar from "./navbar";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Toaster } from "sonner"
@@ -41,27 +40,32 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
 
     <>
       <Headers title={title} description={description} />
-      <main className="w-full relative min-h-screen bg-slate-50 overflow-x-hidden">
+      <main className="w-full relative min-h-screen overflow-x-hidden">
         <Toaster richColors position="top-right" />
         <Analytics />
         <SpeedInsights />
         {publicRoute ? 
         <>
+        {/* 
         <Navbar
           profile={profile}
           currentPathname={currentPathname}
           isLogged={isLogged}
         />
-        <div id="page-content" className="z-10">
+        */}
+        <div id="page-content" className="z-10 bg-gray-900 text-white min-h-screen ">
             {children}
           </div>
         </>
         :
         <div className="min-h-screen bg-gray-900 text-white flex h-[90vh]">
-        {/* <AdminNavbar 
-        currentPathname={currentPathname
-          isLogged={isLogged}
-          profile={profile}/> */}
+        {/* 
+          <AdminNavbar 
+            currentPathname={currentPathname
+            isLogged={isLogged}
+            profile={profile}
+          /> 
+        */}
           <SlideBarComponent
             subroutes={[]}
             currentPathname={currentPathname}
@@ -69,7 +73,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
             profile={profile}
             companies={companies}
           />
-          <div id="page-content" className="z-10 overflow-y-auto w-full">
+          <div id="page-content" className="z-10 overflow-y-auto w-full ">
             {children}
           </div>
         </div>
