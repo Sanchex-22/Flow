@@ -1,28 +1,27 @@
 "use client"
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Company } from "../../context/routerContext" // Assuming this path is correct
+import { Company } from "../../context/routerContext"
 import { UsuarioFull } from "../../utils/usuarioFull"
 
-// Asumo que Departments y Company son interfaces o tipos válidos
 interface Departments {
   id: string
   name: string
 }
 
-const { VITE_API_URL } = import.meta.env // Accessing environment variables
+const { VITE_API_URL } = import.meta.env
 
 interface CreateUserData {
   username: string
   email: string
-  password?: string // Password is now optional for updates
+  password?: string
   role: string
   companyId: string
   firstName: string
   lastName: string
   contactEmail: string
   phoneNumber: string
-  department: string // This will hold the department ID for the form
+  department: string
   position: string
   userCode?: string
 }
@@ -30,10 +29,9 @@ interface CreateUserData {
 interface Props {
   departments?: Departments[] | null
   selectedCompany?: Company | null
-  userID?: string | null // userID prop to determine create or edit mode
+  userID?: string | null
 }
 
-// Tipos para las notificaciones
 type NotificationType = "success" | "error"
 
 interface Notification {
@@ -53,29 +51,27 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     lastName: "",
     contactEmail: "",
     phoneNumber: "",
-    department: "", // Holds department ID
+    department: "",
     position: "",
   })
 
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<CreateUserData>>({})
   const [showPassword, setShowPassword] = useState(false)
+  const [originalData, setOriginalData] = useState<CreateUserData | null>(null)
 
-  // Estado para las notificaciones
   const [notification, setNotification] = useState<Notification>({
     type: "success",
     message: "",
     show: false,
   })
 
-  // Opciones para los selects
   const roles = [
     { value: "USER", label: "Usuario" },
     { value: "ADMIN", label: "Administrador" },
     { value: "SUPER_ADMIN", label: "Super Administrador" },
   ]
 
-  // Function to display notifications
   const showNotification = (type: NotificationType, message: string) => {
     setNotification({
       type,
@@ -84,7 +80,6 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     })
   }
 
-  // Auto-hide notification after 5 seconds
   useEffect(() => {
     if (notification.show) {
       const timer = setTimeout(() => {
@@ -94,7 +89,6 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     }
   }, [notification.show])
 
-  // Fetch user data if userID is provided (edit mode)
   useEffect(() => {
     const fetchUserData = async () => {
       if (userID) {
@@ -102,26 +96,29 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
         try {
           const response = await fetch(`${VITE_API_URL}/api/users/profile/${userID}`)
           if (!response.ok) {
-            throw new Error("Error al cargar los datos del usuario.")
+            const errorData = await response.json()
+            throw new Error(errorData.error || "Error al cargar los datos del usuario.")
           }
-          // Cast the fetched data to UsuarioFull interface
           const userData: UsuarioFull = await response.json()
           console.log("Fetched user data:", userData)
-          // Populate form data with fetched user data, accessing nested 'person' properties
-          setFormData({
+
+          const newFormData: CreateUserData = {
             username: userData.username,
             email: userData.email,
-            password: "", // Password should not be pre-filled for security
+            password: "",
             role: userData.role,
             userCode: userData?.person?.userCode || "",
-            companyId: userData.companyId || "", // Handle potential null companyId
+            companyId: userData.companyId || "",
             firstName: userData.person.firstName,
             lastName: userData.person.lastName,
             contactEmail: userData.person.contactEmail || "",
             phoneNumber: userData.person.phoneNumber || "",
-            department: userData.person.departmentId || "", // Use departmentId from fetched data
+            department: userData.person.departmentId || "",
             position: userData.person.position,
-          })
+          }
+
+          setFormData(newFormData)
+          setOriginalData({ ...newFormData })
           showNotification("success", "Datos de usuario cargados exitosamente.")
         } catch (error: any) {
           console.error("Error fetching user data:", error)
@@ -130,8 +127,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
           setIsLoading(false)
         }
       } else {
-        // Reset form if no userID (create mode)
-        setFormData({
+        const resetData: CreateUserData = {
           username: "",
           email: "",
           password: "",
@@ -143,20 +139,20 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
           phoneNumber: "",
           department: "",
           position: "",
-        })
+        }
+        setFormData(resetData)
+        setOriginalData(null)
       }
     }
 
     fetchUserData()
-  }, [userID, selectedCompany?.id]) // Re-run when userID or selectedCompany changes
+  }, [userID, selectedCompany?.id])
 
-  // Handle input changes
   const handleInputChange = (field: keyof CreateUserData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
-    // Clear field error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -165,14 +161,12 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     }
   }
 
-  // Validate form
   const validateForm = (): boolean => {
     const newErrors: Partial<CreateUserData> = {}
     if (!formData.username.trim()) newErrors.username = "El nombre de usuario es requerido"
     if (!formData.email.trim()) newErrors.email = "El email es requerido"
     if (!formData.email.includes("@")) newErrors.email = "El email debe ser válido"
 
-    // Password is required only for creation, or if explicitly provided for update
     if (!userID && !formData.password?.trim()) {
       newErrors.password = "La contraseña es requerida"
     } else if (formData.password && formData.password.length < 8) {
@@ -189,7 +183,6 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
@@ -197,32 +190,36 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     setIsLoading(true)
     const isEditing = !!userID
     const method = isEditing ? "PUT" : "POST"
-    const endpoint = isEditing ? `${VITE_API_URL}/api/users/edit/${userID}` : `${VITE_API_URL}/api/users/create`
+    const endpoint = isEditing
+      ? `${VITE_API_URL}/api/users/edit/${userID}`
+      : `${VITE_API_URL}/api/users/create`
 
     try {
-      // Build the payload for the API
       const apiPayload: any = {
         username: formData.username,
         email: formData.email,
         role: formData.role,
-        isActive: true, // Assuming isActive is always true for creation/update
+        isActive: true,
         companyId: formData.companyId,
         firstName: formData.firstName,
         lastName: formData.lastName,
         contactEmail: formData.contactEmail,
         phoneNumber: formData.phoneNumber,
         position: formData.position,
-        status: "Activo", // Assuming status is always "Activo"
-        departmentId: formData.department, // Send department ID
-        userCode: formData.userCode || "", // Include userCode if available
+        status: "Activo",
+        departmentId: formData.department,
+        userCode: formData.userCode || "",
       }
 
-      // Only include password if it's a new user or if it's provided for an update
+      // Solo incluir password si es nuevo usuario o se proporciona para actualización
       if (!isEditing || (isEditing && formData.password?.trim())) {
         apiPayload.password = formData.password
       }
 
-      console.log(`${isEditing ? "Actualizando" : "Creando"} usuario en la API:`, apiPayload)
+      console.log(
+        `${isEditing ? "Actualizando" : "Creando"} usuario en la API:`,
+        apiPayload
+      )
 
       const response = await fetch(endpoint, {
         method: method,
@@ -234,16 +231,24 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || `Error al ${isEditing ? "actualizar" : "crear"} el usuario`)
+        throw new Error(
+          errorData.error ||
+            `Error al ${isEditing ? "actualizar" : "crear"} el usuario`
+        )
       }
 
-      await response.json()
+      const responseData = await response.json()
 
-      // Show success notification
-      showNotification("success", `Usuario ${isEditing ? "actualizado" : "creado"} exitosamente`)
+      showNotification(
+        "success",
+        `Usuario ${isEditing ? "actualizado" : "creado"} exitosamente`
+      )
 
-      // Optionally reset form after creation, but not necessarily after update
-      if (!isEditing) {
+      // Si es edición, actualizar originalData
+      if (isEditing) {
+        setOriginalData({ ...formData })
+      } else {
+        // Si es creación, limpiar formulario
         setFormData({
           username: "",
           email: "",
@@ -259,14 +264,28 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
         })
       }
     } catch (error: any) {
-      console.error(`Error al ${isEditing ? "actualizar" : "crear"} usuario:`, error)
-      // Show error notification
-      showNotification("error", error.message || `Error inesperado al ${isEditing ? "actualizar" : "crear"} el usuario`)
+      console.error(
+        `Error al ${isEditing ? "actualizar" : "crear"} usuario:`,
+        error
+      )
+      showNotification(
+        "error",
+        error.message ||
+          `Error inesperado al ${isEditing ? "actualizar" : "crear"} el usuario`
+      )
     } finally {
       setIsLoading(false)
     }
   }
 
+  // const handleCancel = () => {
+  //   if (userID && originalData) {
+  //     setFormData({ ...originalData })
+  //     setErrors({})
+  //     showNotification("info" as NotificationType, "Cambios descartados")
+  //   }
+  // }
+  
   return (
     <div className="relative font-inter">
       <form onSubmit={handleSubmit} className="space-y-8">
