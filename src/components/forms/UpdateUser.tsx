@@ -59,6 +59,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
   const [errors, setErrors] = useState<Partial<CreateUserData>>({})
   const [showPassword, setShowPassword] = useState(false)
   const [originalData, setOriginalData] = useState<CreateUserData | null>(null)
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   const [notification, setNotification] = useState<Notification>({
     type: "success",
@@ -80,6 +81,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     })
   }
 
+  // Auto-hide notification
   useEffect(() => {
     if (notification.show) {
       const timer = setTimeout(() => {
@@ -89,10 +91,12 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     }
   }, [notification.show])
 
+  // Fetch user data if userID is provided (edit mode)
   useEffect(() => {
     const fetchUserData = async () => {
       if (userID) {
         setIsLoading(true)
+        setDataLoaded(false)
         try {
           const response = await fetch(`${VITE_API_URL}/api/users/profile/${userID}`)
           if (!response.ok) {
@@ -119,7 +123,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
 
           setFormData(newFormData)
           setOriginalData({ ...newFormData })
-          showNotification("success", "Datos de usuario cargados exitosamente.")
+          setDataLoaded(true)
         } catch (error: any) {
           console.error("Error fetching user data:", error)
           showNotification("error", error.message || "Error al cargar los datos del usuario.")
@@ -127,6 +131,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
           setIsLoading(false)
         }
       } else {
+        // Reset form if no userID (create mode)
         const resetData: CreateUserData = {
           username: "",
           email: "",
@@ -142,6 +147,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
         }
         setFormData(resetData)
         setOriginalData(null)
+        setDataLoaded(true)
       }
     }
 
@@ -153,6 +159,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
       ...prev,
       [field]: value,
     }))
+    // Clear field error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -163,21 +170,38 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CreateUserData> = {}
-    if (!formData.username.trim()) newErrors.username = "El nombre de usuario es requerido"
-    if (!formData.email.trim()) newErrors.email = "El email es requerido"
-    if (!formData.email.includes("@")) newErrors.email = "El email debe ser válido"
 
+    if (!formData.username.trim()) {
+      newErrors.username = "El nombre de usuario es requerido"
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = "El email es requerido"
+    } else if (!formData.email.includes("@")) {
+      newErrors.email = "El email debe ser válido"
+    }
+
+    // Password is required only for creation, or if explicitly provided for update
     if (!userID && !formData.password?.trim()) {
       newErrors.password = "La contraseña es requerida"
     } else if (formData.password && formData.password.length < 8) {
       newErrors.password = "La contraseña debe tener al menos 8 caracteres"
     }
 
-    if (!formData.firstName.trim()) newErrors.firstName = "El nombre es requerido"
-    if (!formData.lastName.trim()) newErrors.lastName = "El apellido es requerido"
-    if (!formData.department.trim()) newErrors.department = "El departamento es requerido"
-    if (!formData.position.trim()) newErrors.position = "La posición es requerida"
-    if (!formData.companyId) newErrors.companyId = "La empresa es requerida"
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "El nombre es requerido"
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "El apellido es requerido"
+    }
+    if (!formData.department.trim()) {
+      newErrors.department = "El departamento es requerido"
+    }
+    if (!formData.position.trim()) {
+      newErrors.position = "La posición es requerida"
+    }
+    if (!formData.companyId) {
+      newErrors.companyId = "La empresa es requerida"
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -238,10 +262,11 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
       }
 
       const responseData = await response.json()
+      console.log("Response:", responseData)
 
       showNotification(
         "success",
-        `Usuario ${isEditing ? "actualizado" : "creado"} exitosamente`
+        `Usuario ${responseData?.username} ${isEditing ? "actualizado" : "creado"} exitosamente`
       )
 
       // Si es edición, actualizar originalData
@@ -278,13 +303,38 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     }
   }
 
-  // const handleCancel = () => {
-  //   if (userID && originalData) {
-  //     setFormData({ ...originalData })
-  //     setErrors({})
-  //     showNotification("info" as NotificationType, "Cambios descartados")
-  //   }
-  // }
+  const handleCancel = () => {
+    if (userID && originalData) {
+      setFormData({ ...originalData })
+      setErrors({})
+    }
+  }
+
+  if (!dataLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <svg className="animate-spin w-12 h-12 text-blue-500 mx-auto mb-4" viewBox="0 0 24 24">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+              fill="none"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          <p className="text-gray-400">Cargando datos...</p>
+        </div>
+      </div>
+    )
+  }
   
   return (
     <div className="relative font-inter">
@@ -577,6 +627,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
         <div className="flex justify-end space-x-4">
           <button
             type="button"
+            onClick={handleCancel}
             className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
           >
             Cancelar
