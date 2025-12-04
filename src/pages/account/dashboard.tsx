@@ -2,9 +2,10 @@
 "use client";
 
 import useSWR from "swr";
-import React from "react";
+import React, { useState } from "react";
 import { useCompany } from "../../context/routerContext";
 import Loader from "../../components/loaders/loader";
+import ReportPreviewModal from "../../components/modals/ReportPreviewModal";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -14,7 +15,7 @@ const fetcher = (url: string) =>
     return res.json();
   });
 
-// ------------ Tipos -------------
+// ------------ Tipos (igual que antes) -------------
 export type Kpi = {
   count: number;
   change: number;
@@ -47,7 +48,7 @@ interface DashboardProps {
   subroutes: { name: string; href: string }[];
 }
 
-// ------------ Format date helper -------------
+// ------------ Format date helper (igual que antes) ----------
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -62,7 +63,7 @@ const formatDate = (dateString: string) => {
   return `Hace ${diffInDays} días`;
 };
 
-// ------------ Iconos dinámicos -------------
+// ------------ Activity Icons (igual que antes) ----------
 const ActivityIcon: React.FC<{ icon: string }> = ({ icon }) => {
   switch (icon) {
     case "plus":
@@ -115,12 +116,11 @@ const ActivityIcon: React.FC<{ icon: string }> = ({ icon }) => {
   }
 };
 
-// ------------ COMPONENTE PRINCIPAL -------------
+// ------------ COMPONENTE PRINCIPAL ACTUALIZADO ----------
 const Dashboard: React.FC<DashboardProps> = ({ }) => {
-
   const { selectedCompany } = useCompany();
+  const [showReportModal, setShowReportModal] = useState(false); // ← Estado del modal
 
-  // 🔹 SWR obtiene dashboard
   const {
     data: dashboardData,
     error,
@@ -137,40 +137,22 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
     }
   );
 
-  // ------------ Report Download Function -------------
-  const generateReport = async () => {
+  // ------------ Abrir Modal con Vista Previa ----------
+  const handleGenerateReport = async () => {
     if (!selectedCompany) {
       alert("Seleccione una empresa primero.");
       return;
     }
 
-    try {
-      const res = await fetch(`${VITE_API_URL}/api/reports/${selectedCompany.id}/all`);
-
-      if (!res.ok) throw new Error("Error al generar el reporte");
-
-      const data = await res.json();
-
-      // Descargar JSON
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `reportes_${selectedCompany.name}.json`;
-      link.click();
-
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(error);
-      alert("Error al generar reportes");
+    if (!dashboardData) {
+      alert("Cargando datos del dashboard...");
+      return;
     }
+
+    setShowReportModal(true);
   };
 
-  // ------------ Render -------------
+  // ------------ Render ----------
   if (isLoading || isValidating) return <Loader />;
 
   if (error)
@@ -200,14 +182,14 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
           </h1>
 
           <button
-            onClick={generateReport}
+            onClick={handleGenerateReport}
             className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
           >
             Generar Reporte
           </button>
         </div>
 
-        {/* KPI CARDS */}
+        {/* KPI CARDS (igual que antes) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Equipos */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -278,7 +260,7 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
           </div>
         </div>
 
-        {/* INVENTARIO + ACTIVIDAD */}
+        {/* INVENTARIO + ACTIVIDAD (igual que antes) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* INVENTARIO POR CATEGORÍA */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -331,9 +313,18 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
               ))}
             </div>
           </div>
-
         </div>
       </div>
+
+      {/* Modal de Vista Previa */}
+      {dashboardData && (
+        <ReportPreviewModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          data={dashboardData}
+          companyName={selectedCompany?.name || 'Empresa'}
+        />
+      )}
     </>
   );
 };

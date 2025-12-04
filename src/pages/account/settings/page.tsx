@@ -1,123 +1,489 @@
 "use client"
 
-import { Company, useCompany } from "../../../context/routerContext"
-import useSWR from "swr";
-import Loader from "../../../components/loaders/loader";
+import React, { useState, useEffect } from "react";
+import { Edit2, Trash2, Plus, Search, ChevronDown, ChevronUp } from "lucide-react";
 
-const { VITE_API_URL } = import.meta.env;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const VITE_API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000";
+
+interface Company {
+    id: string;
+    name: string;
+    code: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    isActive: boolean;
+    counts?: {
+        users: number;
+        equipments: number;
+        licenses: number;
+        documents: number;
+        maintenances: number;
+        departments: number;
+    }
+}
+
+interface FormData {
+    name: string;
+    code: string;
+    address: string;
+    phone: string;
+    email: string;
+    isActive: boolean;
+}
+
+const fetcherWithAuth = async (url: string): Promise<Company[]> => {
+    try {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(url, {
+            method: 'GET',
+            headers,
+            credentials: 'include',
+        });
+
+        if (res.status === 403) {
+            throw new Error('No tienes permisos para acceder a este recurso');
+        }
+
+        if (!res.ok) {
+            throw new Error(`API error: ${res.status}`);
+        }
+
+        return res.json();
+    } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+    }
+};
 
 export default function SettingsPage() {
-  const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
-  const { data: departments, error: errorDepartments, isLoading: isLoadingDepartments } = useSWR(
-    selectedCompany ? `${VITE_API_URL}/api/companies/${selectedCompany.code}/departments` : null,
-    fetcher,
-    {
-      revalidateOnFocus: true,
-      shouldRetryOnError: true,
-      errorRetryInterval: 5000,
-      errorRetryCount: 10,
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+    const [isSuperAdmin] = useState<boolean>(true);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+    const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+    const [showModal, setShowModal] = useState<boolean>(false);
+    const [formData, setFormData] = useState<FormData>({
+        name: '',
+        code: '',
+        address: '',
+        phone: '',
+        email: '',
+        isActive: true,
+    });
+
+    useEffect(() => {
+        loadCompanies();
+    }, []);
+
+    const loadCompanies = async () => {
+        try {
+            setLoading(true);
+            const url = `${VITE_API_URL}/api/companies/all`;
+            const data = await fetcherWithAuth(url);
+            setCompanies(Array.isArray(data) ? data : []);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message);
+            setCompanies([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleEdit = (company: Company) => {
+        setEditingCompany(company);
+        setFormData({
+            name: company.name,
+            code: company.code,
+            address: company.address || '',
+            phone: company.phone || '',
+            email: company.email || '',
+            isActive: company.isActive,
+        });
+        setShowModal(true);
+    };
+
+    const handleCreate = () => {
+        setEditingCompany(null);
+        setFormData({
+            name: '',
+            code: '',
+            address: '',
+            phone: '',
+            email: '',
+            isActive: true,
+        });
+        setShowModal(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const res = await fetch(`${VITE_API_URL}/api/companies/${id}`, {
+                method: 'DELETE',
+                headers,
+                credentials: 'include',
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setCompanies(companies.filter(c => c.id !== id));
+                setShowDeleteConfirm(null);
+                // Mostrar resumen de eliminación
+                alert(`Compañía eliminada.\nUsuarios desasociados: ${data.usersDisassociated}`);
+            } else if (res.status === 404) {
+                alert('La compañía no fue encontrada');
+            } else {
+                const errorData = await res.json();
+                alert(`Error: ${errorData.error || 'Error al eliminar la compañía'}`);
+            }
+        } catch (err: any) {
+            console.error('Delete error:', err);
+            alert('Error: ' + err.message);
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            if (!formData.name.trim()) {
+                alert('El nombre es requerido');
+                return;
+            }
+
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const url = editingCompany
+                ? `${VITE_API_URL}/api/companies/${editingCompany.id}`
+                : `${VITE_API_URL}/api/companies`;
+
+            const method = editingCompany ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
+                headers,
+                credentials: 'include',
+                body: JSON.stringify(formData),
+            });
+
+            if (res.ok) {
+                setShowModal(false);
+                loadCompanies();
+            } else {
+                alert('Error al guardar');
+            }
+        } catch (err: any) {
+            alert('Error: ' + err.message);
+        }
+    };
+
+    const toggleExpandRow = (id: string) => {
+        const newExpanded = new Set(expandedRows);
+        if (newExpanded.has(id)) {
+            newExpanded.delete(id);
+        } else {
+            newExpanded.add(id);
+        }
+        setExpandedRows(newExpanded);
+    };
+
+    const filteredCompanies = companies.filter(company =>
+        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (company.email && company.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-900 text-white p-6 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+            </div>
+        );
     }
-  );
 
-  if (errorDepartments) return <div>Error al cargar departamentos: {errorDepartments.message}</div>;
-  if (isLoadingDepartments || !departments) return <Loader />;
-
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">Configuración</h1>
-        <p className="text-gray-400">Administra la configuración del sistema y preferencias</p>
-      </div>
-      <div className="space-y-8">
-        {/* Company Information Section */}
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-6 h-6">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                className="w-full h-full text-blue-400"
-              >
-                <path d="M3 21h18" />
-                <path d="M5 21V7l8-4v18" />
-                <path d="M19 21V11l-6-4" />
-              </svg>
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-900 text-white p-6">
+                <div className="bg-red-900/30 border border-red-600 rounded-lg p-6 text-red-300">
+                    <p className="font-semibold mb-2">Error de Acceso</p>
+                    <p>{error}</p>
+                    <button
+                        onClick={loadCompanies}
+                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                        Reintentar
+                    </button>
+                </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold">Información de la Empresa</h2>
-              <p className="text-gray-400 text-sm">Configura los datos básicos de tu organización</p>
-            </div>
-          </div>
+        );
+    }
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Nombre de la Empresa</label>
-              <input
-                type="text"
-                value={selectedCompany?.name || "Cargando..."}
-                readOnly // <--- Añadido para hacer el campo de solo lectura
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+    return (
+        <div className="min-h-screen bg-gray-900 text-white p-6">
+            {/* Header */}
+            <div className="mb-8">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-4xl font-extrabold text-blue-400">🏢 Administración de Compañías</h1>
+                    {isSuperAdmin && (
+                        <button
+                            onClick={handleCreate}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors flex items-center space-x-2 font-medium"
+                        >
+                            <Plus size={20} />
+                            <span>Crear Compañía</span>
+                        </button>
+                    )}
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Código de Empresa</label>
-              <input
-                type="text"
-                value={selectedCompany?.code || "Cargando..."}
-                readOnly // <--- Añadido
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                {/* Search */}
+                <div className="relative">
+                    <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre, código o email..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-gray-800 text-white px-10 py-2 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
+                    />
+                </div>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Dirección</label>
-              <textarea
-                rows={3}
-                value={selectedCompany?.address || "Cargando..."}
-                readOnly // <--- Añadido
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
+            {/* Table */}
+            <div className="overflow-x-auto rounded-lg border border-gray-700">
+                <table className="w-full">
+                    <thead>
+                        <tr className="bg-gray-800 border-b border-gray-700">
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Nombre</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Código</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Email</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Teléfono</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Estado</th>
+                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-300">Acciones</th>
+                            <th className="px-6 py-3 text-center text-sm font-semibold text-gray-300" />
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredCompanies.length > 0 ? (
+                            filteredCompanies.map((company) => (
+                                <React.Fragment key={company.id}>
+                                    <tr className={`border-b border-gray-700 transition-colors cursor-pointer ${
+                                        expandedRows.has(company.id)
+                                            ? 'bg-blue-900/40'
+                                            : 'hover:bg-gray-800/50'
+                                    }`}>
+                                        <td className="px-6 py-4 text-sm text-white font-medium">{company.name}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-400">{company.code}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-400">{company.email || '-'}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-400">{company.phone || '-'}</td>
+                                        <td className="px-6 py-4 text-sm">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                                company.isActive
+                                                    ? 'bg-green-600/30 text-green-300'
+                                                    : 'bg-red-600/30 text-red-300'
+                                            }`}
+                                            >
+                                                {company.isActive ? 'Activa' : 'Inactiva'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm">
+                                            <div className="flex justify-center space-x-2">
+                                                <button
+                                                    onClick={() => handleEdit(company)}
+                                                    className="bg-yellow-600 hover:bg-yellow-700 text-white p-2 rounded-lg transition-colors"
+                                                    title="Editar"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowDeleteConfirm(company.id)}
+                                                    className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => toggleExpandRow(company.id)}
+                                                className="text-gray-400 hover:text-white transition-colors"
+                                            >
+                                                {expandedRows.has(company.id) ? (
+                                                    <ChevronUp size={20} />
+                                                ) : (
+                                                    <ChevronDown size={20} />
+                                                )}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {expandedRows.has(company.id) && (
+                                        <tr className="bg-gray-800/30 border-b border-gray-700">
+                                            <td colSpan={7} className="px-6 py-4">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase">Dirección</p>
+                                                        <p className="text-sm text-white">{company.address || 'No especificada'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase">Departamentos</p>
+                                                        <p className="text-sm text-white">
+                                                            {company.counts?.departments || 0} departamentos
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase">Usuarios</p>
+                                                        <p className="text-sm text-white">
+                                                            {company.counts?.users || 0} usuarios
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-400 uppercase">Equipos</p>
+                                                        <p className="text-sm text-white">
+                                                            {company.counts?.equipments || 0} equipos
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+                                    No se encontraron compañías
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
-              <input
-                type="tel"
-                value={selectedCompany?.phone || "Cargando..."}
-                readOnly // <--- Añadido
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Modal Create/Edit */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
+                        <h2 className="text-2xl font-bold text-white mb-4">
+                            {editingCompany ? 'Editar Compañía' : 'Crear Compañía'}
+                        </h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Nombre *</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                    placeholder="Nombre de la compañía"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                    placeholder="email@ejemplo.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono</label>
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                    placeholder="Teléfono"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">Dirección</label>
+                                <input
+                                    type="text"
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                    placeholder="Dirección"
+                                />
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="isActive"
+                                    checked={formData.isActive}
+                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <label htmlFor="isActive" className="ml-2 text-sm text-gray-300">
+                                    Compañía activa
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex space-x-3 mt-6">
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-              <input
-                type="email"
-                value={selectedCompany?.email || "Cargando..."}
-                readOnly // <--- Añadido
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
+            {/* Modal Delete Confirm */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full border border-gray-700">
+                        <h2 className="text-xl font-bold text-white mb-4">Confirmar eliminación</h2>
+                        <p className="text-gray-300 mb-6">
+                            ¿Estás seguro de que deseas eliminar esta compañía? Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(null)}
+                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => handleDelete(showDeleteConfirm)}
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-      </div>
-
-      {/* Save Button (Consider if this button should even exist if fields are readOnly) */}
-      <div className="fixed bottom-6 right-6">
-        <button type="submit" className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg transition-colors">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17,21 17,13 7,13 7,21" />
-            <polyline points="7,3 7,8 15,8" />
-          </svg>
-          <span>Guardar Configuración</span>
-        </button>
-      </div>
-    </div>
-  )
+    );
 }
