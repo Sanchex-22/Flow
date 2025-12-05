@@ -4,6 +4,7 @@
 import { useState, useMemo } from "react";
 import useSWR from "swr";
 import Loader from "../../../../components/loaders/loader";
+import { Company, useCompany } from "../../../../context/routerContext";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -86,7 +87,6 @@ const mapApiProviderToFrontend = (item: ApiNetworkProvider): FrontendNetworkProv
             numConexionesAsociadas: 0,
         };
     }
-
     const costValue = Number.parseFloat(item.cost?.toString() || "0") || 0;
 
     let meshDevices: string = "Ninguno"; // Inicializar como string
@@ -142,8 +142,8 @@ const mapApiProviderToFrontend = (item: ApiNetworkProvider): FrontendNetworkProv
 // Componente principal
 // ====================================
 const NetworkProvidersPage = () => {
-    // data ahora podría ser null si el fetcher devuelve null (ej. 404)
-    const { data, error, isLoading } = useSWR<ApiNetworkProvider[] | null>(`${VITE_API_URL}/api/network/providers/all`, fetcher);
+    const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
+    const { data, error, isLoading } = useSWR<ApiNetworkProvider[] | null>(`${VITE_API_URL}/api/network/providers/${selectedCompany?.id}/all`, fetcher);
 
     const [searchTerm, setSearchTerm] = useState("");
 
