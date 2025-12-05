@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import * as XLSX from 'xlsx';
 import { useCompany } from "../../../context/routerContext";
 import { PlusIcon } from "lucide-react";
+import Loader from "../../../components/loaders/loader";
 
 interface Equipment {
   id: string;
@@ -292,7 +293,9 @@ export default function Inventory() {
     XLSX.writeFile(workbook, 'template_importacion_equipos.xlsx');
   };
 
-  if (loading) return <p>Cargando inventario...</p>;
+    // ------------ Render ----------
+  if (loading) return <Loader/>;
+
   if (!selectedCompany?.id) return <p>No se encontró el código de empresa.</p>;
 
   return (

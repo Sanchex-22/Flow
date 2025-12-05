@@ -67,6 +67,7 @@ const CreateUserPage: React.FC = () => {
             errorRetryCount: 10,
         }
     );
+    console.log("Departamentos cargados:", departments);
 
     if (isLoading) {
         return (

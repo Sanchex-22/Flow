@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Plus, Search, ChevronDown, ChevronUp } from "lucide-react";
+import Loader from "../../../components/loaders/loader";
 
 const VITE_API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000";
 
@@ -216,9 +217,7 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white p-6 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
-            </div>
+            <Loader/>
         );
     }
 
@@ -244,7 +243,7 @@ export default function SettingsPage() {
             {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-4xl font-extrabold text-blue-400">🏢 Administración de Compañías</h1>
+                    <h1 className="text-2xl font-extrabold text-white">Administración de Compañías</h1>
                     {isSuperAdmin && (
                         <button
                             onClick={handleCreate}
