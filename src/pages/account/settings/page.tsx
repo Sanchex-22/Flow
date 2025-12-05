@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Plus, Search, ChevronDown, ChevronUp } from "lucide-react";
 import Loader from "../../../components/loaders/loader";
+import { useCompany } from "../../../context/routerContext";
 
 const VITE_API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000";
 
@@ -22,13 +23,14 @@ interface Company {
     email?: string;
     isActive: boolean;
     departments?: Department[];
-    counts?: {
+    _count?: {
         users: number;
         equipments: number;
         licenses: number;
         documents: number;
         maintenances: number;
         departments: number;
+        networks?: number;
     }
 }
 
@@ -41,10 +43,11 @@ interface FormData {
     isActive: boolean;
 }
 
+
 const fetcherWithAuth = async (url: string): Promise<Company[]> => {
     try {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        
+
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
@@ -84,6 +87,7 @@ export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const [editingCompany, setEditingCompany] = useState<Company | null>(null);
     const [showModal, setShowModal] = useState<boolean>(false);
+    const { selectedCompany } = useCompany();
     const [formData, setFormData] = useState<FormData>({
         name: '',
         code: '',
@@ -224,7 +228,7 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <Loader/>
+            <Loader />
         );
     }
 
@@ -293,21 +297,21 @@ export default function SettingsPage() {
                         {filteredCompanies.length > 0 ? (
                             filteredCompanies.map((company) => (
                                 <React.Fragment key={company.id}>
-                                    <tr className={`border-b border-gray-700 transition-colors cursor-pointer ${
-                                        expandedRows.has(company.id)
-                                            ? 'bg-blue-900/40'
-                                            : 'hover:bg-gray-800/50'
-                                    }`}>
+                                    <tr className={`border-b border-gray-700 transition-colors cursor-pointer ${selectedCompany?.id === company.id
+                                            ? 'bg-blue-700/60 ring-2 ring-blue-500'
+                                            : expandedRows.has(company.id)
+                                                ? 'bg-blue-900/40'
+                                                : 'hover:bg-gray-800/50'
+                                        }`}>
                                         <td className="px-6 py-4 text-sm text-white font-medium">{company.name}</td>
                                         <td className="px-6 py-4 text-sm text-gray-400">{company.code}</td>
                                         <td className="px-6 py-4 text-sm text-gray-400">{company.email || '-'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-400">{company.phone || '-'}</td>
                                         <td className="px-6 py-4 text-sm">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                                company.isActive
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${company.isActive
                                                     ? 'bg-green-600/30 text-green-300'
                                                     : 'bg-red-600/30 text-red-300'
-                                            }`}
+                                                }`}
                                             >
                                                 {company.isActive ? 'Activa' : 'Inactiva'}
                                             </span>
@@ -315,14 +319,20 @@ export default function SettingsPage() {
                                         <td className="px-6 py-4 text-sm">
                                             <div className="flex justify-center space-x-2">
                                                 <button
-                                                    onClick={() => handleEdit(company)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEdit(company);
+                                                    }}
                                                     className="bg-yellow-600 hover:bg-yellow-700 text-white p-2 rounded-lg transition-colors"
                                                     title="Editar"
                                                 >
                                                     <Edit2 size={16} />
                                                 </button>
                                                 <button
-                                                    onClick={() => setShowDeleteConfirm(company.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setShowDeleteConfirm(company.id);
+                                                    }}
                                                     className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
                                                     title="Eliminar"
                                                 >
@@ -332,7 +342,10 @@ export default function SettingsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <button
-                                                onClick={() => toggleExpandRow(company.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleExpandRow(company.id);
+                                                }}
                                                 className="text-gray-400 hover:text-white transition-colors"
                                             >
                                                 {expandedRows.has(company.id) ? (
@@ -356,19 +369,19 @@ export default function SettingsPage() {
                                                         <div>
                                                             <p className="text-xs text-gray-400 uppercase">Usuarios</p>
                                                             <p className="text-sm text-white">
-                                                                {company.counts?.users || 0} usuarios
+                                                                {company._count?.users || 0} usuarios
                                                             </p>
                                                         </div>
                                                         <div>
                                                             <p className="text-xs text-gray-400 uppercase">Equipos</p>
                                                             <p className="text-sm text-white">
-                                                                {company.counts?.equipments || 0} equipos
+                                                                {company._count?.equipments || 0} equipos
                                                             </p>
                                                         </div>
                                                         <div>
                                                             <p className="text-xs text-gray-400 uppercase">Mantenimientos</p>
                                                             <p className="text-sm text-white">
-                                                                {company.counts?.maintenances || 0} mantenimientos
+                                                                {company._count?.maintenances || 0} mantenimientos
                                                             </p>
                                                         </div>
                                                     </div>
@@ -390,11 +403,10 @@ export default function SettingsPage() {
                                                                                     <p className="text-xs text-gray-400 mt-1">{dept.description}</p>
                                                                                 )}
                                                                             </div>
-                                                                            <span className={`ml-2 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
-                                                                                dept.isActive
+                                                                            <span className={`ml-2 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${dept.isActive
                                                                                     ? 'bg-green-600/30 text-green-300'
                                                                                     : 'bg-red-600/30 text-red-300'
-                                                                            }`}
+                                                                                }`}
                                                                             >
                                                                                 {dept.isActive ? 'Activo' : 'Inactivo'}
                                                                             </span>
