@@ -50,7 +50,6 @@ const SlideBar: React.FC<DashboardProps> = ({
 
   const currentPathSegments = location.pathname.split("/").filter(Boolean);
   const baseRoute = currentPathSegments.length > 1 ? currentPathSegments[1] : "";
-  console.log("Current Base Route (from useLocation):", baseRoute);
 
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
   const filteredNavLinks =
@@ -97,7 +96,6 @@ const SlideBar: React.FC<DashboardProps> = ({
             {filteredNavLinks?.length > 0 ? (
               filteredNavLinks?.map((link, index) => {
                 const linkBase = link.href.split("/").filter(Boolean)[0] || "";
-                console.log("Link Base (for link):", linkBase);
 
                 const isActive = baseRoute === linkBase;
 
