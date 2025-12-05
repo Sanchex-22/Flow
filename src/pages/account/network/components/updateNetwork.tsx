@@ -32,7 +32,7 @@ const UpdateNetworkPage: React.FC<Props> = ({ }) => {
 
     // 🔹 Consulta 1: Departamentos
     const { data: departments, error: errorDepartments, isLoading: isLoadingDepartments } = useSWR( // Añadido isLoading
-        selectedCompany ? `${VITE_API_URL}/api/companies/${selectedCompany.code}/departments` : null,
+        selectedCompany ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}` : null,
         fetcher,
         {
             revalidateOnFocus: true,
