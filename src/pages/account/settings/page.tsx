@@ -6,6 +6,13 @@ import Loader from "../../../components/loaders/loader";
 
 const VITE_API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000";
 
+interface Department {
+    id: string;
+    name: string;
+    description?: string;
+    isActive: boolean;
+}
+
 interface Company {
     id: string;
     name: string;
@@ -14,6 +21,7 @@ interface Company {
     phone?: string;
     email?: string;
     isActive: boolean;
+    departments?: Department[];
     counts?: {
         users: number;
         equipments: number;
@@ -148,7 +156,6 @@ export default function SettingsPage() {
                 const data = await res.json();
                 setCompanies(companies.filter(c => c.id !== id));
                 setShowDeleteConfirm(null);
-                // Mostrar resumen de eliminación
                 alert(`Compañía eliminada.\nUsuarios desasociados: ${data.usersDisassociated}`);
             } else if (res.status === 404) {
                 alert('La compañía no fue encontrada');
@@ -339,29 +346,64 @@ export default function SettingsPage() {
                                     {expandedRows.has(company.id) && (
                                         <tr className="bg-gray-800/30 border-b border-gray-700">
                                             <td colSpan={7} className="px-6 py-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <p className="text-xs text-gray-400 uppercase">Dirección</p>
-                                                        <p className="text-sm text-white">{company.address || 'No especificada'}</p>
+                                                <div className="space-y-6">
+                                                    {/* Información general */}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <p className="text-xs text-gray-400 uppercase">Dirección</p>
+                                                            <p className="text-sm text-white">{company.address || 'No especificada'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-400 uppercase">Usuarios</p>
+                                                            <p className="text-sm text-white">
+                                                                {company.counts?.users || 0} usuarios
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-400 uppercase">Equipos</p>
+                                                            <p className="text-sm text-white">
+                                                                {company.counts?.equipments || 0} equipos
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs text-gray-400 uppercase">Mantenimientos</p>
+                                                            <p className="text-sm text-white">
+                                                                {company.counts?.maintenances || 0} mantenimientos
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-400 uppercase">Departamentos</p>
-                                                        <p className="text-sm text-white">
-                                                            {company.counts?.departments || 0} departamentos
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-400 uppercase">Usuarios</p>
-                                                        <p className="text-sm text-white">
-                                                            {company.counts?.users || 0} usuarios
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs text-gray-400 uppercase">Equipos</p>
-                                                        <p className="text-sm text-white">
-                                                            {company.counts?.equipments || 0} equipos
-                                                        </p>
-                                                    </div>
+
+                                                    {/* Departamentos */}
+                                                    {company.departments && company.departments.length > 0 && (
+                                                        <div>
+                                                            <p className="text-xs text-gray-400 uppercase mb-3 font-semibold">Departamentos ({company.departments.length})</p>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                {company.departments.map((dept) => (
+                                                                    <div
+                                                                        key={dept.id}
+                                                                        className="bg-gray-700/50 rounded-lg p-3 border border-gray-600"
+                                                                    >
+                                                                        <div className="flex items-start justify-between">
+                                                                            <div className="flex-1">
+                                                                                <p className="text-sm font-semibold text-white">{dept.name}</p>
+                                                                                {dept.description && (
+                                                                                    <p className="text-xs text-gray-400 mt-1">{dept.description}</p>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className={`ml-2 px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                                                                                dept.isActive
+                                                                                    ? 'bg-green-600/30 text-green-300'
+                                                                                    : 'bg-red-600/30 text-red-300'
+                                                                            }`}
+                                                                            >
+                                                                                {dept.isActive ? 'Activo' : 'Inactivo'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
