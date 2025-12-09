@@ -10,7 +10,7 @@ interface NotificationProps {
 }
 
 export function Notification({ message, type, onClose }: NotificationProps) {
-  const baseClasses = "fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 transition-opacity duration-300";
+  const baseClasses = "fixed bottom-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-3 transition-opacity duration-300";
   
   const typeClasses = type === 'success'
     ? "bg-green-500 text-white"

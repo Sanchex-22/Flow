@@ -38,6 +38,7 @@ import NetworkProvidersPage from "../pages/account/network/components/AllProvide
 import UpdateNetworkProviderPage from "../pages/account/network/components/updateNetworkProvider";
 import TicketPage from "../pages/account/tickets/page";
 import AllTickets from "../pages/account/tickets/components/AllTickets";
+import EditTicketPage from "../pages/account/tickets/[id]/page";
 
 // Tipado de usuario
 export interface User {
@@ -420,6 +421,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         }
       >
         <Route path="all" element={<AllTickets></AllTickets>} />
+        <Route path=":id" element={<EditTicketPage/>}/>
       </Route>
 
       <Route
