@@ -19,6 +19,8 @@ export default function EditTicketPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null)
+  const [users, setUsers] = useState<any[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
 
   const API = import.meta.env.VITE_API_URL
 
@@ -36,7 +38,32 @@ export default function EditTicketPage() {
     approvedDays: 0,
     reviewed: false,
     view: false,
+    sendToId: "",
   }
+
+  // ============================
+  //  LOAD USERS
+  // ============================
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!selectedCompany?.id) return
+      
+      setLoadingUsers(true)
+      try {
+        const res = await fetch(`${API}/api/companies/${selectedCompany.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          setUsers(data.users || data || [])
+        }
+      } catch (err) {
+        console.error("Error loading users:", err)
+      } finally {
+        setLoadingUsers(false)
+      }
+    }
+
+    fetchUsers()
+  }, [selectedCompany?.id, API])
 
   // ============================
   //  LOAD DATA OR CREATE MODE
@@ -53,7 +80,6 @@ export default function EditTicketPage() {
       try {
         const res = await fetch(`${API}/api/companies/tickets/${selectedCompany?.id}/${id}`)
 
-        // Si el ticket NO existe → crear en vez de mostrar error
         if (!res.ok) {
           setIsCreating(true)
           setTicket(emptyTicket)
@@ -64,8 +90,6 @@ export default function EditTicketPage() {
         setTicket(data.ticket || data)
       } catch (err) {
         console.error(err)
-
-        // También si da error → modo crear
         setIsCreating(true)
         setTicket(emptyTicket)
       } finally {
@@ -93,13 +117,24 @@ export default function EditTicketPage() {
     try {
       const method = isCreating ? "POST" : "PUT"
       const url = isCreating
-        ? `${API}/api/companies/tickets/${selectedCompany?.id}`
+        ? `${API}/api/companies/tickets/${selectedCompany?.id}/create`
         : `${API}/api/companies/tickets/${selectedCompany?.id}/${id}`
 
       const body = {
-        ...ticket,
+        title: ticket.title,
+        description: ticket.description,
+        img: ticket.img || null,
+        comment: ticket.comment || null,
+        type: ticket.type,
+        priority: ticket.priority,
+        status: ticket.status,
         startDate: ticket.startDate ? new Date(ticket.startDate).toISOString() : null,
         endDate: ticket.endDate ? new Date(ticket.endDate).toISOString() : null,
+        requestDays: ticket.requestDays || 0,
+        approvedDays: ticket.approvedDays || 0,
+        reviewed: ticket.reviewed || false,
+        view: ticket.view || false,
+        sendToId: ticket.sendToId || null,
       }
 
       const res = await fetch(url, {
@@ -140,10 +175,6 @@ export default function EditTicketPage() {
       </div>
     )
   }
-
-  // ============================
-  //         RENDER UI
-  // ============================
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
@@ -232,6 +263,16 @@ export default function EditTicketPage() {
                   />
                 </FormField>
 
+                <FormField label="Imagen (URL)">
+                  <input
+                    type="text"
+                    value={ticket.img || ""}
+                    onChange={(e) => handleChange("img", e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    placeholder="https://..."
+                  />
+                </FormField>
+
                 <FormField label="Comentario">
                   <textarea
                     value={ticket.comment || ""}
@@ -253,11 +294,11 @@ export default function EditTicketPage() {
                     onChange={(e) => handleChange("priority", e.target.value)}
                     className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
                   >
-                    <option value="urgent">🔴 Urgente</option>
-                    <option value="high">🟠 Alta</option>
-                    <option value="medium">🟡 Media</option>
-                    <option value="low">🟢 Baja</option>
                     <option value="trivial">⚪ Trivial</option>
+                    <option value="low">🟢 Baja</option>
+                    <option value="medium">🟡 Media</option>
+                    <option value="high">🟠 Alta</option>
+                    <option value="urgent">🔴 Urgente</option>
                   </select>
                 </FormField>
 
@@ -281,9 +322,10 @@ export default function EditTicketPage() {
                   >
                     <option value="open">Abierto</option>
                     <option value="pending">Pendiente</option>
+                    <option value="in_progress">En Progreso</option>
                     <option value="approved">Aprobado</option>
-                    <option value="closed">Cerrado</option>
                     <option value="rejected">Rechazado</option>
+                    <option value="closed">Cerrado</option>
                   </select>
                 </FormField>
               </div>
@@ -334,6 +376,25 @@ export default function EditTicketPage() {
                   </FormField>
                 </div>
               </div>
+            </FormSection>
+
+            {/* Asignación */}
+            <FormSection title="Asignación" description="Asignar a otro usuario">
+              <FormField label="Asignar a">
+                <select
+                  value={ticket.sendToId || ""}
+                  onChange={(e) => handleChange("sendToId", e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+                  disabled={loadingUsers}
+                >
+                  <option value="">Sin asignar</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.username}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
             </FormSection>
           </div>
 
