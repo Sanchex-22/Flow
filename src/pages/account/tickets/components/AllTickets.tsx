@@ -6,6 +6,7 @@ import { CreateTicketModal } from "./create-ticket-modal"
 import { DeleteConfirmationModal } from "./deleteModal"
 import * as XLSX from 'xlsx';
 import { useCompany } from "../../../../context/routerContext"
+import { useNavigate } from "react-router-dom"
 
 const EXCEL_COLUMNS = [
     { key: "id", header: "# Ticket" },
@@ -18,7 +19,7 @@ const EXCEL_COLUMNS = [
 
 export default function Home() {
   const { selectedCompany } = useCompany();
-  
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("Todos")
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -345,7 +346,7 @@ export default function Home() {
           </button>
           
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => navigate(`/${selectedCompany.code}/tickets/create`)}
             className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">

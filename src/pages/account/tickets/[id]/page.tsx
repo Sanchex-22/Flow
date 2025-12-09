@@ -13,26 +13,61 @@ export default function EditTicketPage() {
   const { id } = useParams()
   const router = useNavigate()
 
+  const [isCreating, setIsCreating] = useState(!id)
   const [ticket, setTicket] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!isCreating)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null)
 
   const API = import.meta.env.VITE_API_URL
 
+  const emptyTicket = {
+    title: "",
+    description: "",
+    img: "",
+    comment: "",
+    type: "ticket",
+    priority: "medium",
+    status: "open",
+    startDate: "",
+    endDate: "",
+    requestDays: 0,
+    approvedDays: 0,
+    reviewed: false,
+    view: false,
+  }
+
+  // ============================
+  //  LOAD DATA OR CREATE MODE
+  // ============================
   useEffect(() => {
+    if (!id) {
+      setIsCreating(true)
+      setTicket(emptyTicket)
+      setLoading(false)
+      return
+    }
+
     const fetchTicket = async () => {
       try {
         const res = await fetch(`${API}/api/companies/tickets/${selectedCompany?.id}/${id}`)
 
-        if (!res.ok) throw new Error("Error al cargar ticket")
+        // Si el ticket NO existe → crear en vez de mostrar error
+        if (!res.ok) {
+          setIsCreating(true)
+          setTicket(emptyTicket)
+          return
+        }
 
         const data = await res.json()
         setTicket(data.ticket || data)
       } catch (err) {
         console.error(err)
-        setError("No se pudo cargar el ticket")
+
+        // También si da error → modo crear
+        setIsCreating(true)
+        setTicket(emptyTicket)
       } finally {
         setLoading(false)
       }
@@ -48,20 +83,35 @@ export default function EditTicketPage() {
     }))
   }
 
+  // ============================
+  //        SAVE / CREATE
+  // ============================
   const saveChanges = async () => {
     setSaving(true)
     setError(null)
+
     try {
-      const res = await fetch(`${API}/api/companies/tickets/${selectedCompany?.id}/${id}`, {
-        method: "PUT",
+      const method = isCreating ? "POST" : "PUT"
+      const url = isCreating
+        ? `${API}/api/companies/tickets/${selectedCompany?.id}`
+        : `${API}/api/companies/tickets/${selectedCompany?.id}/${id}`
+
+      const body = {
+        ...ticket,
+        startDate: ticket.startDate ? new Date(ticket.startDate).toISOString() : null,
+        endDate: ticket.endDate ? new Date(ticket.endDate).toISOString() : null,
+      }
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(ticket),
+        body: JSON.stringify(body),
       })
 
-      if (!res.ok) throw new Error("Error al actualizar ticket")
+      if (!res.ok) throw new Error(isCreating ? "Error al crear ticket" : "Error al actualizar ticket")
 
       setNotification({
-        message: "Cambios guardados exitosamente",
+        message: isCreating ? "Ticket creado exitosamente" : "Cambios guardados exitosamente",
         type: "success",
       })
 
@@ -70,9 +120,9 @@ export default function EditTicketPage() {
       }, 2000)
     } catch (err) {
       console.error(err)
-      setError("Error al guardar los cambios")
+      setError(isCreating ? "Error al crear el ticket" : "Error al guardar los cambios")
       setNotification({
-        message: "Error al guardar los cambios",
+        message: isCreating ? "Error al crear el ticket" : "Error al guardar los cambios",
         type: "error",
       })
     } finally {
@@ -80,7 +130,7 @@ export default function EditTicketPage() {
     }
   }
 
-  if (loading) {
+  if (loading || !ticket) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-slate-950 flex items-center justify-center">
         <div className="text-center">
@@ -91,40 +141,25 @@ export default function EditTicketPage() {
     )
   }
 
-  if (!ticket) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <p className="text-foreground">Ticket no encontrado</p>
-        </div>
-      </div>
-    )
-  }
+  // ============================
+  //         RENDER UI
+  // ============================
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case "urgent":
-        return <AlertTriangle className="h-4 w-4" />
-      case "high":
-        return <AlertCircle className="h-4 w-4" />
-      case "medium":
-        return <Clock className="h-4 w-4" />
-      default:
-        return <CheckCircle className="h-4 w-4" />
+      case "urgent": return <AlertTriangle className="h-4 w-4" />
+      case "high": return <AlertCircle className="h-4 w-4" />
+      case "medium": return <Clock className="h-4 w-4" />
+      default: return <CheckCircle className="h-4 w-4" />
     }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "urgent":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
-      case "high":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30"
-      case "medium":
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-      default:
-        return "bg-green-500/20 text-green-400 border-green-500/30"
+      case "urgent": return "bg-red-500/20 text-red-400 border-red-500/30"
+      case "high": return "bg-orange-500/20 text-orange-400 border-orange-500/30"
+      case "medium": return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+      default: return "bg-green-500/20 text-green-400 border-green-500/30"
     }
   }
 
@@ -141,21 +176,24 @@ export default function EditTicketPage() {
             <button
               onClick={() => router(-1)}
               className="p-2 hover:bg-muted rounded-lg transition-colors"
-              aria-label="Ir atrás"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
+
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Editar Ticket</h1>
-              <p className="text-sm text-foreground/60">#{ticket.ticketNumber}</p>
+              <h1 className="text-2xl font-bold text-foreground">
+                {isCreating ? "Crear Ticket" : "Editar Ticket"}
+              </h1>
+              {!isCreating && <p className="text-sm text-foreground/60">#{ticket.ticketNumber}</p>}
             </div>
           </div>
-          <div
-            className={`px-3 py-1 rounded-full border ${getPriorityColor(ticket.priority)} flex items-center gap-2 text-sm`}
-          >
-            {getPriorityIcon(ticket.priority)}
-            <span className="capitalize">{ticket.priority}</span>
-          </div>
+
+          {!isCreating && (
+            <div className={`px-3 py-1 rounded-full border ${getPriorityColor(ticket.priority)} flex items-center gap-2 text-sm`}>
+              {getPriorityIcon(ticket.priority)}
+              <span className="capitalize">{ticket.priority}</span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -346,7 +384,7 @@ export default function EditTicketPage() {
                   <span className="font-medium capitalize">{ticket.priority}</span>
                 </div>
                 <div className="h-px bg-border/30 my-2"></div>
-                <p className="text-xs text-foreground/50">#{ticket.ticketNumber}</p>
+                {!isCreating && <p className="text-xs text-foreground/50">#{ticket.ticketNumber}</p>}
               </div>
             </FormSection>
 
@@ -357,7 +395,13 @@ export default function EditTicketPage() {
                 disabled={saving}
                 className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-blue-500/50"
               >
-                {saving ? "Guardando..." : "✓ Guardar cambios"}
+                {saving
+                  ? isCreating
+                    ? "Creando..."
+                    : "Guardando..."
+                  : isCreating
+                    ? "✓ Crear ticket"
+                    : "✓ Guardar cambios"}
               </button>
               <button
                 onClick={() => router(-1)}
