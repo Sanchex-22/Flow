@@ -134,7 +134,7 @@ export default function EditTicketPage() {
         approvedDays: ticket.approvedDays || 0,
         reviewed: ticket.reviewed || false,
         view: ticket.view || false,
-        sendToId: ticket.sendToId || null,
+        sendTo: ticket.sendToId || null,
       }
 
       const res = await fetch(url, {
