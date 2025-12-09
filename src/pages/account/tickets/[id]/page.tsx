@@ -134,7 +134,7 @@ export default function EditTicketPage() {
         approvedDays: ticket.approvedDays || 0,
         reviewed: ticket.reviewed || false,
         view: ticket.view || false,
-        sendTo: ticket.sendToId || null,
+        sendToId: ticket.sendToId || null,
       }
 
       const res = await fetch(url, {
@@ -263,16 +263,6 @@ export default function EditTicketPage() {
                   />
                 </FormField>
 
-                <FormField label="Imagen (URL)">
-                  <input
-                    type="text"
-                    value={ticket.img || ""}
-                    onChange={(e) => handleChange("img", e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="https://..."
-                  />
-                </FormField>
-
                 <FormField label="Comentario">
                   <textarea
                     value={ticket.comment || ""}
@@ -280,6 +270,16 @@ export default function EditTicketPage() {
                     rows={3}
                     className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                     placeholder="Comentarios adicionales"
+                  />
+                </FormField>
+
+                <FormField label="Imagen (URL)">
+                  <input
+                    type="text"
+                    value={ticket.img || ""}
+                    onChange={(e) => handleChange("img", e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    placeholder="https://..."
                   />
                 </FormField>
               </div>
