@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Ticket } from "../../../../utils/ticketFull"
 import { CreateTicketModal } from "./create-ticket-modal"
 import { DeleteConfirmationModal } from "./deleteModal"
-import { Notification } from "./notification"
 import * as XLSX from 'xlsx';
 import { useCompany } from "../../../../context/routerContext"
 
@@ -328,10 +327,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
-        
-      {notification && (
-        <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
-      )}
         
       <div className="flex justify-between items-start mb-8">
         <div>
