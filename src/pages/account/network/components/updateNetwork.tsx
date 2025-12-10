@@ -60,8 +60,9 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const { selectedCompany } = useCompany();
   const [showPassword, setShowPassword] = useState(false);
+  const { selectedCompany } = useCompany();
+
   const [formData, setFormData] = useState<NetworkFormData>({
     name: "",
     status: "UNKNOWN",
@@ -90,8 +91,21 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
 
   // Fetch proveedores por compañía
   const { data: providersResponse, isLoading: providersLoading, error: providersError } = useSWR<any>(
-    selectedCompany?.id ? `${VITE_API_URL}/api/networkProvider/${selectedCompany.id}` : null,
-    fetcher,
+    selectedCompany?.id ? `${VITE_API_URL}/api/network/providers/${selectedCompany.id}/all` : null,
+    async (url) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.error(`Error ${res.status}: ${res.statusText}`);
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const text = await res.text();
+        return JSON.parse(text);
+      } catch (error) {
+        console.error("Error fetching providers:", error);
+        throw error;
+      }
+    },
     { revalidateOnFocus: false }
   );
 
@@ -102,7 +116,7 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
 
   // Fetch network si es edición
   const { data: networkData, isLoading: networkLoading } = useSWR<any>(
-    actualNetworkId ? `${VITE_API_URL}/api/network/${actualNetworkId}` : null,
+    actualNetworkId ? `${VITE_API_URL}/api/network/${selectedCompany?.id}/${actualNetworkId}` : null,
     fetcher,
     { revalidateOnFocus: false }
   );
@@ -165,7 +179,7 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
     try {
       const method = isEditing ? "PUT" : "POST";
       const url = isEditing
-        ? `${VITE_API_URL}/api/network/${actualNetworkId}`
+        ? `${VITE_API_URL}/api/network/${selectedCompany?.id}/${actualNetworkId}`
         : `${VITE_API_URL}/api/network/create`;
 
       const response = await fetch(url, {
@@ -183,7 +197,7 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
 
       setSuccess(true);
       setTimeout(() => {
-        navigate(`/${selectedCompany?.code}/networks/all`);
+        navigate(`/${selectedCompany?.code}/network/all`);
       }, 1500);
     } catch (err: any) {
       setError(err.message || "Error al guardar la red");
