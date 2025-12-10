@@ -420,7 +420,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                                     <td className="p-4">
                                         <div className="flex space-x-2">
                                             {/* Usar el componente Link de Next.js */}
-                                            <a href={`edit/${usuario.id}`} className="p-1 text-gray-400 hover:text-white transition-colors">
+                                            <a href={`edit/${usuario?.id}`} className="p-1 text-gray-400 hover:text-white transition-colors">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />

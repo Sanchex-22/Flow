@@ -21,6 +21,8 @@ interface Company {
     address?: string;
     phone?: string;
     email?: string;
+    ruc?: string;
+    logoUrl?: string;
     isActive: boolean;
     departments?: Department[];
     _count?: {
@@ -40,6 +42,8 @@ interface FormData {
     address: string;
     phone: string;
     email: string;
+    ruc: string;
+    logoUrl: string;
     isActive: boolean;
 }
 
@@ -87,6 +91,7 @@ export default function SettingsPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const [editingCompany, setEditingCompany] = useState<Company | null>(null);
     const [showModal, setShowModal] = useState<boolean>(false);
+    const [logoPreview, setLogoPreview] = useState<string>('');
     const { selectedCompany } = useCompany();
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -94,6 +99,8 @@ export default function SettingsPage() {
         address: '',
         phone: '',
         email: '',
+        ruc: '',
+        logoUrl: '',
         isActive: true,
     });
 
@@ -124,8 +131,11 @@ export default function SettingsPage() {
             address: company.address || '',
             phone: company.phone || '',
             email: company.email || '',
+            ruc: company.ruc || '',
+            logoUrl: company.logoUrl || '',
             isActive: company.isActive,
         });
+        setLogoPreview(company.logoUrl || '');
         setShowModal(true);
     };
 
@@ -137,9 +147,25 @@ export default function SettingsPage() {
             address: '',
             phone: '',
             email: '',
+            ruc: '',
+            logoUrl: '',
             isActive: true,
         });
+        setLogoPreview('');
         setShowModal(true);
+    };
+
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result as string;
+                setLogoPreview(result);
+                setFormData({ ...formData, logoUrl: result });
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -223,7 +249,8 @@ export default function SettingsPage() {
     const filteredCompanies = companies.filter(company =>
         company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (company.email && company.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        (company.email && company.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (company.ruc && company.ruc.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (loading) {
@@ -271,7 +298,7 @@ export default function SettingsPage() {
                     <Search className="absolute left-3 top-3 text-gray-400" size={20} />
                     <input
                         type="text"
-                        placeholder="Buscar por nombre, código o email..."
+                        placeholder="Buscar por nombre, código, email o RUC..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-gray-800 text-white px-10 py-2 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
@@ -286,6 +313,7 @@ export default function SettingsPage() {
                         <tr className="bg-gray-800 border-b border-gray-700">
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Nombre</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Código</th>
+                            <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">RUC</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Email</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Teléfono</th>
                             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Estado</th>
@@ -305,6 +333,7 @@ export default function SettingsPage() {
                                         }`}>
                                         <td className="px-6 py-4 text-sm text-white font-medium">{company.name}</td>
                                         <td className="px-6 py-4 text-sm text-gray-400">{company.code}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-400">{company.ruc || '-'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-400">{company.email || '-'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-400">{company.phone || '-'}</td>
                                         <td className="px-6 py-4 text-sm">
@@ -358,7 +387,7 @@ export default function SettingsPage() {
                                     </tr>
                                     {expandedRows.has(company.id) && (
                                         <tr className="bg-gray-800/30 border-b border-gray-700">
-                                            <td colSpan={7} className="px-6 py-4">
+                                            <td colSpan={8} className="px-6 py-4">
                                                 <div className="space-y-6">
                                                     {/* Información general */}
                                                     <div className="grid grid-cols-2 gap-4">
@@ -424,7 +453,7 @@ export default function SettingsPage() {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+                                <td colSpan={8} className="px-6 py-8 text-center text-gray-400">
                                     No se encontraron compañías
                                 </td>
                             </tr>
@@ -436,11 +465,33 @@ export default function SettingsPage() {
             {/* Modal Create/Edit */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full border border-gray-700">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-2xl font-bold text-white mb-4">
                             {editingCompany ? 'Editar Compañía' : 'Crear Compañía'}
                         </h2>
                         <div className="space-y-4">
+                            {/* Logo Preview */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Logo</label>
+                                <div className="flex items-center gap-4">
+                                    {logoPreview && (
+                                        <img
+                                            src={logoPreview}
+                                            alt="Logo preview"
+                                            className="h-24 w-24 object-cover rounded-lg border border-gray-600"
+                                        />
+                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        disabled={true}
+                                        onChange={handleLogoChange}
+                                        className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Nombre */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1">Nombre *</label>
                                 <input
@@ -451,6 +502,20 @@ export default function SettingsPage() {
                                     placeholder="Nombre de la compañía"
                                 />
                             </div>
+
+                            {/* RUC */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">RUC</label>
+                                <input
+                                    type="text"
+                                    value={formData.ruc}
+                                    onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                                    placeholder="RUC de la compañía"
+                                />
+                            </div>
+
+                            {/* Email */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
                                 <input
@@ -461,6 +526,8 @@ export default function SettingsPage() {
                                     placeholder="email@ejemplo.com"
                                 />
                             </div>
+
+                            {/* Teléfono */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono</label>
                                 <input
@@ -471,6 +538,8 @@ export default function SettingsPage() {
                                     placeholder="Teléfono"
                                 />
                             </div>
+
+                            {/* Dirección */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-1">Dirección</label>
                                 <input
@@ -481,6 +550,8 @@ export default function SettingsPage() {
                                     placeholder="Dirección"
                                 />
                             </div>
+
+                            {/* Estado */}
                             <div className="flex items-center">
                                 <input
                                     type="checkbox"

@@ -24,7 +24,7 @@ export default function useUser(): UseUserReturn {
 
     try {
       const token = await authServices.login(email, password);
-      // window.sessionStorage.setItem('jwt', token);
+      window.sessionStorage.setItem('jwt', token);
       setState({ loading: false, error: false });
       setJWT(token);
     } catch (err) {
