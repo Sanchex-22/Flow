@@ -93,7 +93,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
         fetcher
     );
 
-    const { data: users } = useSWR<User[]>(`${VITE_API_URL}/api/users`, fetcher);
+    const { data: users } = useSWR<User[]>(`${VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher);
     const { data: equipments } = useSWR<Equipment[]>(
         formData.companyId ? `${VITE_API_URL}/api/devices/all` : null,
         fetcher

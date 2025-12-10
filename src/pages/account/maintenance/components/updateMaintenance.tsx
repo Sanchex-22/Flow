@@ -31,7 +31,7 @@ const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
 
     // 🔹 Consulta 1: Departamentos
     const { data: departments, error: errorDepartments, isLoading: isLoadingDepartments } = useSWR( // Añadido isLoading
-        selectedCompany ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}` : null,
+        selectedCompany ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany?.code}` : null,
         fetcher,
         {
             revalidateOnFocus: true,
@@ -43,7 +43,7 @@ const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
 
     // 🔹 Consulta 2: Usuarios
     const { data: users, error: errorUsers, isLoading: isLoadingUsers } = useSWR<UsuarioFull[]>( // Añadido isLoading
-        `${VITE_API_URL}/api/users/full`,
+        `${VITE_API_URL}/api/users/full/${selectedCompany?.id}`,
         fetcher
     );
 
