@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useMemo, useRef } from "react"
 import useSWR, { mutate } from "swr"
 import { useCompany } from "../../../../context/routerContext"
+import DeleteNetworkModal from "./deleteModal"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -848,6 +849,13 @@ export default function AllNetwork() {
           </div>
         )}
       </div>
+      <DeleteNetworkModal
+        isOpen={isModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+        itemName={selectedConnection?.nombre || ""}
+      />
     </div>
   )
 }
