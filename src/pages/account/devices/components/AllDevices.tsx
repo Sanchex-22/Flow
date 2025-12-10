@@ -394,8 +394,7 @@ export default function AllDevices() {
             {/* Page Header */}
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold mb-2">Gestión de Equipos - Empresa Principal S.A.</h1>
-                    <p className="text-gray-400">Administra el ciclo de vida completo de los equipos tecnológicos</p>
+                    <h1 className="text-2xl font-bold mb-2">Gestión de Equipos - {selectedCompany?.name || "Cargando..."}</h1>
                 </div>
                 <div className="flex space-x-3">
                     <button 

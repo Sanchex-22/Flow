@@ -230,7 +230,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
         <div className="relative">
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold mb-2">Usuarios</h1>
+                    <h1 className="text-2xl font-bold mb-2">Usuarios {selectedCompany?.name || "Cargando..."}</h1>
                     <p className="text-gray-400">Gestiona los usuarios y sus asignaciones de equipos</p>
                 </div>
                 <div>

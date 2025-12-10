@@ -315,7 +315,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Mantenimiento</h1>
+          <h1 className="text-2xl font-bold mb-2">Mantenimiento - {selectedCompany?.name || "Cargando..."}</h1>
           <p className="text-gray-400">
             Gestiona el mantenimiento preventivo y correctivo de equipos
           </p>

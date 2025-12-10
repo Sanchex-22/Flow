@@ -352,7 +352,7 @@ export default function AllNetwork() {
         {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white mb-2">Redes WiFi</h1>
+            <h1 className="text-2xl font-semibold text-white mb-2">Redes - {selectedCompany?.name || "Cargando..."}</h1>
             <p className="text-gray-400">Gestiona las conexiones WiFi y su configuración</p>
           </div>
           <div className="flex items-center gap-4">
