@@ -9,9 +9,6 @@ import DeleteNetworkModal from "./deleteModal"
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-// ====================================
-// Enums y Tipos
-// ====================================
 export enum NetworkDeviceStatus {
   ONLINE = "ONLINE",
   OFFLINE = "OFFLINE",
@@ -135,9 +132,6 @@ const mapApiDataToFrontend = (item: ApiNetworkDevice): FrontendNetworkConnection
   }
 }
 
-// ====================================
-// Componente para mostrar contraseña
-// ====================================
 const PasswordField: React.FC<{ password: string }> = ({ password }) => {
   const [showPassword, setShowPassword] = useState(false)
 
