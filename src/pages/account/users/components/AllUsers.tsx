@@ -161,29 +161,30 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
     }
 
     // Filtrar y buscar usuarios
-    const filteredUsers = useMemo(() => {
-        if (!data) return []
+// Filtrar y buscar usuarios
+const filteredUsers = useMemo(() => {
+    if (!data || !Array.isArray(data)) return []
 
-        return data?.filter((user) => {
-            // Lógica de filtrado por estado
-            const statusMatch =
-                statusFilter === "Todos" ||
-                (statusFilter === "Activos" && user?.isActive) ||
-                (statusFilter === "Inactivos" && !user?.isActive) ||
-                (statusFilter === "Con Equipos" && user.person?.status === "Con Equipos") ||
-                (statusFilter === "Sin Equipos" && user.person?.status === "Sin Equipos")
+    return data.filter((user) => {
+        // Lógica de filtrado por estado
+        const statusMatch =
+            statusFilter === "Todos" ||
+            (statusFilter === "Activos" && user?.isActive) ||
+            (statusFilter === "Inactivos" && !user?.isActive) ||
+            (statusFilter === "Con Equipos" && user.person?.status === "Con Equipos") ||
+            (statusFilter === "Sin Equipos" && user.person?.status === "Sin Equipos")
 
-            // Lógica de búsqueda por término
-            const searchMatch =
-                searchTerm.trim() === "" ||
-                user?.person?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user?.person?.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user?.person?.position?.toLowerCase().includes(searchTerm.toLowerCase())
+        // Lógica de búsqueda por término
+        const searchMatch =
+            searchTerm.trim() === "" ||
+            user?.person?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user?.person?.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user?.person?.position?.toLowerCase().includes(searchTerm.toLowerCase())
 
-            return statusMatch && searchMatch
-        })
-    }, [data, searchTerm, statusFilter])
+        return statusMatch && searchMatch
+    })
+}, [data, searchTerm, statusFilter])
 
     if (isLoading) {
         return (
@@ -272,7 +273,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                             </svg>
                         </div>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{data?.filter((u) => u.isActive).length || 0}</div>
+                    <div className="text-3xl font-bold mb-1">{Array.isArray(data) ? data.filter((u) => u.isActive).length : 0}</div>
                     <div className="text-sm text-gray-400">Con acceso al sistema</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -286,7 +287,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                             </svg>
                         </div>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{data?.filter((u) => u.person?.status === "Con Equipos").length || 0}</div>
+                    <div className="text-3xl font-bold mb-1">{Array.isArray(data) ? data.filter((u) => u.person?.status === "Con Equipos").length : 0}</div>
                     <div className="text-sm text-gray-400">Tienen equipos asignados</div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -301,7 +302,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                         </div>
                     </div>
                     <div className="text-3xl font-bold mb-1">
-                        {Array.from(new Set(data?.map((u) => u.person?.department?.name).filter(Boolean))).length || 0}
+                        {Array.isArray(data) ? Array.from(new Set(data.map((u) => u.person?.department?.name).filter(Boolean))).length : 0}
                     </div>
                     <div className="text-sm text-gray-400">Diferentes áreas</div>
                 </div>
