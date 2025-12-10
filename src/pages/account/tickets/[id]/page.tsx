@@ -154,7 +154,7 @@ export default function EditTicketPage() {
         router(`/${selectedCompany?.id}/tickets/all`)
       }, 2000)
     } catch (err) {
-      console.error(err)
+      // console.error(err)
       setError(isCreating ? "Error al crear el ticket" : "Error al guardar los cambios")
       setNotification({
         message: isCreating ? "Error al crear el ticket" : "Error al guardar los cambios",
@@ -384,7 +384,7 @@ export default function EditTicketPage() {
                 <select
                   value={ticket.sendToId || ""}
                   onChange={(e) => handleChange("sendToId", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
                   disabled={loadingUsers}
                 >
                   <option value="">Sin asignar</option>
