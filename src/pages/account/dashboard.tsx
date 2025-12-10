@@ -178,7 +178,7 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">
-            Dashboard IT — {selectedCompany?.name || "Cargando..."}
+            Dashboard {selectedCompany?.name || "Cargando..."}
           </h1>
 
           <button
