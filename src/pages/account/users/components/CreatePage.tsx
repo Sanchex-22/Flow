@@ -2,7 +2,7 @@
 "use client"
 
 import useSWR from "swr";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import UpdateUser from "../../../../components/forms/UpdateUser";
 import { Company, useCompany } from "../../../../context/routerContext";
 
@@ -46,7 +46,7 @@ export interface Department {
 
 const CreateUserPage: React.FC = () => {
     const { id: userID } = useParams<{ id: string }>();
-
+    const navigate = useNavigate();
     const renderPage = userID ? "Editar Usuario" : "Crear Usuario";
     document.title = renderPage;
 
@@ -67,7 +67,7 @@ const CreateUserPage: React.FC = () => {
             errorRetryCount: 10,
         }
     );
-    console.log("Departamentos cargados:", departments);
+    // console.log("Departamentos cargados:", departments);
 
     if (isLoading) {
         return (
@@ -111,6 +111,7 @@ const CreateUserPage: React.FC = () => {
                     <div className="flex space-x-3">
                         <button
                             type="button"
+                            onClick={() => navigate(`/${selectedCompany?.code}/users/all`)}
                             className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
                         >
                             <svg 

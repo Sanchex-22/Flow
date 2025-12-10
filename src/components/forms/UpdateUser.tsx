@@ -3,6 +3,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Company } from "../../context/routerContext"
 import { UsuarioFull } from "../../utils/usuarioFull"
+import { useNavigate } from "react-router-dom"
 
 interface Departments {
   id: string
@@ -60,7 +61,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
   const [showPassword, setShowPassword] = useState(false)
   const [originalData, setOriginalData] = useState<CreateUserData | null>(null)
   const [dataLoaded, setDataLoaded] = useState(false)
-
+    const navigate = useNavigate();
   const [notification, setNotification] = useState<Notification>({
     type: "success",
     message: "",
@@ -307,6 +308,7 @@ const UpdateUser: React.FC<Props> = ({ departments, selectedCompany, userID }) =
     if (userID && originalData) {
       setFormData({ ...originalData })
       setErrors({})
+      navigate(`/${selectedCompany?.code}/users/all`)
     }
   }
 
