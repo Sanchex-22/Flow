@@ -133,7 +133,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
         setDeleteConfirmation((prev) => ({ ...prev, isDeleting: true }))
 
         try {
-            const response = await fetch(`${VITE_API_URL}/api/users/delete/${deleteConfirmation.user.id}`, {
+            const response = await fetch(`${VITE_API_URL}/api/users/delete/${deleteConfirmation?.user?.id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -164,7 +164,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
     const filteredUsers = useMemo(() => {
         if (!data) return []
 
-        return data.filter((user) => {
+        return data?.filter((user) => {
             // Lógica de filtrado por estado
             const statusMatch =
                 statusFilter === "Todos" ||
@@ -176,10 +176,10 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
             // Lógica de búsqueda por término
             const searchMatch =
                 searchTerm.trim() === "" ||
-                user.person.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.person.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.person.position.toLowerCase().includes(searchTerm.toLowerCase())
+                user?.person?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user?.person?.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user?.person?.position?.toLowerCase().includes(searchTerm.toLowerCase())
 
             return statusMatch && searchMatch
         })
@@ -311,7 +311,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
             <div className="bg-gray-800 rounded-lg border border-gray-700">
                 <div className="p-6 border-b border-gray-700">
                     <h2 className="text-xl font-bold mb-2">Lista de Usuarios</h2>
-                    <p className="text-gray-400 text-sm mb-6">{filteredUsers.length} de {data?.length || 0} usuarios encontrados</p>
+                    <p className="text-gray-400 text-sm mb-6">{filteredUsers?.length} de {data?.length || 0} usuarios encontrados</p>
                     <div className="flex justify-between items-center">
                         <div className="relative flex-1 max-w-md">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -363,7 +363,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map((usuario) => (
+                            {filteredUsers?.map((usuario) => (
                                 <tr key={usuario.id} className="border-b border-gray-700 hover:bg-gray-750">
                                     <td className="p-4">
                                         <div className="flex items-center space-x-3">
