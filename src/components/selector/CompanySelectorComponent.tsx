@@ -1,7 +1,8 @@
 // CompanySelectorComponent.tsx
 import { useNavigate, useLocation } from 'react-router-dom'; // Importa useLocation
-import { useCompany } from '../../context/routerContext';
+import { useCompany } from '../../context/routerContext.tsx';
 import { useCallback } from 'react';
+import { UserProfile } from '../../context/userProfileContext.tsx';
 
 export interface Company {
   id: string;
@@ -23,11 +24,15 @@ export interface Company {
   };
 }
 
-const CompanySelectorComponent: React.FC = () => {
+type Props = {
+  profile?: UserProfile | null;
+};
+
+const CompanySelectorComponent: React.FC<Props> = ({}) => {
   const { selectedCompany, handleCompanyChange, companies } = useCompany();
   const navigate = useNavigate();
   const location = useLocation(); // Usa useLocation para obtener la ruta actual
-
+  
   const handleChangeAndNavigate = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
     handleCompanyChange(event);
     const newCompanyCode = event.target.value;

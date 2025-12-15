@@ -16,8 +16,8 @@ const ProtectedCompanyRoute: React.FC<ProtectedCompanyRouteProps> = ({children, 
   }
 
   // 🚪 2. Ya hay empresa → dashboard
-  if (selectedCompany && selectedCompany.id !== "na") {
-    return <Navigate to={`/${selectedCompany.code}/dashboard`} replace={false} />;
+  if (selectedCompany && selectedCompany?.id !== "na") {
+    return <Navigate to={`/${selectedCompany?.code}/dashboard`} replace={false} />;
   }
 
   // ✅ 3. Logueado pero sin empresa → mostrar selector

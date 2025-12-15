@@ -1,7 +1,6 @@
 "use client"
 import { Building2, LogOut, Mail, ChevronRight } from "lucide-react"
 import React from "react"
-import { useNavigate } from "react-router-dom"
 import useUser from "../../../hook/useUser"
 import { useCompany } from "../../../context/routerContext"
 import { UserProfile } from "../../../context/userProfileContext"
@@ -13,12 +12,11 @@ type Props = {
 
 const CompanySelector: React.FC<Props> = ({profile}) => {
     const { selectedCompany, handleCompanyChange, companies } = useCompany();
-    const navigate = useNavigate();
     const { logout } = useUser();
 
     const handleSelectCompany = (companyCode: string) => {
         handleCompanyChange({ target: { value: companyCode } } as any);
-        navigate(`/${companyCode}/dashboard/all`);
+        window.location.href = `/${companyCode}/dashboard/all`;
     };
 
     if (companies.length === 0) {

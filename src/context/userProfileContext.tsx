@@ -1,6 +1,6 @@
 // UserProfileContext.tsx
-import React, { ReactNode, useState, useMemo } from 'react';
-import { decodeTokenPublic } from '../utils/decode';
+import React, { ReactNode, useState, useEffect } from 'react';
+import { decodeToken } from '../utils/decode';
 import { authServices } from '../actions/authentication';
 
 // Interfaz para los metadatos decodificados
@@ -12,7 +12,7 @@ export type DecodedMetaData = {
 }
 
 // Perfil de usuario que manejará el contexto
-export type UserProfile =  {
+export type UserProfile = {
   id: string;
   username?: string;
   email?: string;
@@ -34,32 +34,47 @@ export type UserProfileProviderProps = {
 }
 
 export function UserProfileProvider({ children }: UserProfileProviderProps) {
-  // Obtener el JWT desde localStorage (o donde esté guardado)
-  const [jwt] = useState<string | null>(() => {
-    const currentUser = authServices.getCurrentUser();
-    return currentUser ? JSON.stringify(currentUser) : null;
-  });
-  const metaData = useMemo<DecodedMetaData | null>(() => {
-    const decoded = decodeTokenPublic(jwt);
-    if (decoded && typeof decoded === 'object' && 'id' in decoded) {
-      return {
-        id: (decoded as any).id,
-        username: (decoded as any).username,
-        email: (decoded as any).email,
-        roles: (decoded as any).roles,
-      };
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Inicializar el perfil desde el token
+  useEffect(() => {
+    try {
+      // Obtener el token (ya es un string limpio)
+      const token = authServices.getCurrentUser();
+      
+      if (!token) {
+        setProfile(null);
+        setIsInitialized(true);
+        return;
+      }
+
+      // Decodificar el token
+      const decoded = decodeToken();
+      
+      if (decoded) {
+        setProfile({
+          id: decoded.id,
+          username: decoded.username ?? 'n/a',
+          email: decoded.email ?? 'n/a',
+          roles: decoded.roles ?? 'user',
+        });
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error('Error inicializando perfil:', error);
+      setProfile(null);
+    } finally {
+      setIsInitialized(true);
     }
+  }, []);
+
+  // Mientras se inicializa, no renderizar nada
+  if (!isInitialized) {
     return null;
-  }, [jwt]);
-  const [profile, setProfile] = useState<UserProfile | null>(() => {
-    if (!metaData) return null;
-    return {
-      id: metaData.id,
-      username: metaData.username ?? 'n/a',
-      email: metaData.email ?? 'n/a',
-      roles: metaData.roles ?? 'user'
-    };
-  });
+  }
+
   return (
     <UserProfileContext.Provider value={{ profile, setProfile }}>
       {children}

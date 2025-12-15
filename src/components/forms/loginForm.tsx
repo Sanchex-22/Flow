@@ -2,7 +2,6 @@
 
 import type React from "react"
 
-import { useNavigate } from "react-router-dom"
 import useUser from "../../hook/useUser"
 import InputLabel from "./InputLabel"
 import LoginSubmitButton from "./LoginSubmitButton"
@@ -25,7 +24,6 @@ export default function LoginForm({
   error,
   setError,
 }: LoginFormProps) {
-  const navigate = useNavigate()
   const { selectedCompany } = useCompany()
   const { login } = useUser()
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -43,7 +41,7 @@ export default function LoginForm({
 
     try {
       await login({ email, password })
-      navigate(`/${selectedCompany?.code || "code"}/select-company`)
+      window.location.href =(`/${selectedCompany?.code || "code"}/select-company`)
     } catch (error) {
       setError(new Error(error instanceof Error ? error.message : "Error al iniciar sesión."))
     } finally {

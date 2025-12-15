@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ auth, allowedRoles, chi
   }
 
   // 🔒 2. Logueado pero sin empresa válida seleccionada → redirigir a selector
-  if (!selectedCompany || selectedCompany.id === "na") {
+  if (!selectedCompany || selectedCompany?.id === "na") {
     return <Navigate to="/NOCODE/select-company" replace={false} state={{ from: location }} />;
   }
 

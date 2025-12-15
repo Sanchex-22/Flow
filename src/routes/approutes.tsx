@@ -54,7 +54,7 @@ export interface UserContextValue {
 
 type Props = {
   pathnameLocation: CurrentPathname;
-  companies: Company[];
+  companies?: Company[];
 };
 
 export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {

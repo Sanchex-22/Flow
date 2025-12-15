@@ -2,6 +2,8 @@ import useSWR from "swr";
 import { AppRoutes } from "../../routes/approutes";
 import { useEffect, useState } from "react";
 import { CompanyProvider } from "../../context/routerContext";
+import useUser from "../../hook/useUser";
+import useUserProfile from "../../hook/userUserProfile";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -13,7 +15,15 @@ interface RoutesProps {
   isLogged: boolean;
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => 
+  fetch(url, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('jwt') || ''}`,
+    },
+  }).then((res) => {
+    if (!res.ok) throw new Error('Failed to fetch companies');
+    return res.json();
+  });
 
 const fallbackCompanies = [
   {
@@ -30,29 +40,34 @@ const fallbackCompanies = [
 
 const Layout: React.FC<RoutesProps> = () => {
   const [pathnameLocation, setCurrentPathname] = useState<CurrentPathname>({ name: '' });
-  const [showError, setShowError] = useState(false);
+  const [, setShowError] = useState(false);
+  const { isLogged } = useUser();
+  const { profile } = useUserProfile();
 
   useEffect(() => {
     setCurrentPathname({ name: window.location.pathname });
   }, []);
 
-  const {
-    data,
-    error,
-  } = useSWR(`${VITE_API_URL}/api/companies/all`, fetcher, {
-    fallbackData: fallbackCompanies,
-    revalidateOnFocus: true,
-    shouldRetryOnError: true,
-    errorRetryInterval: 5000,
-    errorRetryCount: 10,
-  });
+  // ✅ Solo hacer la petición si está logueado
+  console.log(profile?.id)
+  const { data, error } = useSWR(
+    isLogged ? `${VITE_API_URL}/api/companies/${profile?.id}/my-companies` : null,
+    fetcher,
+    {
+      fallbackData: fallbackCompanies,
+      revalidateOnFocus: true,
+      shouldRetryOnError: true,
+      errorRetryInterval: 5000,
+      errorRetryCount: 10,
+    }
+  );
 
   useEffect(() => {
     if (error) {
       console.error("Error al cargar compañías:", error);
       setShowError(true);
     } else if (data && data[0]?.id !== "na") {
-      setShowError(false); // Oculta el error si ya hay datos reales
+      setShowError(false);
     }
   }, [error, data]);
 
@@ -61,11 +76,6 @@ const Layout: React.FC<RoutesProps> = () => {
   return (
     <CompanyProvider initialCompanies={companies}>
       <main className="w-full relative scroll-smooth">
-        {showError && (
-          <div className="fixed top-5 right-5 bg-yellow-300 text-black p-4 rounded shadow-lg z-50">
-            ⚠️ No se pudieron cargar las compañías. Usando datos por defecto. Reintentando...
-          </div>
-        )}
         <AppRoutes pathnameLocation={pathnameLocation} companies={companies} />
       </main>
     </CompanyProvider>

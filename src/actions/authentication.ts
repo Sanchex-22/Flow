@@ -2,79 +2,76 @@ import { decodeToken, Token } from "../utils/decode";
 const { VITE_API_URL } = import.meta.env
 
 export class authServices {
-static async login(email: string, password: string) {
-  const response = await fetch(`${VITE_API_URL}/api/user/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
-  let data;
-  try {
-    if (response.status === 204) {
-      data = null;
-    } else {
-      data = await response.json();
-    }
-  } catch (error) {
-    console.error("Fallo al parsear la respuesta JSON del login", error);
-    data = null;
-  }
-  if (!response.ok) {
-    const errorMessage = data?.message || 'Error en el inicio de sesión';
-    throw new Error(errorMessage);
-  }
-
-  if (data && data.token) {
-    const tokenData = JSON.stringify(data);
-    window.sessionStorage.setItem('jwt', tokenData);
-    localStorage.setItem("jwt", tokenData);
-  }
-
-  return data;
-}
-
-static async logout(jwt: string) {
-  if (typeof jwt !== 'string' || jwt.trim() === '') {
-    const errorMessage = "La función de logout fue llamada incorrectamente sin un token JWT válido.";
-    console.error(errorMessage, "Argumento recibido:", jwt);
-    window.sessionStorage.removeItem('jwt');
-    localStorage.removeItem('jwt');
-    
-    window.sessionStorage.removeItem('selectedCompany');
-    localStorage.removeItem('selectedCompany');
-    window.location.href = '/login';
-    throw new TypeError(errorMessage);
-  }
-  window.sessionStorage.removeItem('jwt');
-  localStorage.removeItem('jwt');
-  window.sessionStorage.removeItem('selectedCompany');
-  localStorage.removeItem('selectedCompany');
-
-  try {
-    const response = await fetch(`${VITE_API_URL}/api/user/auth/logout`, {
+  static async login(email: string, password: string) {
+    const response = await fetch(`${VITE_API_URL}/api/user/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwt}`,
       },
+      body: JSON.stringify({ email, password }),
     });
-
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({})); 
-      throw new Error(errorData.message || 'Error del servidor al cerrar la sesión.');
+      try {
+        const errorData = await response.json();
+        throw new Error(errorData?.message || 'Error en el inicio de sesión');
+      } catch (error) {
+        throw new Error('Error en el inicio de sesión');
+      }
     }
-    console.log("Logout en el servidor exitoso.");
 
-  } catch (error) {
-    console.error('Error durante la llamada de logout al servidor:', error);
-  } finally {
-    if (window.location.pathname !== '/login') {
+    const data = await response.json();
+
+    if (data?.token) {
+      window.sessionStorage.setItem('jwt', data.token);
+      localStorage.setItem('jwt', data.token);
+      return data.token; // ✅ Retornar solo el token
+    }
+
+    throw new Error('No se recibió token del servidor');
+  }
+
+  static async logout(jwt: string) {
+    if (typeof jwt !== 'string' || jwt.trim() === '') {
+      const errorMessage = "La función de logout fue llamada incorrectamente sin un token JWT válido.";
+      console.error(errorMessage, "Argumento recibido:", jwt);
+      window.sessionStorage.removeItem('jwt');
+      localStorage.removeItem('jwt');
+      
+      window.sessionStorage.removeItem('selectedCompany');
+      localStorage.removeItem('selectedCompany');
       window.location.href = '/login';
+      throw new TypeError(errorMessage);
+    }
+
+    window.sessionStorage.removeItem('jwt');
+    localStorage.removeItem('jwt');
+    window.sessionStorage.removeItem('selectedCompany');
+    localStorage.removeItem('selectedCompany');
+
+    try {
+      const response = await fetch(`${VITE_API_URL}/api/user/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({})); 
+        throw new Error(errorData.message || 'Error del servidor al cerrar la sesión.');
+      }
+      console.log("Logout en el servidor exitoso.");
+
+    } catch (error) {
+      console.error('Error durante la llamada de logout al servidor:', error);
+    } finally {
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
   }
-}
 
   static async register(formData: FormData) {
     const email_address = formData.get('email');
@@ -156,34 +153,28 @@ static async logout(jwt: string) {
     return exp < currentTime;
   }
 
-  static setCurrentUser() {
-    return localStorage.setItem('jwt', JSON.stringify({}));
-  }
-
+  /**
+   * Obtiene el token actual del storage si es válido
+   */
   static getCurrentUser(): string | null {
     try {
-      const decoded = decodeToken();
       const token = Token();
+      
+      if (!token || token.split('.').length !== 3) {
+        return null;
+      }
+
+      const decoded = decodeToken();
       if (!decoded) {
-        sessionStorage.removeItem('jwt');
-        window.sessionStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedCompany');
         return null;
       }
 
       const isExpired = this.isTokenExpired(decoded?.exp);
-
+      
       if (isExpired) {
-        sessionStorage.removeItem('jwt');
         localStorage.removeItem('jwt');
-        window.sessionStorage.removeItem('selectedCompany');
-        localStorage.removeItem('selectedCompany');
+        sessionStorage.removeItem('jwt');
         return null;
-      }
-
-      const sessionJwt = sessionStorage.getItem('jwt');
-      if (!sessionJwt) {
-        sessionStorage.setItem('jwt', JSON.stringify(decoded));
       }
 
       return token;
@@ -191,5 +182,12 @@ static async logout(jwt: string) {
       console.error('Error getting current user:', error);
       return null;
     }
+  }
+
+  /**
+   * Valida si el token actual es válido y no está expirado
+   */
+  static isTokenValid(): boolean {
+    return this.getCurrentUser() !== null;
   }
 }

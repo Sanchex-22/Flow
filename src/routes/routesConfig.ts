@@ -139,17 +139,11 @@ export const getUserRoles = (profile: UserProfile) => {
 
   const validRoles = ["super_admin", "admin", "moderator", "user"];
 
-  if (Array.isArray(profile.roles)) {
-    const rolesLower = profile.roles.map((role) => role.toLowerCase());
-    const filtered = rolesLower.filter((role) => validRoles.includes(role));
-    return filtered.length > 0 ? filtered : ["user"];
-  }
+  // profile.roles es un string, convertir a minúsculas y dividir si contiene múltiples roles
+  const rolesArray = profile.roles
+    .split(',') // Por si hay múltiples roles separados por comas
+    .map((role) => role.trim().toLowerCase())
+    .filter((role) => validRoles.includes(role));
 
-  const singleRole = profile.roles.toLowerCase();
-  if (validRoles.includes(singleRole)) {
-    return [singleRole];
-  }
-
-  return ["user"];
+  return rolesArray.length > 0 ? rolesArray : ["user"];
 };
-

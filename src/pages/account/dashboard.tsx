@@ -194,16 +194,16 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
           {/* Total Equipos */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
             <span className="text-gray-400 text-sm">Total Equipos</span>
-            <div className="text-3xl font-bold">{dashboardData.kpi.totalEquipments.count}</div>
+            <div className="text-3xl font-bold">{dashboardData?.kpi?.totalEquipments?.count}</div>
             <div
               className={`mt-2 text-sm ${
-                dashboardData.kpi.totalEquipments.change >= 0
+                dashboardData?.kpi?.totalEquipments?.change >= 0
                   ? "text-green-400"
                   : "text-red-400"
               }`}
             >
-              {dashboardData.kpi.totalEquipments.change >= 0 ? "↗" : "↘"}{" "}
-              {dashboardData.kpi.totalEquipments.change}%
+              {dashboardData?.kpi?.totalEquipments?.change >= 0 ? "↗" : "↘"}{" "}
+              {dashboardData?.kpi?.totalEquipments?.change}%
             </div>
           </div>
 

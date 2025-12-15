@@ -47,10 +47,8 @@ const SlideBar: React.FC<DashboardProps> = ({
   const { logout } = useUser();
   const { selectedCompany } = useCompany();
   const location = useLocation();
-
   const currentPathSegments = location.pathname.split("/").filter(Boolean);
   const baseRoute = currentPathSegments.length > 1 ? currentPathSegments[1] : "";
-
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
   const filteredNavLinks =
     userRoles.flatMap((role) =>
@@ -90,7 +88,7 @@ const SlideBar: React.FC<DashboardProps> = ({
             <h2 className="text-lg font-bold">Sistema IT</h2>
           </div>
         </div>
-        <CompanySelectorComponent />
+        <CompanySelectorComponent profile={profile}/>
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
             {filteredNavLinks?.length > 0 ? (

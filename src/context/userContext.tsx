@@ -18,7 +18,6 @@ export function UserContextProvider({ children }: UserContextProps) {
     const currentUser = authServices.getCurrentUser();
     return currentUser ? JSON.stringify(currentUser) : null;
   });
-
   return (
     <Context.Provider value={{ jwt, setJWT }}>
       {children}

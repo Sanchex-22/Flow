@@ -3,6 +3,7 @@
 import useSWR from "swr"
 import { formatValue } from "../../../utils/formatNull"
 import { UsuarioFull } from "../../../utils/usuarioFull"
+import Loader from "../../../components/loaders/loader.tsx"
 
 const { VITE_API_URL } = import.meta.env
 
@@ -12,15 +13,12 @@ interface ProfilePageProps {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage({ userId }: ProfilePageProps) {
-  // Datos del usuario desde el JSON proporcionado
-  console.log("Fetching profile for user ID in ProfilePage:", userId)
   const { data, error, isLoading } = useSWR(`${VITE_API_URL}/api/users/profile/${userId}`, fetcher)
-    console.log("User Data:", data)
   // Show loading or error states
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <span>Cargando perfil...</span>
+        <Loader/>
       </div>
     );
   }
