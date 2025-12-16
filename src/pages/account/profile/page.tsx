@@ -14,7 +14,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage({ userId }: ProfilePageProps) {
   const { data, error, isLoading } = useSWR(`${VITE_API_URL}/api/users/profile/${userId}`, fetcher)
-  // Show loading or error states
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -56,7 +56,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
     }
   }
 
-  const getStatusBadge = (status: string, isActive: boolean) => {
+  const getStatusBadge = (status: any, isActive: boolean) => {
     if (!isActive) return "bg-red-600 text-red-100"
     switch (status) {
       case "Activo":
@@ -275,7 +275,12 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Departamento</label>
-                <p className="text-white">{formatValue(userData?.person?.department.description)}</p>
+                <p className="text-white">{formatValue(userData?.person?.department?.name)}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Descripción del Departamento</label>
+                <p className="text-white">{formatValue(userData?.person?.department?.description)}</p>
               </div>
 
               <div>
@@ -300,11 +305,70 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
                   {userData?.isActive ? userData?.person?.status : "Inactivo"}
                 </span>
               </div>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">ID de Empresa</label>
-                <p className="text-white">{userData?.companyId || "No asignada"}</p>
+          {/* Companies Information */}
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-6 h-6">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-full h-full text-yellow-400"
+                >
+                  <path d="M3 21h18" />
+                  <path d="M5 21V7l8-4v18" />
+                  <path d="M19 21V11l-6-4" />
+                  <path d="M9 9v.01" />
+                  <path d="M9 12v.01" />
+                  <path d="M9 15v.01" />
+                  <path d="M9 18v.01" />
+                </svg>
               </div>
+              <h2 className="text-xl font-bold">Compañías Asignadas</h2>
+            </div>
+
+            <div className="space-y-4">
+              {userData?.companies && userData.companies.length > 0 ? (
+                userData.companies.map((userCompany, index) => (
+                  <div key={index} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-white">{userCompany.company.name}</h3>
+                      <span className="text-xs font-mono text-gray-400">{userCompany.company.code}</span>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      {userCompany.company.address && (
+                        <p className="text-gray-300">📍 {userCompany.company.address}</p>
+                      )}
+                      {userCompany.company.phone && (
+                        <p className="text-gray-300">📞 {userCompany.company.phone}</p>
+                      )}
+                      {userCompany.company.email && (
+                        <p className="text-gray-300">✉️ {userCompany.company.email}</p>
+                      )}
+                      {userCompany.company.ruc && (
+                        <p className="text-gray-300">🆔 RUC: {userCompany.company.ruc}</p>
+                      )}
+                      <div className="flex items-center space-x-2 mt-2">
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            userCompany.company.isActive
+                              ? "bg-green-600 text-green-100"
+                              : "bg-red-600 text-red-100"
+                          }`}
+                        >
+                          {userCompany.company.isActive ? "Activa" : "Inactiva"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400">No tiene compañías asignadas</p>
+              )}
             </div>
           </div>
 
