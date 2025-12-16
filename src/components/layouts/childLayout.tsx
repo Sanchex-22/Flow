@@ -46,26 +46,13 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         <SpeedInsights />
         {publicRoute ? 
         <>
-        {/* 
-        <Navbar
-          profile={profile}
-          currentPathname={currentPathname}
-          isLogged={isLogged}
-        />
-        */}
-        <div id="page-content" className="z-10 bg-gray-900 text-white min-h-screen ">
+          <div id="page-content" className="z-10 bg-gray-900 text-white min-h-screen ">
             {children}
           </div>
         </>
         :
         <div className="min-h-screen bg-gray-900 text-white flex h-[90vh]">
-        {/* 
-          <AdminNavbar 
-            currentPathname={currentPathname
-            isLogged={isLogged}
-            profile={profile}
-          /> 
-        */}
+
           <SlideBarComponent
             subroutes={[]}
             currentPathname={currentPathname}
