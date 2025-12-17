@@ -3,11 +3,12 @@ import { TicketIcon } from "lucide-react";
 import { DashboardIcon, DevicesIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
+import { FaMoneyBill } from "react-icons/fa";
 
 const routesConfig = [
   {
     icon: DashboardIcon,
-    name: "dashboard",
+    name: "Dashboard",
     href: "/dashboard/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator, authRoles.user],
     subroutes: [
@@ -26,7 +27,7 @@ const routesConfig = [
 
   {
     icon: DevicesIcon,
-    name: "devices",
+    name: "Devices",
     href: "/devices/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
@@ -35,7 +36,7 @@ const routesConfig = [
   },
   {
     icon: MaintenanceIcon,
-    name: "maintenance",
+    name: "Maintenance",
     href: "/maintenance/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
@@ -65,7 +66,7 @@ const routesConfig = [
   },
   {
     icon: ReportsIcon,
-    name: "reports",
+    name: "Reports",
     href: "/reports/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
@@ -74,11 +75,21 @@ const routesConfig = [
   },
   {
     icon: TicketIcon,
-    name: "tickets",
+    name: "Tickets",
     href: "/tickets/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
       { name: "Tickets", href: "/tickets/all" },
+    ]
+  },
+  {
+    icon: FaMoneyBill,
+    name: "Expenses",
+    href: "/expenses/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "Expenses", href: "/expenses/all" },
+      { name: "Expense Detail", href: "/expenses/edit" },
     ]
   },
   {

@@ -39,6 +39,9 @@ import UpdateNetworkProviderPage from "../pages/account/network/components/updat
 import TicketPage from "../pages/account/tickets/page";
 import AllTickets from "../pages/account/tickets/components/AllTickets";
 import EditTicketPage from "../pages/account/tickets/[id]/page";
+import ExpenseDetailPage from "../pages/account/expensive/[id]/updateExpense";
+import ExpensePage from "../pages/account/expensive/page";
+import AllExpensePage from "../pages/account/expensive/components/allExpense";
 
 // Tipado de usuario
 export interface User {
@@ -422,6 +425,42 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       >
         <Route path="all" element={<AllTickets></AllTickets>} />
         <Route path=":id" element={<EditTicketPage/>}/>
+      </Route>
+
+      <Route
+        path={`/:${code}/expenses/*`}
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="Expenses"
+              description="Expense Page"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <ExpensePage
+                subroutes={
+                  routesConfig.find((route) => route.name === "Expenses")
+                    ?.subroutes || []
+                }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<AllExpensePage/>} />
+        <Route path="edit/:id" element={<ExpenseDetailPage/>} />
       </Route>
 
       <Route
