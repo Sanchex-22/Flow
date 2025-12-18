@@ -15,7 +15,6 @@ import useUserProfile from "../hook/userUserProfile";
 import NotFound from "../pages/public_pages/not_found";
 import Dashboard from "../pages/account/dashboard";
 import Inventory from "../pages/account/inventory/inventory";
-import ReportsPage from "../pages/account/reports/pages";
 import DevicesPage from "../pages/account/devices/devices";
 import NextworkPage from "../pages/account/network/network";
 import UsersPage from "../pages/account/users/page";
@@ -42,6 +41,8 @@ import EditTicketPage from "../pages/account/tickets/[id]/page";
 import ExpenseDetailPage from "../pages/account/expense/[id]/updateExpense";
 import ExpensePage from "../pages/account/expense/page";
 import AllExpensePage from "../pages/account/expense/components/allExpense";
+import ReportsPage from "../pages/account/reports/page";
+import AllReportsPage from "../pages/account/reports/components/allReportPage";
 
 // Tipado de usuario
 export interface User {
@@ -379,16 +380,16 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               companies={companies}
             >
               <ReportsPage
-                // subroutes={
-                //   routesConfig.find((route) => route.name === "reports")
-                //     ?.subroutes || []
-                // }
+                subroutes={
+                  routesConfig.find((route) => route.name === "reports")
+                    ?.subroutes || []
+                }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllReportsPage/>} />
       </Route>
 
       <Route

@@ -1,6 +1,6 @@
 import React from 'react';
 import * as XLSX from 'xlsx';
-import { Report } from "../pages"; // Asegúrate de que la ruta sea correcta
+import { Report } from "./allReportPage"; // Asegúrate de que la ruta sea correcta
 
 interface ReportModalProps {
   isOpen: boolean;

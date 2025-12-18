@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react"
 import useSWR from "swr"
-import ReportModal from "./components/ReportModal"
+import ReportModal from "./ReportModal"
 import * as XLSX from "xlsx" 
-import { useCompany } from "../../../context/routerContext"
-import Loader from "../../../components/loaders/loader"
+import { useCompany } from "../../../../context/routerContext"
+import Loader from "../../../../components/loaders/loader"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -112,7 +112,7 @@ const getIcon = (iconName: string) => {
 };
 
 // --- COMPONENTE PRINCIPAL ---
-export default function ReportsPage() {
+export default function AllReportsPage() {
   const { selectedCompany } = useCompany()
   const { data, error, isLoading } = useSWR<DashboardApiResponse>(`${VITE_API_URL}/api/reports/${selectedCompany?.id}/all`, fetcher)
   

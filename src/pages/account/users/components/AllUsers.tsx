@@ -228,7 +228,7 @@ const filteredUsers = useMemo(() => {
     }
 
     return (
-        <div className="relative">
+        <div className="relative min-h-screen bg-gray-900 text-white p-6">
             <div className="flex justify-between items-start mb-8">
                 <div>
                     <h1 className="text-2xl font-bold mb-2">Usuarios {selectedCompany?.name || "Cargando..."}</h1>
