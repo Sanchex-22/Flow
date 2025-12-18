@@ -18,7 +18,6 @@ import Inventory from "../pages/account/inventory/inventory";
 import DevicesPage from "../pages/account/devices/devices";
 import NextworkPage from "../pages/account/network/network";
 import UsersPage from "../pages/account/users/page";
-import SettingsPage from "../pages/account/settings/page";
 import ProfilePage from "../pages/account/profile/page";
 import { Company } from "../components/layouts/slideBar";
 import { useCompany } from "../context/routerContext";
@@ -43,6 +42,8 @@ import ExpensePage from "../pages/account/expense/page";
 import AllExpensePage from "../pages/account/expense/components/allExpense";
 import ReportsPage from "../pages/account/reports/page";
 import AllReportsPage from "../pages/account/reports/components/allReportPage";
+import SettingsPage from "../pages/account/settings/page";
+import AllSettingsPage from "../pages/account/settings/components/allSettingsPage";
 
 // Tipado de usuario
 export interface User {
@@ -496,7 +497,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllSettingsPage/>} />
       </Route>
 
       <Route

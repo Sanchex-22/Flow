@@ -18,13 +18,13 @@ const NextworkPage: React.FC<SubRoutesProps> = () => {
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100 p-6">
       {/* Barra de navegación/switch */}
-      <nav className="mb-8 border-b border-slate-700 pb-4">
+      <nav className="border-b border-slate-700 p-4">
         <ul className="flex gap-4">
           <li>
             <NavLink
               to={`all`} // Ruta específica para conexiones locales
               className={({ isActive }) =>
-                `text-lg font-medium py-2 px-4 rounded-lg transition-colors duration-200 ${
+                `text-lg font-medium py-2 px-4 rounded-md transition-colors duration-200 ${
                   isActive
                     ? "bg-blue-600 text-white"
                     : "text-gray-400 hover:text-white hover:bg-slate-700"
@@ -38,7 +38,7 @@ const NextworkPage: React.FC<SubRoutesProps> = () => {
             <NavLink
               to={`providers`} // Ruta para proveedores
               className={({ isActive }) =>
-                `text-lg font-medium py-2 px-4 rounded-lg transition-colors duration-200 ${
+                `text-lg font-medium py-2 px-4 rounded-md transition-colors duration-200 ${
                   isActive
                     ? "bg-blue-600 text-white"
                     : "text-gray-400 hover:text-white hover:bg-slate-700"
