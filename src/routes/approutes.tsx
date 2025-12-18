@@ -39,9 +39,9 @@ import UpdateNetworkProviderPage from "../pages/account/network/components/updat
 import TicketPage from "../pages/account/tickets/page";
 import AllTickets from "../pages/account/tickets/components/AllTickets";
 import EditTicketPage from "../pages/account/tickets/[id]/page";
-import ExpenseDetailPage from "../pages/account/expensive/[id]/updateExpense";
-import ExpensePage from "../pages/account/expensive/page";
-import AllExpensePage from "../pages/account/expensive/components/allExpense";
+import ExpenseDetailPage from "../pages/account/expense/[id]/updateExpense";
+import ExpensePage from "../pages/account/expense/page";
+import AllExpensePage from "../pages/account/expense/components/allExpense";
 
 // Tipado de usuario
 export interface User {
