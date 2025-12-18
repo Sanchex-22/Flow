@@ -27,7 +27,7 @@ export default function AllExpensePage() {
   const { selectedCompany } = useCompany()
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [, setIsCreateOpen] = useState(false)
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({
     open: false,
     id: null,
