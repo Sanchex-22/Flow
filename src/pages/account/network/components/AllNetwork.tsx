@@ -5,6 +5,7 @@ import { useState, useMemo, useRef } from "react"
 import useSWR, { mutate } from "swr"
 import { useCompany } from "../../../../context/routerContext"
 import DeleteNetworkModal from "./deleteModal"
+import Loader from "../../../../components/loaders/loader"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -340,9 +341,7 @@ export default function AllNetwork() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-gray-100">Cargando...</div>
-      </div>
+      <Loader />
     )
   }
 

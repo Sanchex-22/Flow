@@ -5,6 +5,7 @@ import useSWR from "swr"
 import ReportModal from "./components/ReportModal"
 import * as XLSX from "xlsx" 
 import { useCompany } from "../../../context/routerContext"
+import Loader from "../../../components/loaders/loader"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -212,7 +213,11 @@ export default function ReportsPage() {
         return "bg-gray-600 text-gray-100"
     }
   }
-
+  if (isLoading) {
+    return (
+      <Loader />
+    )
+  }
   // --- RENDERIZADO DEL COMPONENTE ---
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
@@ -224,7 +229,6 @@ export default function ReportsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {isLoading && <p className="col-span-full text-center text-gray-400">Cargando reportes...</p>}
         {error && <p className="col-span-full text-center text-red-500">Error al cargar los datos. Por favor, intente de nuevo.</p>}
         {data && reportsData.map((reporte) => (
           <div key={reporte.id} className="bg-gray-800 rounded-lg p-6 border border-gray-700 flex flex-col justify-between">
