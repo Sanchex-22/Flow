@@ -1,7 +1,6 @@
 
 import Headers from "../meta/headers";
 import { UserProfile } from "../../context/userProfileContext";
-import Footer from "./footer";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Toaster } from "sonner"
@@ -66,7 +65,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         </div>
         }
       </main>
-      {publicRoute ? <Footer/>:<></>}
+      {/* {publicRoute ? <Footer/>:<></>} */}
     </>
   );
 };
