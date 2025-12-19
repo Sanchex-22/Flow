@@ -6,6 +6,8 @@ import { useEffect, useState } from "react"
 import * as XLSX from 'xlsx'
 import Loader from "../../../../components/loaders/loader"
 import { useCompany } from "../../../../context/routerContext"
+import { usePageName } from "../../../../hook/usePageName"
+import PagesHeader from "../../../../components/headers/pagesHeader"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -60,6 +62,7 @@ export default function AllDevices() {
     const [selectedType, setSelectedType] = useState("Todos los...")
     const [activeTab, setActiveTab] = useState("Todos los Equipos")
     const { selectedCompany } = useCompany();
+    const { pageName } = usePageName();
     const [notification, setNotification] = useState<Notification>({
         type: "success",
         message: "",
@@ -346,7 +349,7 @@ export default function AllDevices() {
 
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-6">
+        <div className="min-h-screen bg-gray-900 text-white">
             {/* Componente de Notificación */}
             {notification.show && (
                 <div 
@@ -390,33 +393,13 @@ export default function AllDevices() {
                     </div>
                 </div>
             )}
-            
-            {/* Page Header */}
-            <div className="flex justify-between items-start mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold mb-2">Gestión de Equipos - {selectedCompany?.name || "Cargando..."}</h1>
-                </div>
-                <div className="flex space-x-3">
-                    <button 
-                        onClick={exportToExcel}
-                        className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7,10 12,15 17,10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        <span>Exportar</span>
-                    </button>
-                    <a href="create" className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        <span>Agregar Equipo</span>
-                    </a>
-                </div>
-            </div>
+
+            <PagesHeader 
+                title={pageName} 
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+                onExport={exportToExcel}
+                showCreate
+            />
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

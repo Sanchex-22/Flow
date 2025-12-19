@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
-import { Plus, Eye, Download, Trash2, Edit } from "lucide-react"
+import { Eye, Trash2, Edit } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useCompany } from "../../../../context/routerContext"
 import * as XLSX from 'xlsx'
+import { usePageName } from "../../../../hook/usePageName"
+import PagesHeader from "../../../../components/headers/pagesHeader"
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -24,10 +26,10 @@ export interface AnnualSoftwareExpense {
 
 export default function AllExpensePage() {
   const navigate = useNavigate()
+  const { pageName } = usePageName();
   const { selectedCompany } = useCompany()
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
-  const [, setIsCreateOpen] = useState(false)
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({
     open: false,
     id: null,
@@ -96,30 +98,14 @@ export default function AllExpensePage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold">Gestión de Gastos</h1>
-          <p className="text-sm text-gray-400">
-            Suscripciones y aplicaciones empresariales
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl transition"
-          >
-            <Download size={16} /> Exportar Excel
-          </button>
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-900 transition"
-          >
-            <Plus size={16} /> Agregar Gasto
-          </button>
-        </div>
-      </div>
+      <PagesHeader 
+        title={pageName} 
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+        showCreate
+        onExport={handleExportExcel}
+      />
 
       {/* Stats */}
       <div className="bg-gray-800 rounded-xl p-4">

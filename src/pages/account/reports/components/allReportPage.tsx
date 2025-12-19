@@ -6,6 +6,8 @@ import ReportModal from "./ReportModal"
 import * as XLSX from "xlsx" 
 import { useCompany } from "../../../../context/routerContext"
 import Loader from "../../../../components/loaders/loader"
+import PagesHeader from "../../../../components/headers/pagesHeader"
+import { usePageName } from "../../../../hook/usePageName"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -115,7 +117,7 @@ const getIcon = (iconName: string) => {
 export default function AllReportsPage() {
   const { selectedCompany } = useCompany()
   const { data, error, isLoading } = useSWR<DashboardApiResponse>(`${VITE_API_URL}/api/reports/${selectedCompany?.id}/all`, fetcher)
-  
+  const { pageName } = usePageName();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
 
@@ -220,13 +222,11 @@ export default function AllReportsPage() {
   }
   // --- RENDERIZADO DEL COMPONENTE ---
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-            <h1 className="text-3xl font-bold">Reportes {selectedCompany?.name || "Cargando..."}</h1>
-            <p className="text-gray-400">Visualiza el rendimiento y estado de tus activos.</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <PagesHeader 
+        title={pageName} 
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {error && <p className="col-span-full text-center text-red-500">Error al cargar los datos. Por favor, intente de nuevo.</p>}

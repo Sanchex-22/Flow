@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react"
 import useSWR, { mutate } from "swr"
 import Loader from "../../../../components/loaders/loader"
 import { Company, useCompany } from "../../../../context/routerContext"
+import { usePageName } from "../../../../hook/usePageName"
+import PagesHeader from "../../../../components/headers/pagesHeader"
 
 const { VITE_API_URL } = import.meta.env
 
@@ -68,7 +70,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 const AllUsers: React.FC<SubRoutesProps> = () => {
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
     const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
-
+    const { pageName } = usePageName();
     // Estados para filtros y búsqueda
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("Todos")
@@ -228,23 +230,12 @@ const filteredUsers = useMemo(() => {
     }
 
     return (
-        <div className="relative min-h-screen bg-gray-900 text-white p-6">
-            <div className="flex justify-between items-start mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold mb-2">Usuarios {selectedCompany?.name || "Cargando..."}</h1>
-                    <p className="text-gray-400">Gestiona los usuarios y sus asignaciones de equipos</p>
-                </div>
-                <div>
-                    {/* Usar el componente Link de Next.js */}
-                    <a href="create" className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg>
-                        <span>Agregar Usuario</span>
-                    </a>
-                </div>
-            </div>
+        <div className="relative min-h-screen bg-gray-900 text-white">
+            <PagesHeader 
+                title={pageName} 
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+                showCreate
+            />
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

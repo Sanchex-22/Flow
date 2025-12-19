@@ -3,9 +3,12 @@
 
 import useSWR from "swr";
 import React, { useState } from "react";
-import { useCompany } from "../../context/routerContext";
-import Loader from "../../components/loaders/loader";
-import ReportPreviewModal from "../../components/modals/ReportPreviewModal";
+import { useCompany } from "../../../../context/routerContext";
+import Loader from "../../../../components/loaders/loader";
+import ReportPreviewModal from "../../../../components/modals/ReportPreviewModal";
+import PagesHeader from "../../../../components/headers/pagesHeader";
+import { CurrentPathname } from "../../../../components/layouts/main";
+import { usePageName } from "../../../../hook/usePageName";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -45,7 +48,7 @@ export type DashboardData = {
 };
 
 interface DashboardProps {
-  subroutes: { name: string; href: string }[];
+  currentPathname?: CurrentPathname
 }
 
 // ------------ Format date helper (igual que antes) ----------
@@ -117,10 +120,10 @@ const ActivityIcon: React.FC<{ icon: string }> = ({ icon }) => {
 };
 
 // ------------ COMPONENTE PRINCIPAL ACTUALIZADO ----------
-const Dashboard: React.FC<DashboardProps> = ({ }) => {
+const AllDashboard: React.FC<DashboardProps> = ({}) => {
   const { selectedCompany } = useCompany();
   const [showReportModal, setShowReportModal] = useState(false); // ← Estado del modal
-
+  const { pageName } = usePageName();
   const {
     data: dashboardData,
     error,
@@ -174,20 +177,9 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
 
   return (
     <>
-      <div className="flex-1 p-6">
+      <div className="flex-1">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">
-            Dashboard {selectedCompany?.name || "Cargando..."}
-          </h1>
-
-          <button
-            onClick={handleGenerateReport}
-            className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-          >
-            Generar Reporte
-          </button>
-        </div>
+        <PagesHeader title={pageName} description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} showExport onExport={handleGenerateReport}/>
 
         {/* KPI CARDS (igual que antes) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -329,4 +321,4 @@ const Dashboard: React.FC<DashboardProps> = ({ }) => {
   );
 };
 
-export default Dashboard;
+export default AllDashboard;

@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { Company, useCompany } from "../../../../context/routerContext";
 import { UsuarioFull } from "../../../../utils/usuarioFull";
 import UpdateMaintenanceForm from "../../../../components/forms/updateMaintenance";
+import { CurrentPathname } from "../../../../components/layouts/main";
 const { VITE_API_URL } = import.meta.env;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -15,6 +16,7 @@ interface User {
 }
 
 interface Props {
+    currentPathname?: CurrentPathname
     companies?: Company[] | null;
     users?: User[] | null;
     selectedCompany?: Company | null;

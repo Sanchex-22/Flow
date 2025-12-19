@@ -6,6 +6,7 @@ import useSWR, { mutate } from "swr"
 import { useCompany } from "../../../../context/routerContext"
 import DeleteNetworkModal from "./deleteModal"
 import Loader from "../../../../components/loaders/loader"
+import { CurrentPathname } from "../../../../components/layouts/main"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -133,6 +134,10 @@ const mapApiDataToFrontend = (item: ApiNetworkDevice): FrontendNetworkConnection
   }
 }
 
+interface Props {
+    currentPathname?: CurrentPathname
+}
+
 const PasswordField: React.FC<{ password: string }> = ({ password }) => {
   const [showPassword, setShowPassword] = useState(false)
 
@@ -180,7 +185,7 @@ const PasswordField: React.FC<{ password: string }> = ({ password }) => {
 // ====================================
 // Componente principal
 // ====================================
-export default function AllNetwork() {
+const AllNetwork:React.FC<Props> = ({ }) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("TODOS")
   const [activeView, setActiveView] = useState<"lista" | "topologia">("lista")
@@ -347,7 +352,7 @@ export default function AllNetwork() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100">
-      <div className="p-6">
+      <div className="">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -852,3 +857,4 @@ export default function AllNetwork() {
     </div>
   )
 }
+export default AllNetwork

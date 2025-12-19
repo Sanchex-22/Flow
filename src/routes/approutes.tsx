@@ -7,14 +7,10 @@ import ProtectedRoute from "./protectedRoutes";
 import useUser from "../hook/useUser";
 import { CurrentPathname } from "../components/layouts/main";
 import EnvolveLayout from "../components/layouts/childLayout";
-import CertificatesSection from "../pages/account/quotes/certificatesSection";
-import ServicesSection from "../pages/account/quotes/servicesSection";
 import { authRoles } from "../diccionary/constants";
 import routesConfig, { getUserRoles } from "./routesConfig";
 import useUserProfile from "../hook/userUserProfile";
 import NotFound from "../pages/public_pages/not_found";
-import Dashboard from "../pages/account/dashboard";
-import Inventory from "../pages/account/inventory/inventory";
 import DevicesPage from "../pages/account/devices/devices";
 import NextworkPage from "../pages/account/network/network";
 import UsersPage from "../pages/account/users/page";
@@ -44,6 +40,11 @@ import ReportsPage from "../pages/account/reports/page";
 import AllReportsPage from "../pages/account/reports/components/allReportPage";
 import SettingsPage from "../pages/account/settings/page";
 import AllSettingsPage from "../pages/account/settings/components/allSettingsPage";
+import DashboardPage from "../pages/account/dashboard/page";
+import AllDashboard from "../pages/account/dashboard/components/allDashboard";
+import InventoryPage from "../pages/account/inventory/page";
+import AllInventory from "../pages/account/inventory/components/allInventory";
+import UpdateExpensePage from "../pages/account/expense/components/updateExpense";
 
 // Tipado de usuario
 export interface User {
@@ -157,7 +158,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               publicRoute={false}
               companies={companies}
             >
-              <Dashboard
+              <DashboardPage
+                currentPathname={pathnameLocation}
                 subroutes={
                   routesConfig.find((route) => route.name === "Dashboard")
                     ?.subroutes || []
@@ -167,8 +169,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="certificates" element={<CertificatesSection />} />
-        <Route path="services" element={<ServicesSection />} />
+        <Route path="all" element={<AllDashboard/>} />
       </Route>
 
       <Route
@@ -193,19 +194,19 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               publicRoute={false}
               companies={companies}
             >
-              <Inventory
-                // subroutes={
-                //   routesConfig.find((route) => route.name === "Inventory")
-                //     ?.subroutes || []
-                // }
+              <InventoryPage
+                subroutes={
+                  routesConfig.find((route) => route.name === "Inventory")
+                    ?.subroutes || []
+                }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
-        <Route path="certificates" element={<CertificatesSection />} />
-        <Route path="services" element={<ServicesSection />} />
-        <Route path="all" element={<></>} />
+        <Route path="all" element={<AllInventory/>} />
+        <Route path="create" element={<UpdateDevicesPage/>} />
+        <Route path="edit/:id" element={<UpdateDevicesPage/>} />
       </Route>
 
       <Route
@@ -308,6 +309,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               companies={companies}
             >
               <MaintenancePage
+                currentPathname={pathnameLocation}
                 subroutes={
                   routesConfig.find((route) => route.name === "maintenance")
                     ?.subroutes || []
@@ -317,9 +319,9 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<AllMaintenance/>} />
-        <Route path="create" element={<UpdateMaintenancePage/>} />
-        <Route path="edit/:id" element={<UpdateMaintenancePage/>} />
+        <Route path="all" element={<AllMaintenance currentPathname={pathnameLocation}/>} />
+        <Route path="create" element={<UpdateMaintenancePage currentPathname={pathnameLocation}/>} />
+        <Route path="edit/:id" element={<UpdateMaintenancePage currentPathname={pathnameLocation}/>} />
       </Route>
 
       <Route
@@ -462,6 +464,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         }
       >
         <Route path="all" element={<AllExpensePage/>} />
+        <Route path="create" element={<UpdateExpensePage/>} />
         <Route path="edit/:id" element={<ExpenseDetailPage/>} />
       </Route>
 

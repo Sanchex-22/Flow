@@ -38,6 +38,10 @@ const fallbackCompanies = [
   },
 ];
 
+export interface CurrentPathname {
+  name: string;
+}
+
 const Layout: React.FC<RoutesProps> = () => {
   const [pathnameLocation, setCurrentPathname] = useState<CurrentPathname>({ name: '' });
   const [, setShowError] = useState(false);

@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import * as XLSX from 'xlsx';
-import { useCompany } from "../../../context/routerContext";
-import { PlusIcon } from "lucide-react";
-import Loader from "../../../components/loaders/loader";
+import { useCompany } from "../../../../context/routerContext";
+import Loader from "../../../../components/loaders/loader";
+import { usePageName } from "../../../../hook/usePageName";
+import PagesHeader from "../../../../components/headers/pagesHeader";
+
 
 interface Equipment {
   id: string;
@@ -36,7 +38,7 @@ interface ImportResult {
 
 const { VITE_API_URL } = import.meta.env
 
-export default function Inventory() {
+export default function AllInventory() {
   const [inventory, setInventory] = useState<Equipment[] | { message: string }>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [importing, setImporting] = useState(false);
@@ -45,7 +47,7 @@ export default function Inventory() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportResultModal, setShowImportResultModal] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-
+  const { pageName } = usePageName();
   const [newEquipment, setNewEquipment] = useState({
     brand: "",
     model: "",
@@ -299,44 +301,15 @@ export default function Inventory() {
   if (!selectedCompany?.id) return <p>No se encontró el código de empresa.</p>;
 
   return (
-    <div className="flex-1 flex flex-col p-6">
-      <div className="flex items-center gap-2">
+    <div className="flex-1">
 
-        {/* BOTÓN AGREGAR EQUIPO */}
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center space-x-2 bg-green-600 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
-        >
-          <PlusIcon className="h-5 w-5" />
-          <span>Agregar Equipo</span>
-        </button>
-
-        {/* BOTÓN DESCARGAR TEMPLATE */}
-        <button
-          onClick={downloadTemplate}
-          className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <span>Descargar Template</span>
-        </button>
-
-        {/* BOTÓN IMPORTAR CSV */}
-        <button
-          onClick={handleImportClick}
-          disabled={importing}
-          className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {importing && (
-            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          )}
-          <span>{importing ? "Importando..." : "Importar CSV"}</span>
-        </button>
-      </div>
+      <PagesHeader 
+        title={pageName} 
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+        showCreate
+        onDownloadTemplate={downloadTemplate}
+        onImportCsv={handleImportClick}
+      />
 
       <input
         name="csvFile"

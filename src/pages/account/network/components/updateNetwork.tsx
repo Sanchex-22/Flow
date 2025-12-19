@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCompany } from "../../../../context/routerContext";
+import { CurrentPathname } from "../../../../components/layouts/main";
 
 const { VITE_API_URL } = import.meta.env;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -48,6 +49,8 @@ interface Company {
 interface UpdateNetworkFormProps {
   networkID?: string;
   selectedCompany?: Company | null;
+  currentPathname?: CurrentPathname
+
 }
 
 const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({

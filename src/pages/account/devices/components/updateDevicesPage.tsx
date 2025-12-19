@@ -47,7 +47,6 @@ const UpdateDevicesPage: React.FC<Props> = ({ }) => {
         `${VITE_API_URL}/api/users/full`,
         fetcher
     );
-    console.log("Users data:", users);
 
     // ✅ Lógica corregida para manejo de carga y errores
     if (errorUsers) return <div>Error al cargar usuarios: {errorUsers.message}</div>; // Muestra el error específico

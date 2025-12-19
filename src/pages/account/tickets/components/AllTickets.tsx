@@ -7,6 +7,8 @@ import { DeleteConfirmationModal } from "./deleteModal"
 import * as XLSX from 'xlsx';
 import { useCompany } from "../../../../context/routerContext"
 import { useNavigate } from "react-router-dom"
+import { usePageName } from "../../../../hook/usePageName"
+import PagesHeader from "../../../../components/headers/pagesHeader"
 
 const EXCEL_COLUMNS = [
     { key: "id", header: "# Ticket" },
@@ -19,6 +21,7 @@ const EXCEL_COLUMNS = [
 
 export default function Home() {
   const { selectedCompany } = useCompany();
+  const { pageName } = usePageName();
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("Todos")
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -327,36 +330,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-        
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Tickets - {selectedCompany?.name}</h1>
-          <p className="text-gray-400">Gestiona los tickets de soporte, vacaciones y permisos</p>
-        </div>
-        <div className="flex flex-col space-y-2 md:flex-row md:space-x-4 md:space-y-0">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span>Exportar Excel</span>
-          </button>
-          
-          <button
-            onClick={() => navigate(`/${selectedCompany.code}/tickets/create`)}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span>Crear Ticket</span>
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <PagesHeader 
+        title={pageName} 
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+        showCreate
+        onExport={exportToExcel}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">

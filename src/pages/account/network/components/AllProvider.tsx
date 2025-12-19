@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import useSWR from "swr";
 import Loader from "../../../../components/loaders/loader";
 import { Company, useCompany } from "../../../../context/routerContext";
+import { CurrentPathname } from "../../../../components/layouts/main";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -66,12 +67,10 @@ export interface FrontendNetworkProvider {
     numConexionesAsociadas: number; // Para mostrar cuántas redes gestiona
 }
 
-// ====================================
-// Mapper API → Frontend
-// ====================================
-// ====================================
-// Mapper API → Frontend
-// ====================================
+interface Props {
+    currentPathname?: CurrentPathname
+}
+
 const mapApiProviderToFrontend = (item: ApiNetworkProvider): FrontendNetworkProvider => {
     if (!item) {
         return {
@@ -141,7 +140,7 @@ const mapApiProviderToFrontend = (item: ApiNetworkProvider): FrontendNetworkProv
 // ====================================
 // Componente principal
 // ====================================
-const NetworkProvidersPage = () => {
+const NetworkProvidersPage: React.FC<Props> = ({ }) => {
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
     const { data, error, isLoading } = useSWR<ApiNetworkProvider[] | null>(`${VITE_API_URL}/api/network/providers/${selectedCompany?.id}/all`, fetcher);
 

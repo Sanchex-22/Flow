@@ -30,6 +30,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(isDarkMode);
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
+  const pagename = currentPathname?.name?.split("/")[2] || "";
   const filteredNavLinks: { href: string; name: string; icon?: React.ReactNode }[] =
     userRoles.flatMap((role: string) =>
       getMainRoutesForRole(
@@ -160,7 +161,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
               />
               <input
                 type="text"
-                placeholder={`Search ${currentPathname?.name || ""}`}
+                placeholder={`Search ${pagename || ""}`}
                 className={`bg-transparent ml-2 outline-none text-sm placeholder-opacity-70 w-full ${
                   darkMode
                     ? "text-white placeholder-slate-400"

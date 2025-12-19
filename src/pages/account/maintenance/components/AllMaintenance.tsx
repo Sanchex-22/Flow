@@ -6,9 +6,16 @@ import * as XLSX from 'xlsx'
 import DeleteConfirmationModal from "./deleteModal"
 import Loader from "../../../../components/loaders/loader"
 import { useCompany } from "../../../../context/routerContext"
+import PagesHeader from "../../../../components/headers/pagesHeader"
+import { usePageName } from "../../../../hook/usePageName"
 const { VITE_API_URL } = import.meta.env
 
+interface CurrentPathname {
+  name: string;
+}
+
 interface SubRoutesProps {
+  currentPathname?: CurrentPathname
   subroutes?: {
     name?: string
     href?: string
@@ -50,7 +57,7 @@ interface MaintenanceBackend {
   }
 }
 
-const AllMaintenance: React.FC<SubRoutesProps> = () => {
+const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
   const [activeTab, setActiveTab] = useState("Todos")
   const [maintenanceData, setMaintenanceData] = useState<MaintenanceFrontend[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,7 +66,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceFrontend | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const { selectedCompany } = useCompany();
-
+  const { pageName } = usePageName();
   // ====================================
   // Función para exportar a Excel
   // ====================================
@@ -312,50 +319,16 @@ const AllMaintenance: React.FC<SubRoutesProps> = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Mantenimiento - {selectedCompany?.name || "Cargando..."}</h1>
-          <p className="text-gray-400">
-            Gestiona el mantenimiento preventivo y correctivo de equipos
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={exportToExcel}
-            className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7,10 12,15 17,10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            <span>Exportar</span>
-          </button>
-          <a
-            href="create"
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span>Programar Mantenimiento</span>
-          </a>
-        </div>
-      </div>
+    <div className="bg-gray-900 text-white">
+
+      <PagesHeader 
+        pageName={pageName} 
+        title={pageName || "N/a"} 
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+        showCreate   
+        showExport
+        onExport={exportToExcel}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

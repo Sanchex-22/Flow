@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { Company, useCompany } from "../../../../context/routerContext";
 import { UsuarioFull } from "../../../../utils/usuarioFull";
 import NetworkProviderForm from "../../../../components/forms/updateNetworkProvider";
+import { CurrentPathname } from "../../../../components/layouts/main";
 const { VITE_API_URL } = import.meta.env;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -20,6 +21,7 @@ interface Props {
     selectedCompany?: Company | null;
     // Prop para manejar el evento de cancelación
     onCancel?: () => void;
+    currentPathname?: CurrentPathname
 }
 
 
