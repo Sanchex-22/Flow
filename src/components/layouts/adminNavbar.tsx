@@ -23,7 +23,6 @@ interface AdminNavbarProps {
 }
 
 const AdminNavbar: React.FC<AdminNavbarProps> = ({
-  currentPathname,
   profile,
   isDarkMode = true,
   onThemeChange,
