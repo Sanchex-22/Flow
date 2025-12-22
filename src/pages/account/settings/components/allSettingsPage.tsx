@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
-import { Edit2, Trash2, Plus, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Edit2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useCompany } from "../../../../context/routerContext";
 import Loader from "../../../../components/loaders/loader";
 import PagesHeader from "../../../../components/headers/pagesHeader";
@@ -38,18 +38,6 @@ interface Company {
         networks?: number;
     }
 }
-
-interface FormData {
-    name: string;
-    code: string;
-    address: string;
-    phone: string;
-    email: string;
-    ruc: string;
-    logoUrl: string;
-    isActive: boolean;
-}
-
 
 const fetcherWithAuth = async (url: string): Promise<Company[]> => {
     try {
@@ -90,7 +78,6 @@ export default function AllSettingsPage() {
     const [error, setError] = useState<string | null>(null);
     const { search } = useSearch();
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-    const [isSuperAdmin] = useState<boolean>(true);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
     const { selectedCompany } = useCompany();
     const { pageName } = usePageName();
