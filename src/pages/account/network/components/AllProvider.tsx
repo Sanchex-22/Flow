@@ -331,9 +331,7 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
 
                     </div>
 
-                    {/* Tabla */}
                     <div className="overflow-x-auto">
-                        {/* Llama a la función que renderiza el contenido de la tabla */}
                         {renderTableContent()}
                     </div>
                 </div>
