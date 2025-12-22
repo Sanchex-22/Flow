@@ -6,7 +6,6 @@ import { CreateTicketModal } from "./create-ticket-modal"
 import { DeleteConfirmationModal } from "./deleteModal"
 import * as XLSX from 'xlsx';
 import { useCompany } from "../../../../context/routerContext"
-import { useNavigate } from "react-router-dom"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 
@@ -22,7 +21,6 @@ const EXCEL_COLUMNS = [
 export default function Home() {
   const { selectedCompany } = useCompany();
   const { pageName } = usePageName();
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("Todos")
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)

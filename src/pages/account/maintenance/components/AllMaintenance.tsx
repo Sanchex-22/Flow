@@ -322,11 +322,9 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     <div className="bg-gray-900 text-white">
 
       <PagesHeader 
-        pageName={pageName} 
         title={pageName || "N/a"} 
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
         showCreate   
-        showExport
         onExport={exportToExcel}
       />
 

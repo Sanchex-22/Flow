@@ -179,7 +179,7 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
     <>
       <div className="flex-1">
         {/* Header */}
-        <PagesHeader title={pageName} description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} showExport onExport={handleGenerateReport}/>
+        <PagesHeader title={pageName} description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} onExport={handleGenerateReport}/>
 
         {/* KPI CARDS (igual que antes) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
