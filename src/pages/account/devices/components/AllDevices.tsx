@@ -1,4 +1,3 @@
-
 "use client"
 
 import useSWR, { mutate } from "swr"
@@ -9,6 +8,8 @@ import { useCompany } from "../../../../context/routerContext"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
+import Tabla from "../../../../components/tables/Table"
+import { X } from "lucide-react"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -51,7 +52,6 @@ interface Notification {
     show: boolean
 }
 
-// Tipos para el modal de confirmación
 interface DeleteConfirmation {
     show: boolean
     equipo: CreateEquipmentData | null
@@ -59,8 +59,8 @@ interface DeleteConfirmation {
 }
 
 export default function AllDevices() {
-    const {search} = useSearch()
-    const [selectedType, setSelectedType] = useState("Todos los...")
+    const { search } = useSearch()
+    const [selectedType, ] = useState("Todos los...")
     const [activeTab, setActiveTab] = useState("Todos los Equipos")
     const { selectedCompany } = useCompany();
     const { pageName } = usePageName();
@@ -70,14 +70,12 @@ export default function AllDevices() {
         show: false,
     })
     const { data, error, isLoading } = useSWR<CreateEquipmentData[]>(`${VITE_API_URL}/api/devices/${selectedCompany?.id}/all`, fetcher)
-    // Estados para el modal de confirmación
     const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({
         show: false,
         equipo: null,
         isDeleting: false,
     })
 
-    // Auto-ocultar notificación después de 5 segundos
     useEffect(() => {
         if (notification.show) {
             const timer = setTimeout(() => {
@@ -87,7 +85,6 @@ export default function AllDevices() {
         }
     }, [notification.show])
 
-    // Función para exportar datos a Excel
     const exportToExcel = () => {
         const excelData = filteredEquipos.map((equipo) => ({
             'Modelo': equipo?.model || 'N/A',
@@ -104,12 +101,10 @@ export default function AllDevices() {
             'Fecha de Adquisición': equipo?.acquisitionDate || 'N/A'
         }));
 
-        // Crear un libro de trabajo
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Equipos');
 
-        // Ajustar el ancho de las columnas automáticamente
         const maxWidth = 50;
         const columnWidths = Object.keys(excelData[0] || {}).map(key => {
             const maxLength = Math.max(
@@ -120,18 +115,14 @@ export default function AllDevices() {
         });
         worksheet['!cols'] = columnWidths;
 
-        // Generar el archivo Excel
         const timestamp = new Date().toISOString().split('T')[0];
         XLSX.writeFile(workbook, `equipos_${timestamp}.xlsx`);
-        
-        // Mostrar notificación de éxito
+
         showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} equipos.`);
     };
 
     if (isLoading) {
-        return (
-            <Loader/>
-        )
+        return <Loader />
     }
 
     if (error || !data) {
@@ -141,8 +132,7 @@ export default function AllDevices() {
             </div>
         )
     }
-    
-    // El resto de la lógica y variables que dependen de `data` permanecen aquí
+
     const equipos = Array.isArray(data) ? data : [];
 
     const filteredEquipos = equipos?.filter(equipo => {
@@ -168,7 +158,6 @@ export default function AllDevices() {
         return filteredEquipos.filter(equipo => {
             if (!equipo.warrantyDetails) return false;
             try {
-                // Evitar parsear fechas inválidas
                 if (isNaN(new Date(equipo?.warrantyDetails).getTime())) return false;
                 const fechaGarantia = new Date(equipo?.warrantyDetails);
                 return fechaGarantia <= proximos30Dias && fechaGarantia >= new Date();
@@ -178,7 +167,6 @@ export default function AllDevices() {
         }).length;
     }
     const garantiasPorVencer = getGarantiasPorVencer();
-
 
     const getStatusBadge = (estado: string) => {
         switch (estado) {
@@ -193,7 +181,6 @@ export default function AllDevices() {
         }
     }
 
-    // Función para mostrar notificaciones
     const showNotification = (type: NotificationType, message: string) => {
         setNotification({
             type,
@@ -202,7 +189,6 @@ export default function AllDevices() {
         })
     }
 
-    // Función para abrir el modal de confirmación
     const openDeleteConfirmation = (equipo: CreateEquipmentData) => {
         setDeleteConfirmation({
             show: true,
@@ -211,7 +197,6 @@ export default function AllDevices() {
         })
     }
 
-    // Función para cerrar el modal de confirmación
     const closeDeleteConfirmation = () => {
         if (!deleteConfirmation.isDeleting) {
             setDeleteConfirmation({
@@ -222,7 +207,6 @@ export default function AllDevices() {
         }
     }
 
-    // Lógica de eliminación
     const deleteEquipment = async () => {
         if (!deleteConfirmation.equipo) return
 
@@ -248,113 +232,77 @@ export default function AllDevices() {
         }
     }
 
-    const renderContent = () => {
+    // Configuración de columnas personalizadas
+    const columnConfig = {
+        "Equipo": (item: CreateEquipmentData) => (
+            <div>
+                <div className="font-medium">{item?.model || "N/A"}</div>
+                <div className="text-sm text-gray-400">{item?.brand || "N/A"}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                    {item?.plateNumber || "N/A"} | {item?.serialNumber || "N/A"}
+                </div>
+            </div>
+        ),
+        "Usuario/Ubicación": (item: CreateEquipmentData) => (
+            <div className="flex items-start space-x-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 mt-0.5 text-gray-400">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
+                </svg>
+                <div>
+                    <div className="text-sm font-medium">{item?.assignedToUser?.person?.fullName || "Sin asignar"}</div>
+                    <div className="flex items-center space-x-1 text-xs text-gray-400 mt-1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span>{item?.company?.name || "N/A"}</span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">{item?.location || "N/A"}</div>
+                </div>
+            </div>
+        ),
+        "Estado": (item: CreateEquipmentData) => (
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item.status || "Activo")}`}>
+                {item?.status || "Activo"}
+            </span>
+        ),
+        "Garantía": (item: CreateEquipmentData) => (
+            <div className="flex items-center space-x-1 text-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-gray-400">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <span>{item?.warrantyDetails || "N/A"}</span>
+            </div>
+        ),
+        "Costo": (item: CreateEquipmentData) => (
+            <span className="text-sm font-medium">{item?.cost || "N/A"}</span>
+        ),
+    };
+
+    const getTabData = () => {
         switch (activeTab) {
             case 'Todos los Equipos':
-                return renderTable(filteredEquipos);
+                return filteredEquipos;
             case 'Asignaciones':
-                return renderTable(filteredEquipos.filter(e => e.assignedToUserId));
+                return filteredEquipos.filter(e => e.assignedToUserId);
             case 'Garantías':
-                return renderTable(filteredEquipos.filter(e => e.warrantyDetails));
+                return filteredEquipos.filter(e => e.warrantyDetails);
             default:
-                return renderTable(filteredEquipos);
+                return filteredEquipos;
         }
     };
 
-    const renderTable = (equiposToShow: CreateEquipmentData[]) => (
-        <div className="overflow-x-auto">
-            <table className="w-full">
-                <thead className="bg-gray-750">
-                    <tr className="border-b border-gray-700">
-                        <th className="text-left p-4 text-sm font-medium text-gray-300">Equipo</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-300">Usuario/Ubicación</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-300">Estado</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-300">Garantía</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-300">Costo</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-300">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {equiposToShow.map((equipo, index) => (
-                        <tr key={index} className="border-b border-gray-700 hover:bg-gray-750">
-                            <td className="p-4">
-                                <div>
-                                    <div className="font-medium">{equipo?.model || "N/A"}</div>
-                                    <div className="text-sm text-gray-400">{equipo?.brand || "N/A"}</div>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        {equipo?.plateNumber || "N/A"} | {equipo?.serialNumber || "N/A"}
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="p-4">
-                                <div className="flex items-start space-x-2">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 mt-0.5 text-gray-400">
-                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                        <circle cx="9" cy="7" r="4" />
-                                        <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
-                                    </svg>
-                                    <div>
-                                        <div className="text-sm font-medium">{equipo?.assignedToUser?.person?.fullName || "Sin asignar"}</div>
-                                        <div className="flex items-center space-x-1 text-xs text-gray-400 mt-1">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
-                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                                <circle cx="12" cy="10" r="3" />
-                                            </svg>
-                                            <span>{equipo?.company?.name || "N/A"}</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">{equipo?.location || "N/A"}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="p-4">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(equipo.status || "Activo")}`}>
-                                    {equipo?.status || "Activo"}
-                                </span>
-                            </td>
-                            <td className="p-4">
-                                <div className="flex items-center space-x-1 text-sm">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-gray-400">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                        <line x1="16" y1="2" x2="16" y2="6" />
-                                        <line x1="8" y1="2" x2="8" y2="6" />
-                                        <line x1="3" y1="10" x2="21" y2="10" />
-                                    </svg>
-                                    <span>{equipo?.warrantyDetails || "N/A"}</span>
-                                </div>
-                            </td>
-                            <td className="p-4 text-sm font-medium">{equipo?.cost || "N/A"}</td>
-                            <td className="p-4">
-                                <div className="flex space-x-2">
-                                    <a href={`edit/${equipo?.id}`} className="p-1 text-gray-400 hover:text-white transition-colors">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                        </svg>
-                                    </a>
-                                    <button
-                                        onClick={() => openDeleteConfirmation(equipo)}
-                                        className="p-1 text-gray-400 hover:text-red-400 transition-colors">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                            <polyline points="3,6 5,6 21,6" />
-                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-
-
     return (
         <div className="bg-gray-900 text-white">
-            {/* Componente de Notificación */}
+            {/* Notificación */}
             {notification.show && (
-                <div 
-                    className={`fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white max-w-sm z-50 transition-transform transform ${notification.show ? 'translate-x-0' : 'translate-x-full' } ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+                <div
+                    className={`fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white max-w-sm z-50 transition-transform transform ${notification.show ? 'translate-x-0' : 'translate-x-full'} ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
                 >
                     <p className="font-bold">{notification.type === 'success' ? 'Éxito' : 'Error'}</p>
                     <p>{notification.message}</p>
@@ -365,7 +313,16 @@ export default function AllDevices() {
             {deleteConfirmation.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
                     <div className="bg-gray-800 rounded-lg p-8 shadow-2xl max-w-md w-full border border-gray-700">
-                        <h2 className="text-xl font-bold mb-4">Confirmar Eliminación</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-xl font-bold">Confirmar Eliminación</h2>
+                            <button
+                                onClick={closeDeleteConfirmation}
+                                disabled={deleteConfirmation.isDeleting}
+                                className="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
                         <p className="text-gray-300 mb-6">
                             ¿Estás seguro de que quieres eliminar el equipo <span className="font-bold text-white">{deleteConfirmation.equipo?.model} ({deleteConfirmation.equipo?.serialNumber})</span>? Esta acción no se puede deshacer.
                         </p>
@@ -395,9 +352,9 @@ export default function AllDevices() {
                 </div>
             )}
 
-            <PagesHeader 
-                title={pageName} 
-                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+            <PagesHeader
+                title={pageName}
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
                 onExport={exportToExcel}
                 showCreate
             />
@@ -416,7 +373,7 @@ export default function AllDevices() {
                         </div>
                     </div>
                     <div className="text-3xl font-bold mb-1">{totalEquipos}</div>
-                    <div className="text-sm text-gray-400">En Empresa Principal S.A.</div>
+                    <div className="text-sm text-gray-400">En {selectedCompany?.name}</div>
                 </div>
 
                 <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -487,38 +444,14 @@ export default function AllDevices() {
             </div>
 
 
-            {/* Equipment List */}
-            <div className="bg-gray-800 rounded-lg border border-gray-700">
-                <div className="p-6 border-b border-gray-700">
-                    <h2 className="text-xl font-bold mb-2">Lista de Equipos</h2>
-                    <p className="text-gray-400 text-sm mb-6">{totalEquipos} equipos encontrados en Empresa Principal S.A.</p>
-
-                    <div className="flex justify-between items-center">
-                        <div className="ml-4">
-                            <div className="relative">
-                                <select
-                                    className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
-                                    value={selectedType}
-                                    onChange={(e) => setSelectedType(e.target.value)}
-                                >
-                                    <option>Todos los...</option>
-                                    <option>Laptop</option>
-                                    <option>Desktop</option>
-                                    <option>Impresora</option>
-                                    <option>Switch</option>
-                                </select>
-                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-gray-400">
-                                        <polyline points="6,9 12,15 18,9" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {renderContent()}
-            </div>
+            <Tabla
+                datos={getTabData()}
+                titulo={`${pageName || "Dispositivos"} List`}
+                columnasPersonalizadas={columnConfig}
+                onEditar={(item) => window.location.href = `edit/${item.id}`}
+                onEliminar={openDeleteConfirmation}
+                mostrarAcciones={true}
+            />
         </div>
     )
 }

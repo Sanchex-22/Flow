@@ -18,7 +18,6 @@ import ProfilePage from "../pages/account/profile/page";
 import { Company } from "../components/layouts/slideBar";
 import { useCompany } from "../context/routerContext";
 import CreateUserPage from "../pages/account/users/components/CreatePage";
-import AllUsers from "../pages/account/users/components/AllUsers";
 import AllDevices from "../pages/account/devices/components/AllDevices";
 import UpdateDevicesPage from "../pages/account/devices/components/updateDevicesPage";
 import AllNetwork from "../pages/account/network/components/AllNetwork";
@@ -31,7 +30,6 @@ import ProtectedCompanyRoute from "./protectedCompanyRoute";
 import NetworkProvidersPage from "../pages/account/network/components/AllProvider";
 import UpdateNetworkProviderPage from "../pages/account/network/components/updateNetworkProvider";
 import TicketPage from "../pages/account/tickets/page";
-import AllTickets from "../pages/account/tickets/components/AllTickets";
 import EditTicketPage from "../pages/account/tickets/[id]/page";
 import ExpenseDetailPage from "../pages/account/expense/[id]/updateExpense";
 import ExpensePage from "../pages/account/expense/page";
@@ -46,6 +44,8 @@ import InventoryPage from "../pages/account/inventory/page";
 import AllInventory from "../pages/account/inventory/components/allInventory";
 import UpdateExpensePage from "../pages/account/expense/components/updateExpense";
 import UpdateCompany from "../pages/account/settings/components/updateCompany";
+import { AllUsers } from "../pages/account/users/components/AllUsers";
+import { AllTickets } from "../pages/account/tickets/components/AllTickets";
 
 // Tipado de usuario
 export interface User {
@@ -428,8 +428,9 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<AllTickets></AllTickets>} />
-        <Route path=":id" element={<EditTicketPage/>}/>
+        <Route path="all" element={<AllTickets/>} />
+        <Route path="create" element={<EditTicketPage/>}/>
+        <Route path="edit/:id" element={<EditTicketPage/>}/>
       </Route>
 
       <Route

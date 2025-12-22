@@ -9,6 +9,7 @@ import { useCompany } from "../../../../context/routerContext"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { usePageName } from "../../../../hook/usePageName"
 import { useSearch } from "../../../../context/searchContext"
+import Tabla from "../../../../components/tables/Table"
 const { VITE_API_URL } = import.meta.env
 
 interface CurrentPathname {
@@ -23,20 +24,18 @@ interface SubRoutesProps {
   }[]
 }
 
-// Interfaz para el formato de datos del frontend
 export interface MaintenanceFrontend {
   id: string
   equipo: string
   equipoId: string
   tipo: string
   estado: string
-  prioridad: string // Se asume una lógica para determinar la prioridad si no viene del backend
+  prioridad: string
   tecnico: string
   fecha: string
   costo: string
 }
 
-// Interfaz para el formato de datos del backend (basado en tu controlador)
 interface MaintenanceBackend {
   id: string
   title: string
@@ -69,9 +68,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const { selectedCompany } = useCompany();
   const { pageName } = usePageName();
-  // ====================================
-  // Función para exportar a Excel
-  // ====================================
+
   const exportToExcel = () => {
     const excelData = filteredMantenimientos.map((mantenimiento) => ({
       'ID': mantenimiento.id,
@@ -85,12 +82,10 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
       'Costo': mantenimiento.costo
     }));
 
-    // Crear un libro de trabajo
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Mantenimientos');
 
-    // Ajustar el ancho de las columnas automáticamente
     const maxWidth = 50;
     const columnWidths = Object.keys(excelData[0] || {}).map(key => {
       const maxLength = Math.max(
@@ -101,14 +96,10 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     });
     worksheet['!cols'] = columnWidths;
 
-    // Generar el archivo Excel
     const timestamp = new Date().toISOString().split('T')[0];
     XLSX.writeFile(workbook, `mantenimientos_${timestamp}.xlsx`);
   };
 
-  // ====================================
-  // Manejo de modal
-  // ====================================
   const openDeleteModal = (connection: MaintenanceFrontend) => {
     setSelectedMaintenance(connection)
     setIsModalOpen(true)
@@ -165,12 +156,9 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     fetchMaintenances();
   }, [selectedCompany?.id]);  
 
-
-  // Función para mapear los datos del backend al formato del frontend
   const mapApiToFrontend = (
     item: MaintenanceBackend
   ): MaintenanceFrontend => {
-    // Lógica para determinar la prioridad (puedes ajustarla según tus necesidades)
     const getPriority = (status: string): string => {
       switch (status) {
         case 'COMPLETED':
@@ -189,8 +177,8 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
       equipo: item.title,
       equipoId: item.equipment.serialNumber,
       tipo: item.type,
-      estado: item.status, // Ajusta los estados si es necesario
-      prioridad: getPriority(item.status), // Lógica de ejemplo para la prioridad
+      estado: item.status,
+      prioridad: getPriority(item.status),
       tecnico: item.assignedToUser?.username || "No asignado",
       fecha: new Date(item.scheduledDate).toLocaleDateString(),
       costo: item.cost ? `$${item.cost}` : "$0",
@@ -284,35 +272,69 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     }
   }
 
-const filteredMantenimientos = maintenanceData.filter((mantenimiento) => {
-  // 1️⃣ Filtro por TAB
-  const matchesTab =
-    activeTab === "Todos" ||
-    (activeTab === "Pendientes" &&
-      ["PENDING", "IN_PROGRESS", "SCHEDULED"].includes(mantenimiento.estado)) ||
-    (activeTab === "Completados" && mantenimiento.estado === "COMPLETED");
+  const filteredMantenimientos = maintenanceData.filter((mantenimiento) => {
+    const matchesTab =
+      activeTab === "Todos" ||
+      (activeTab === "Pendientes" &&
+        ["PENDING", "IN_PROGRESS", "SCHEDULED"].includes(mantenimiento.estado)) ||
+      (activeTab === "Completados" && mantenimiento.estado === "COMPLETED");
 
-  if (!matchesTab) return false;
+    if (!matchesTab) return false;
 
-  // 2️⃣ Filtro por SEARCH (contexto)
-  if (!search.trim()) return true;
+    if (!search.trim()) return true;
 
-  const term = search.toLowerCase();
+    const term = search.toLowerCase();
 
-  return (
-    mantenimiento.equipo.toLowerCase().includes(term) ||
-    mantenimiento.equipoId.toLowerCase().includes(term) ||
-    mantenimiento.tipo.toLowerCase().includes(term) ||
-    mantenimiento.estado.toLowerCase().includes(term) ||
-    mantenimiento.prioridad.toLowerCase().includes(term) ||
-    mantenimiento.tecnico.toLowerCase().includes(term) ||
-    mantenimiento.fecha.toLowerCase().includes(term) ||
-    mantenimiento.costo.toLowerCase().includes(term)
-  );
-});
+    return (
+      mantenimiento.equipo.toLowerCase().includes(term) ||
+      mantenimiento.equipoId.toLowerCase().includes(term) ||
+      mantenimiento.tipo.toLowerCase().includes(term) ||
+      mantenimiento.estado.toLowerCase().includes(term) ||
+      mantenimiento.prioridad.toLowerCase().includes(term) ||
+      mantenimiento.tecnico.toLowerCase().includes(term) ||
+      mantenimiento.fecha.toLowerCase().includes(term) ||
+      mantenimiento.costo.toLowerCase().includes(term)
+    );
+  });
 
+  // Columnas personalizadas para la tabla
+  const columnConfig = {
+    "ID": (item: MaintenanceFrontend) => (
+      <span className="text-sm font-medium">{item.id.substring(0, 8)}...</span>
+    ),
+    "equipo": (item: MaintenanceFrontend) => (
+      <div>
+        <div className="font-medium text-sm">{item.equipo}</div>
+        <div className="text-xs text-gray-400">{item.equipoId}</div>
+      </div>
+    ),
+    "tipo": (item: MaintenanceFrontend) => (
+      <span className="text-sm">{item.tipo}</span>
+    ),
+    "estado": (item: MaintenanceFrontend) => (
+      <div className="flex items-center space-x-2">
+        {getStatusIcon(item.estado)}
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item.estado)}`}>
+          {item.estado}
+        </span>
+      </div>
+    ),
+    "prioridad": (item: MaintenanceFrontend) => (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(item.prioridad)}`}>
+        {item.prioridad}
+      </span>
+    ),
+    "tecnico": (item: MaintenanceFrontend) => (
+      <span className="text-sm">{item.tecnico}</span>
+    ),
+    "fecha": (item: MaintenanceFrontend) => (
+      <span className="text-sm">{item.fecha}</span>
+    ),
+    "costo": (item: MaintenanceFrontend) => (
+      <span className="text-sm font-medium">{item.costo}</span>
+    ),
+  };
 
-  // Cálculos para las tarjetas de KPI
   const totalMantenimientos = maintenanceData.length
   const pendientes = maintenanceData.filter(
     (m) =>
@@ -447,128 +469,15 @@ const filteredMantenimientos = maintenanceData.filter((mantenimiento) => {
         </div>
       </div>
 
-      {/* Maintenance List */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700">
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-bold mb-2">Todos los Mantenimientos</h2>
-          <p className="text-gray-400 text-sm">
-            Lista completa de mantenimientos programados y realizados
-          </p>
-        </div>
+          <Tabla
+            datos={filteredMantenimientos}
+            titulo={`${pageName || "Mantenimientos"} List`}
+            columnasPersonalizadas={columnConfig}
+            onEditar={(item) => window.location.href = `edit/${item.id}`}
+            onEliminar={openDeleteModal}
+            mostrarAcciones={true}
+          />
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-750">
-              <tr className="border-b border-gray-700">
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  ID
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Equipo
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Tipo
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Estado
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Prioridad
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Técnico
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Fecha
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Costo
-                </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-300">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMantenimientos.map((mantenimiento) => (
-                <tr
-                  key={mantenimiento.id}
-                  className="border-b border-gray-700 hover:bg-gray-750"
-                >
-                  <td className="p-4 text-sm font-medium">
-                    {mantenimiento.id.substring(0, 8)}...
-                  </td>
-                  <td className="p-4">
-                    <div>
-                      <div className="font-medium text-sm">
-                        {mantenimiento.equipo}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {mantenimiento.equipoId}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm">{mantenimiento.tipo}</td>
-                  <td className="p-4">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(mantenimiento.estado)}
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(
-                          mantenimiento.estado
-                        )}`}
-                      >
-                        {mantenimiento.estado}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(
-                        mantenimiento.prioridad
-                      )}`}
-                    >
-                      {mantenimiento.prioridad}
-                    </span>
-                  </td>
-                  <td className="p-4 text-sm">{mantenimiento.tecnico}</td>
-                  <td className="p-4 text-sm">{mantenimiento.fecha}</td>
-                  <td className="p-4 text-sm font-medium">
-                    {mantenimiento.costo}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <a href={`edit/${mantenimiento.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors duration-150">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2v6a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                          />
-                        </svg>
-                      </a>
-                      <button
-                        onClick={() => openDeleteModal(mantenimiento)}
-                        className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors duration-150"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
       {/* Modal de confirmación */}
       <DeleteConfirmationModal
         isOpen={isModalOpen}
