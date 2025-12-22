@@ -70,7 +70,8 @@ export function CreateTicketModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-xl bg-white rounded-xl shadow-lg border border-gray-300 overflow-hidden">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-300 bg-white">
+        
+        <div className="flex justify-between items-center px-6 border-b border-gray-300 bg-white">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Plus className="h-5 w-5 text-blue-600" />

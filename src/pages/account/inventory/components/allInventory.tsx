@@ -6,6 +6,7 @@ import { useCompany } from "../../../../context/routerContext";
 import Loader from "../../../../components/loaders/loader";
 import { usePageName } from "../../../../hook/usePageName";
 import PagesHeader from "../../../../components/headers/pagesHeader";
+import { useSearch } from "../../../../context/searchContext";
 
 
 interface Equipment {
@@ -39,7 +40,9 @@ interface ImportResult {
 const { VITE_API_URL } = import.meta.env
 
 export default function AllInventory() {
-  const [inventory, setInventory] = useState<Equipment[] | { message: string }>([]);
+  const { search, } = useSearch();
+  const { selectedCompany } = useCompany();
+  const [inventory, setInventory] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [importing, setImporting] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
@@ -59,7 +62,6 @@ export default function AllInventory() {
     cost: "",
   });
 
-  const { selectedCompany } = useCompany();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getStatusBadge = (estado: string) => {
@@ -87,7 +89,7 @@ export default function AllInventory() {
       setInventory(data);
     } catch (error) {
       console.error(error);
-      setInventory({ message: "Error al cargar inventario" });
+      setInventory(["Error" as unknown as Equipment]);
     } finally {
       setLoading(false);
     }
@@ -96,6 +98,25 @@ export default function AllInventory() {
   useEffect(() => {
     fetchInventory();
   }, [selectedCompany?.id]);
+
+  const filteredInventory = Array.isArray(inventory)
+  ? inventory.filter((item) => {
+      if (search.trim() === "") return true;
+
+      const term = search.toLowerCase();
+
+      return (
+        item.brand.toLowerCase().includes(term) ||
+        item.model.toLowerCase().includes(term) ||
+        item.type.toLowerCase().includes(term) ||
+        item.serialNumber.toLowerCase().includes(term) ||
+        item.plateNumber?.toLowerCase().includes(term) ||
+        item.location?.toLowerCase().includes(term) ||
+        item.assignedToUser?.fullName?.toLowerCase().includes(term)
+      );
+    })
+  : [];
+
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -446,12 +467,13 @@ export default function AllInventory() {
       )}
 
       {/* INVENTARIO - TABLA */}
-      {Array.isArray(inventory) && inventory.length > 0 ? (
+      {filteredInventory.length > 0 ? (
+
         <div className="bg-gray-800 rounded-lg border border-gray-700 mt-6">
           <div className="p-6 border-b border-gray-700">
             <h2 className="text-xl font-bold mb-2">Lista de Equipos</h2>
             <p className="text-gray-400 text-sm mb-6">
-              {inventory.length} equipos encontrados para empresa {selectedCompany.id}
+              {filteredInventory.length} de {inventory.length} equipos encontrados para empresa {selectedCompany.name}
             </p>
 
             <div className="overflow-x-auto">
@@ -470,7 +492,7 @@ export default function AllInventory() {
                 </thead>
 
                 <tbody>
-                  {inventory.map((equipo) => (
+                  {filteredInventory.map((equipo) => (
                     <tr key={equipo.id} className="border-b border-gray-700 hover:bg-gray-750">
                       <td className="p-4">
                         <div className="font-medium">{equipo.brand}</div>

@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Plus, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { useCompany } from "../../../../context/routerContext";
 import Loader from "../../../../components/loaders/loader";
+import PagesHeader from "../../../../components/headers/pagesHeader";
+import { usePageName } from "../../../../hook/usePageName";
+import { useSearch } from "../../../../context/searchContext";
 
 const VITE_API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000";
 
@@ -85,24 +88,12 @@ export default function AllSettingsPage() {
     const [companies, setCompanies] = useState<Company[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchTerm, setSearchTerm] = useState<string>('');
+    const { search } = useSearch();
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [isSuperAdmin] = useState<boolean>(true);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-    const [editingCompany, setEditingCompany] = useState<Company | null>(null);
-    const [showModal, setShowModal] = useState<boolean>(false);
-    const [logoPreview, setLogoPreview] = useState<string>('');
     const { selectedCompany } = useCompany();
-    const [formData, setFormData] = useState<FormData>({
-        name: '',
-        code: '',
-        address: '',
-        phone: '',
-        email: '',
-        ruc: '',
-        logoUrl: '',
-        isActive: true,
-    });
+    const { pageName } = usePageName();
 
     useEffect(() => {
         loadCompanies();
@@ -123,50 +114,6 @@ export default function AllSettingsPage() {
         }
     };
 
-    const handleEdit = (company: Company) => {
-        setEditingCompany(company);
-        setFormData({
-            name: company.name,
-            code: company.code,
-            address: company.address || '',
-            phone: company.phone || '',
-            email: company.email || '',
-            ruc: company.ruc || '',
-            logoUrl: company.logoUrl || '',
-            isActive: company.isActive,
-        });
-        setLogoPreview(company.logoUrl || '');
-        setShowModal(true);
-    };
-
-    const handleCreate = () => {
-        setEditingCompany(null);
-        setFormData({
-            name: '',
-            code: '',
-            address: '',
-            phone: '',
-            email: '',
-            ruc: '',
-            logoUrl: '',
-            isActive: true,
-        });
-        setLogoPreview('');
-        setShowModal(true);
-    };
-
-    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                setLogoPreview(result);
-                setFormData({ ...formData, logoUrl: result });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     const handleDelete = async (id: string) => {
         try {
@@ -199,43 +146,6 @@ export default function AllSettingsPage() {
         }
     };
 
-    const handleSave = async () => {
-        try {
-            if (!formData.name.trim()) {
-                alert('El nombre es requerido');
-                return;
-            }
-
-            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-            const headers: Record<string, string> = {
-                'Content-Type': 'application/json',
-            };
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-
-            const url = editingCompany
-                ? `${VITE_API_URL}/api/companies/${editingCompany.id}`
-                : `${VITE_API_URL}/api/companies`;
-
-            const method = editingCompany ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method,
-                headers,
-                credentials: 'include',
-                body: JSON.stringify(formData),
-            });
-
-            if (res.ok) {
-                setShowModal(false);
-                loadCompanies();
-            } else {
-                alert('Error al guardar');
-            }
-        } catch (err: any) {
-            alert('Error: ' + err.message);
-        }
-    };
-
     const toggleExpandRow = (id: string) => {
         const newExpanded = new Set(expandedRows);
         if (newExpanded.has(id)) {
@@ -247,10 +157,10 @@ export default function AllSettingsPage() {
     };
 
     const filteredCompanies = companies.filter(company =>
-        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (company.email && company.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (company.ruc && company.ruc.toLowerCase().includes(searchTerm.toLowerCase()))
+        company.name.toLowerCase().includes(search.toLowerCase()) ||
+        company.code.toLowerCase().includes(search.toLowerCase()) ||
+        (company.email && company.email.toLowerCase().includes(search.toLowerCase())) ||
+        (company.ruc && company.ruc.toLowerCase().includes(search.toLowerCase()))
     );
 
     if (loading) {
@@ -277,34 +187,13 @@ export default function AllSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-6">
+        <div className="bg-gray-900 text-white">
             {/* Header */}
-            <div className="mb-8">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-extrabold text-white">Administración de Compañías</h1>
-                    {isSuperAdmin && (
-                        <button
-                            onClick={handleCreate}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors flex items-center space-x-2 font-medium"
-                        >
-                            <Plus size={20} />
-                            <span>Crear Compañía</span>
-                        </button>
-                    )}
-                </div>
-
-                {/* Search */}
-                <div className="relative">
-                    <Search className="absolute left-3 top-3 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nombre, código, email o RUC..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-gray-800 text-white px-10 py-2 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none"
-                    />
-                </div>
-            </div>
+            <PagesHeader 
+                title={`${pageName} Company Management`} 
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+                showCreate
+            />
 
             {/* Table */}
             <div className="overflow-x-auto rounded-lg border border-gray-700">
@@ -347,16 +236,13 @@ export default function AllSettingsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm">
                                             <div className="flex justify-center space-x-2">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEdit(company);
-                                                    }}
+                                                <a href={`edit/${company.id}`}
+                                                    
                                                     className="bg-yellow-600 hover:bg-yellow-700 text-white p-2 rounded-lg transition-colors"
                                                     title="Editar"
                                                 >
                                                     <Edit2 size={16} />
-                                                </button>
+                                                </a>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -462,126 +348,6 @@ export default function AllSettingsPage() {
                 </table>
             </div>
 
-            {/* Modal Create/Edit */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full border border-gray-700 max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-2xl font-bold text-white mb-4">
-                            {editingCompany ? 'Editar Compañía' : 'Crear Compañía'}
-                        </h2>
-                        <div className="space-y-4">
-                            {/* Logo Preview */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Logo</label>
-                                <div className="flex items-center gap-4">
-                                    {logoPreview && (
-                                        <img
-                                            src={logoPreview}
-                                            alt="Logo preview"
-                                            className="h-24 w-24 object-cover rounded-lg border border-gray-600"
-                                        />
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        disabled={true}
-                                        onChange={handleLogoChange}
-                                        className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none cursor-pointer"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Nombre */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">Nombre *</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
-                                    placeholder="Nombre de la compañía"
-                                />
-                            </div>
-
-                            {/* RUC */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">RUC</label>
-                                <input
-                                    type="text"
-                                    value={formData.ruc}
-                                    onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
-                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
-                                    placeholder="RUC de la compañía"
-                                />
-                            </div>
-
-                            {/* Email */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
-                                    placeholder="email@ejemplo.com"
-                                />
-                            </div>
-
-                            {/* Teléfono */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">Teléfono</label>
-                                <input
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
-                                    placeholder="Teléfono"
-                                />
-                            </div>
-
-                            {/* Dirección */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">Dirección</label>
-                                <input
-                                    type="text"
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                    className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
-                                    placeholder="Dirección"
-                                />
-                            </div>
-
-                            {/* Estado */}
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="isActive"
-                                    checked={formData.isActive}
-                                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                                    className="rounded"
-                                />
-                                <label htmlFor="isActive" className="ml-2 text-sm text-gray-300">
-                                    Compañía activa
-                                </label>
-                            </div>
-                        </div>
-                        <div className="flex space-x-3 mt-6">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                            >
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Modal Delete Confirm */}
             {showDeleteConfirm && (

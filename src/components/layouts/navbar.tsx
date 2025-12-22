@@ -73,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
         currentPathname?.name === "/" ? "shadow-sm" : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between">
           <div className="flex-shrink-0 justify-center items-center flex space-x-2">
             {currentPathname?.name !== "/" ? (

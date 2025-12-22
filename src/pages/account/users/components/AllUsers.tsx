@@ -6,6 +6,7 @@ import Loader from "../../../../components/loaders/loader"
 import { Company, useCompany } from "../../../../context/routerContext"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
+import { useSearch } from "../../../../context/searchContext"
 
 const { VITE_API_URL } = import.meta.env
 
@@ -72,7 +73,7 @@ const AllUsers: React.FC<SubRoutesProps> = () => {
     const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
     const { pageName } = usePageName();
     // Estados para filtros y búsqueda
-    const [searchTerm, setSearchTerm] = useState("")
+    const { search } = useSearch();
     const [statusFilter, setStatusFilter] = useState("Todos")
 
     // Estados para notificaciones
@@ -178,15 +179,15 @@ const filteredUsers = useMemo(() => {
 
         // Lógica de búsqueda por término
         const searchMatch =
-            searchTerm.trim() === "" ||
-            user?.person?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user?.person?.department?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user?.person?.position?.toLowerCase().includes(searchTerm.toLowerCase())
+            search.trim() === "" ||
+            user?.person?.fullName.toLowerCase().includes(search.toLowerCase()) ||
+            user?.email?.toLowerCase().includes(search.toLowerCase()) ||
+            user?.person?.department?.name?.toLowerCase().includes(search.toLowerCase()) ||
+            user?.person?.position?.toLowerCase().includes(search.toLowerCase())
 
         return statusMatch && searchMatch
     })
-}, [data, searchTerm, statusFilter])
+}, [data, search, statusFilter])
 
     if (isLoading) {
         return (
@@ -230,7 +231,7 @@ const filteredUsers = useMemo(() => {
     }
 
     return (
-        <div className="relative min-h-screen bg-gray-900 text-white">
+        <div className="relative bg-gray-900 text-white">
             <PagesHeader 
                 title={pageName} 
                 description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
@@ -305,19 +306,6 @@ const filteredUsers = useMemo(() => {
                     <h2 className="text-xl font-bold mb-2">Lista de Usuarios</h2>
                     <p className="text-gray-400 text-sm mb-6">{filteredUsers?.length} de {data?.length || 0} usuarios encontrados</p>
                     <div className="flex justify-between items-center">
-                        <div className="relative flex-1 max-w-md">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="m21 21-4.35-4.35" />
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder="Buscar usuarios..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
                         <div className="ml-4">
                             <div className="relative">
                                 <select

@@ -148,7 +148,7 @@ export default function UpdateExpensePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white px-6 py-8">
+    <div className="h-full text-white">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
         <div>

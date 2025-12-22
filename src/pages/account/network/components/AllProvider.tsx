@@ -275,7 +275,7 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 text-gray-100">
+        <div className="bg-slate-900 text-gray-100">
             <div className="p-6">
                 {/* Header Section */}
                 <div className="flex justify-between items-center mb-8">

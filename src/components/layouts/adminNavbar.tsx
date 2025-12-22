@@ -6,6 +6,9 @@ import { LogOut, Menu, X, Search, Bell, Sun, Moon } from "lucide-react";
 import useUser from "../../hook/useUser";
 import CompanySelectorComponent from "../selector/CompanySelectorComponent";
 import { useCompany } from "../../context/routerContext";
+import SearchInput from "../selector/SearchInput";
+import { useSearch } from "../../context/searchContext";
+import { useLocation } from "react-router-dom";
 
 interface CurrentPathname {
   name: string;
@@ -30,7 +33,13 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(isDarkMode);
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
-  const pagename = currentPathname?.name?.split("/")[2] || "";
+  const { setSearch } = useSearch()
+  const location = useLocation()
+
+  useEffect(() => {
+    setSearch("")
+  }, [location.pathname])
+  
   const filteredNavLinks: { href: string; name: string; icon?: React.ReactNode }[] =
     userRoles.flatMap((role: string) =>
       getMainRoutesForRole(
@@ -147,28 +156,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           {/* Right Section */}
           <div className="flex items-center gap-4 lg:gap-6">
             {/* Search Bar */}
-            <div
-              className={`hidden xl:flex items-center rounded-full px-4 py-2 w-64 ${
-                darkMode
-                  ? "bg-slate-800 border border-slate-700"
-                  : "bg-gray-100 border border-gray-200"
-              }`}
-            >
-              <Search
-                className={`w-4 h-4 ${
-                  darkMode ? "text-slate-400" : "text-gray-400"
-                }`}
-              />
-              <input
-                type="text"
-                placeholder={`Search ${pagename || ""}`}
-                className={`bg-transparent ml-2 outline-none text-sm placeholder-opacity-70 w-full ${
-                  darkMode
-                    ? "text-white placeholder-slate-400"
-                    : "text-gray-700 placeholder-gray-500"
-                }`}
-              />
-            </div>
+            <SearchInput/>
 
             {/* Company Selector */}
             <div className="flex items-center gap-2 w-56">
@@ -426,8 +414,8 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           />
 
           {/* Mobile Profile Section */}
-          <div className="px-4 py-3 space-y-2 flex-1">
-            <div className="flex items-center gap-3 px-4 py-2">
+          <div className="px-2 py-3 space-y-2 flex-1">
+            <div className="flex items-center gap-3 px-2 py-2">
               <img
                 src={Images?.logo || "#"}
                 alt="profile"
@@ -459,7 +447,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
                   logout();
                   closeMenu();
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-300 ${
+                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors duration-300 ${
                   darkMode
                     ? "text-red-400 hover:bg-red-900/30"
                     : "text-red-600 hover:bg-red-50"

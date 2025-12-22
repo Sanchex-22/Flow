@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CompanyProvider } from "../../context/routerContext";
 import useUser from "../../hook/useUser";
 import useUserProfile from "../../hook/userUserProfile";
+import { SearchProvider } from "../../context/searchContext";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -79,9 +80,11 @@ const Layout: React.FC<RoutesProps> = () => {
 
   return (
     <CompanyProvider initialCompanies={companies}>
-      <main className="w-full relative scroll-smooth">
-        <AppRoutes pathnameLocation={pathnameLocation} companies={companies} />
-      </main>
+      <SearchProvider>
+        <main className="w-full relative scroll-smooth">
+          <AppRoutes pathnameLocation={pathnameLocation} companies={companies} />
+        </main>
+      </SearchProvider>
     </CompanyProvider>
   );
 };

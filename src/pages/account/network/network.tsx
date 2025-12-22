@@ -16,7 +16,7 @@ interface SubRoutesProps {
 const NextworkPage: React.FC<SubRoutesProps> = () => {
 
   return (
-    <div className="min-h-screen bg-slate-900 text-gray-100 p-6">
+    <div className="bg-slate-900 text-gray-100 p-6">
       {/* Barra de navegación/switch */}
       <nav className="border-b border-slate-700 mb-6 py-2">
         <ul className="flex gap-4">

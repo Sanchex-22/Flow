@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react"
 import { Eye, Trash2, Edit } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useCompany } from "../../../../context/routerContext"
-import * as XLSX from 'xlsx'
+import * as XLSX from "xlsx"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
+import { useSearch } from "../../../../context/searchContext"
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -20,14 +21,24 @@ export interface AnnualSoftwareExpense {
   renewalDate: string
   paymentFrequency: string
   additionalNotes?: string | null
-  assignedUsers?: string | null
+  assignedUsers?: string | string[] | null
   createdAt: string
+}
+
+/** 🔑 Helper seguro */
+const normalizeToString = (value: unknown): string => {
+  if (!value) return ""
+  if (Array.isArray(value)) return value.join(" ")
+  if (typeof value === "string") return value
+  return String(value)
 }
 
 export default function AllExpensePage() {
   const navigate = useNavigate()
-  const { pageName } = usePageName();
+  const { pageName } = usePageName()
   const { selectedCompany } = useCompany()
+  const { search } = useSearch()
+
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({
@@ -49,28 +60,48 @@ export default function AllExpensePage() {
     [expenses]
   )
 
+
+  /** 🔍 FILTRO GLOBAL */
+  const filteredExpenses = useMemo(() => {
+    if (!search.trim()) return expenses
+
+    const term = search.toLowerCase()
+
+    return expenses.filter((e) =>
+      e.applicationName.toLowerCase().includes(term) ||
+      e.provider.toLowerCase().includes(term) ||
+      e.category.toLowerCase().includes(term) ||
+      e.status.toLowerCase().includes(term) ||
+      e.paymentFrequency.toLowerCase().includes(term) ||
+      normalizeToString(e.assignedUsers).toLowerCase().includes(term) ||
+      normalizeToString(e.additionalNotes).toLowerCase().includes(term) ||
+      e.annualCost.toString().includes(term) ||
+      e.numberOfUsers.toString().includes(term) ||
+      e.costPerUser.toString().includes(term)
+    )
+  }, [expenses, search])
+
   const handleExportExcel = () => {
     const dataToExport = expenses.map((e) => ({
-      "Aplicación": e.applicationName,
-      "Proveedor": e.provider,
-      "Categoría": e.category,
-      "Estado": e.status,
+      Aplicación: e.applicationName,
+      Proveedor: e.provider,
+      Categoría: e.category,
+      Estado: e.status,
       "Costo Anual": e.annualCost,
       "Número de Usuarios": e.numberOfUsers,
       "Costo por Usuario": e.costPerUser,
-      "Fecha de Renovación": new Date(e.renewalDate).toLocaleDateString('es-ES'),
+      "Fecha de Renovación": new Date(e.renewalDate).toLocaleDateString("es-ES"),
       "Frecuencia de Pago": e.paymentFrequency,
-      "Usuarios Asignados": e.assignedUsers || "-",
-      "Notas": e.additionalNotes || "-",
+      "Usuarios Asignados": normalizeToString(e.assignedUsers) || "-",
+      Notas: e.additionalNotes || "-"
     }))
 
     const ws = XLSX.utils.json_to_sheet(dataToExport)
-    const colWidths = [25, 15, 15, 12, 15, 18, 18, 18, 18, 20, 30]
-    ws['!cols'] = colWidths.map(width => ({ wch: width }))
+    ws["!cols"] = [25, 15, 15, 12, 15, 18, 18, 18, 18, 20, 30].map((w) => ({ wch: w }))
 
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, "Gastos")
-    XLSX.writeFile(wb, `gastos_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(wb, `gastos_${new Date().toISOString().split("T")[0]}.xlsx`)
   }
 
   const handleDeleteClick = (id: string, name: string) => {
@@ -79,19 +110,16 @@ export default function AllExpensePage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteModal.id) return
-    
     setIsDeleting(true)
+
     try {
-      const response = await fetch(`${API_URL}/api/annual-software-expense/delete/${deleteModal.id}`, {
-        method: 'DELETE'
+      const res = await fetch(`${API_URL}/api/annual-software-expense/delete/${deleteModal.id}`, {
+        method: "DELETE"
       })
-      
-      if (response.ok) {
+      if (res.ok) {
         setExpenses((prev) => prev.filter((e) => e.id !== deleteModal.id))
         setDeleteModal({ open: false, id: null, name: "" })
       }
-    } catch (error) {
-      console.error('Error deleting expense:', error)
     } finally {
       setIsDeleting(false)
     }
@@ -100,9 +128,9 @@ export default function AllExpensePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PagesHeader 
-        title={pageName} 
-        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+      <PagesHeader
+        title={pageName}
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
         showCreate
         onExport={handleExportExcel}
       />
@@ -134,15 +162,14 @@ export default function AllExpensePage() {
               </tr>
             </thead>
             <tbody>
-              {expenses.map((e) => (
+              {filteredExpenses.map((e) => (
                 <tr key={e.id} className="border-b border-gray-700 hover:bg-gray-700 transition">
                   <td className="py-3 px-2 text-gray-100">{e.applicationName}</td>
                   <td className="py-3 px-2 text-gray-400">{e.provider}</td>
                   <td className="py-3 px-2 text-gray-400">{e.category}</td>
                   <td className="py-3 px-2 text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      e.status === 'Active' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === 'Active' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+                      }`}>
                       {e.status}
                     </span>
                   </td>

@@ -8,6 +8,7 @@ import Loader from "../../../../components/loaders/loader"
 import { useCompany } from "../../../../context/routerContext"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { usePageName } from "../../../../hook/usePageName"
+import { useSearch } from "../../../../context/searchContext"
 const { VITE_API_URL } = import.meta.env
 
 interface CurrentPathname {
@@ -59,6 +60,7 @@ interface MaintenanceBackend {
 
 const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
   const [activeTab, setActiveTab] = useState("Todos")
+  const { search } = useSearch();
   const [maintenanceData, setMaintenanceData] = useState<MaintenanceFrontend[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -282,17 +284,33 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     }
   }
 
-  const filteredMantenimientos = maintenanceData.filter((mantenimiento) => {
-    if (activeTab === "Todos") return true
-    if (activeTab === "Pendientes")
-      return (
-        mantenimiento.estado === "PENDING" ||
-        mantenimiento.estado === "IN_PROGRESS" ||
-        mantenimiento.estado === "SCHEDULED"
-      )
-    if (activeTab === "Completados") return mantenimiento.estado === "COMPLETED"
-    return true
-  })
+const filteredMantenimientos = maintenanceData.filter((mantenimiento) => {
+  // 1️⃣ Filtro por TAB
+  const matchesTab =
+    activeTab === "Todos" ||
+    (activeTab === "Pendientes" &&
+      ["PENDING", "IN_PROGRESS", "SCHEDULED"].includes(mantenimiento.estado)) ||
+    (activeTab === "Completados" && mantenimiento.estado === "COMPLETED");
+
+  if (!matchesTab) return false;
+
+  // 2️⃣ Filtro por SEARCH (contexto)
+  if (!search.trim()) return true;
+
+  const term = search.toLowerCase();
+
+  return (
+    mantenimiento.equipo.toLowerCase().includes(term) ||
+    mantenimiento.equipoId.toLowerCase().includes(term) ||
+    mantenimiento.tipo.toLowerCase().includes(term) ||
+    mantenimiento.estado.toLowerCase().includes(term) ||
+    mantenimiento.prioridad.toLowerCase().includes(term) ||
+    mantenimiento.tecnico.toLowerCase().includes(term) ||
+    mantenimiento.fecha.toLowerCase().includes(term) ||
+    mantenimiento.costo.toLowerCase().includes(term)
+  );
+});
+
 
   // Cálculos para las tarjetas de KPI
   const totalMantenimientos = maintenanceData.length

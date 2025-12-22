@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 import { useCompany } from "../../../../context/routerContext"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
+import { useSearch } from "../../../../context/searchContext"
 
 const EXCEL_COLUMNS = [
     { key: "id", header: "# Ticket" },
@@ -19,10 +20,12 @@ const EXCEL_COLUMNS = [
 ]
 
 export default function Home() {
+  const { search } = useSearch();
   const { selectedCompany } = useCompany();
   const { pageName } = usePageName();
   const [activeTab, setActiveTab] = useState("Todos")
   const [tickets, setTickets] = useState<Ticket[]>([])
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
@@ -278,12 +281,31 @@ export default function Home() {
     }
   }
 
-  const filteredTickets = tickets.filter((ticket) => {
-    if (activeTab === "Todos") return true
-    if (activeTab === "Pendientes") return ["open", "pending"].includes(ticket.status)
-    if (activeTab === "Completados") return ["approved", "closed"].includes(ticket.status)
-    return true
-  })
+const filteredTickets = tickets.filter((ticket) => {
+  // 1️⃣ Filtro por TAB
+  const matchesTab =
+    activeTab === "Todos" ||
+    (activeTab === "Pendientes" &&
+      ["open", "pending"].includes(ticket.status)) ||
+    (activeTab === "Completados" &&
+      ["approved", "closed"].includes(ticket.status))
+
+  if (!matchesTab) return false
+
+  // 2️⃣ Filtro por SEARCH
+  if (!search.trim()) return true
+
+  const searchLower = search.toLowerCase()
+
+  return (
+    ticket.title?.toLowerCase().includes(searchLower) ||
+    ticket.description?.toLowerCase().includes(searchLower) ||
+    String(ticket.ticketNumber || "")
+      .toLowerCase()
+      .includes(searchLower)
+  )
+})
+
 
   const totalTickets = tickets.length
   const pendientes = tickets.filter((t) => ["open", "pending"].includes(t.status)).length
@@ -328,7 +350,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="bg-gray-900 text-white">
       <PagesHeader 
         title={pageName} 
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 

@@ -5,11 +5,14 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useCompany } from "../../../../context/routerContext"
 import { useParams, useNavigate } from "react-router-dom"
-import { ChevronLeft, AlertCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react"
+import { AlertCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react"
 import { Notification } from "../components/notification"
+import useUserProfile from "../../../../hook/userUserProfile"
 
 export default function EditTicketPage() {
   const { selectedCompany } = useCompany()
+  const {profile} = useUserProfile()
+  console.log("User Profile:", profile?.id);
   const { id } = useParams()
   const router = useNavigate()
 
@@ -47,10 +50,10 @@ export default function EditTicketPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       if (!selectedCompany?.id) return
-      
+
       setLoadingUsers(true)
       try {
-        const res = await fetch(`${API}/api/companies/${selectedCompany.id}`)
+        const res = await fetch(`${API}/api/users/full/${selectedCompany.id}`)
         if (res.ok) {
           const data = await res.json()
           setUsers(data.users || data || [])
@@ -70,8 +73,11 @@ export default function EditTicketPage() {
   // ============================
   useEffect(() => {
     if (!id) {
-      setIsCreating(true)
-      setTicket(emptyTicket)
+    setIsCreating(true)
+    setTicket({
+      ...emptyTicket,
+      sendById: profile?.id || "",
+    })
       setLoading(false)
       return
     }
@@ -79,7 +85,6 @@ export default function EditTicketPage() {
     const fetchTicket = async () => {
       try {
         const res = await fetch(`${API}/api/companies/tickets/${selectedCompany?.id}/${id}`)
-
         if (!res.ok) {
           setIsCreating(true)
           setTicket(emptyTicket)
@@ -135,6 +140,7 @@ export default function EditTicketPage() {
         reviewed: ticket.reviewed || false,
         view: ticket.view || false,
         sendTo: ticket.sendToId || null,
+        sendBy: ticket.sendById || profile?.id,
       }
       console.log(body)
       const res = await fetch(url, {
@@ -167,10 +173,10 @@ export default function EditTicketPage() {
 
   if (loading || !ticket) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-          <p className="text-foreground/60">Cargando ticket...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-slate-400">Cargando ticket...</p>
         </div>
       </div>
     )
@@ -195,80 +201,54 @@ export default function EditTicketPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-slate-950/50 to-slate-950">
+    <div className="bg-slate-900">
       {notification && (
-        <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
+        <Notification message={notification?.message} type={notification?.type} onClose={() => setNotification(null)} />
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/50 backdrop-blur-sm bg-background/80">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router(-1)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                {isCreating ? "Crear Ticket" : "Editar Ticket"}
-              </h1>
-              {!isCreating && <p className="text-sm text-foreground/60">#{ticket.ticketNumber}</p>}
-            </div>
-          </div>
-
-          {!isCreating && (
-            <div className={`px-3 py-1 rounded-full border ${getPriorityColor(ticket.priority)} flex items-center gap-2 text-sm`}>
-              {getPriorityIcon(ticket.priority)}
-              <span className="capitalize">{ticket.priority}</span>
-            </div>
-          )}
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-2 md:px-6 h-[90vh]">
         {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
-            <p className="text-destructive">{error}</p>
+          <div className="mb-6 p-3 md:p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+            <p className="text-sm md:text-base text-red-400">{error}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Main Form - Scrollable */}
+          <div className="lg:col-span-2 space-y-5 md:space-y-6 md:overflow-y-auto md:pr-4 md:max-h-[calc(90vh)] md:py-6">
             {/* Información básica */}
-            <FormSection title="Información básica" description="Detalles principales del ticket">
+            <FormSection title={isCreating ? "Crear Ticket" : "Editar Ticket"} description={`Ticket No.${ticket?.ticketNumber} enviado por: ${ticket?.sendBy?.username || "n/a"}` || "Sin título"}>
               <div className="space-y-4">
                 <FormField label="Título" required>
                   <input
                     type="text"
-                    value={ticket.title || ""}
+                    value={ticket?.title || ""}
                     onChange={(e) => handleChange("title", e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Título del ticket"
+                    required
                   />
                 </FormField>
 
                 <FormField label="Descripción" required>
                   <textarea
-                    value={ticket.description || ""}
+                    value={ticket?.description || ""}
                     onChange={(e) => handleChange("description", e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                     placeholder="Descripción detallada del ticket"
+                    required
                   />
                 </FormField>
 
                 <FormField label="Comentario">
                   <textarea
-                    value={ticket.comment || ""}
+                    value={ticket?.comment || ""}
                     onChange={(e) => handleChange("comment", e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                     placeholder="Comentarios adicionales"
                   />
                 </FormField>
@@ -276,9 +256,9 @@ export default function EditTicketPage() {
                 <FormField label="Imagen (URL)">
                   <input
                     type="text"
-                    value={ticket.img || ""}
+                    value={ticket?.img || ""}
                     onChange={(e) => handleChange("img", e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="https://..."
                   />
                 </FormField>
@@ -290,9 +270,9 @@ export default function EditTicketPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="Prioridad" required>
                   <select
-                    value={ticket.priority}
+                    value={ticket?.priority}
                     onChange={(e) => handleChange("priority", e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
                   >
                     <option value="trivial">⚪ Trivial</option>
                     <option value="low">🟢 Baja</option>
@@ -304,9 +284,9 @@ export default function EditTicketPage() {
 
                 <FormField label="Tipo" required>
                   <select
-                    value={ticket.type}
+                    value={ticket?.type}
                     onChange={(e) => handleChange("type", e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
                   >
                     <option value="ticket">Ticket</option>
                     <option value="vacations">Vacaciones</option>
@@ -316,9 +296,9 @@ export default function EditTicketPage() {
 
                 <FormField label="Estado" required>
                   <select
-                    value={ticket.status}
+                    value={ticket?.status}
                     onChange={(e) => handleChange("status", e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer md:col-span-2"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer md:col-span-2"
                   >
                     <option value="open">Abierto</option>
                     <option value="pending">Pendiente</option>
@@ -338,18 +318,18 @@ export default function EditTicketPage() {
                   <FormField label="Fecha inicio">
                     <input
                       type="date"
-                      value={ticket.startDate?.substring(0, 10) || ""}
+                      value={ticket?.startDate?.substring(0, 10) || ""}
                       onChange={(e) => handleChange("startDate", e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </FormField>
 
                   <FormField label="Fecha fin">
                     <input
                       type="date"
-                      value={ticket.endDate?.substring(0, 10) || ""}
+                      value={ticket?.endDate?.substring(0, 10) || ""}
                       onChange={(e) => handleChange("endDate", e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </FormField>
                 </div>
@@ -358,9 +338,9 @@ export default function EditTicketPage() {
                   <FormField label="Días solicitados">
                     <input
                       type="number"
-                      value={ticket.requestDays ?? ""}
+                      value={ticket?.requestDays ?? ""}
                       onChange={(e) => handleChange("requestDays", Number(e.target.value))}
-                      className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       placeholder="0"
                     />
                   </FormField>
@@ -368,9 +348,9 @@ export default function EditTicketPage() {
                   <FormField label="Días aprobados">
                     <input
                       type="number"
-                      value={ticket.approvedDays ?? ""}
+                      value={ticket?.approvedDays ?? ""}
                       onChange={(e) => handleChange("approvedDays", Number(e.target.value))}
-                      className="w-full px-4 py-2 rounded-lg bg-card border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       placeholder="0"
                     />
                   </FormField>
@@ -382,15 +362,15 @@ export default function EditTicketPage() {
             <FormSection title="Asignación" description="Asignar a otro usuario">
               <FormField label="Asignar a">
                 <select
-                  value={ticket.sendToId || ""}
-                  onChange={(e) => handleChange("sendToId", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+                  value={ticket?.sendToId || ""}
+                  onChange={e => handleChange("sendToId", e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
                   disabled={loadingUsers}
                 >
                   <option value="">Sin asignar</option>
                   {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.username}
+                    <option key={u?.id} value={u?.id}>
+                      {u?.username}
                     </option>
                   ))}
                 </select>
@@ -399,18 +379,18 @@ export default function EditTicketPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 md:py-6">
             {/* Checkboxes */}
             <FormSection title="Estados adicionales">
               <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
-                    checked={ticket.reviewed || false}
+                    checked={ticket?.reviewed || false}
                     onChange={(e) => handleChange("reviewed", e.target.checked)}
-                    className="w-5 h-5 rounded border border-border/50 bg-card accent-primary cursor-pointer"
+                    className="w-5 h-5 rounded border border-slate-600 bg-slate-700 text-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer accent-blue-500"
                   />
-                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
                     Revisado
                   </span>
                 </label>
@@ -418,11 +398,11 @@ export default function EditTicketPage() {
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
-                    checked={ticket.view || false}
+                    checked={ticket?.view || false}
                     onChange={(e) => handleChange("view", e.target.checked)}
-                    className="w-5 h-5 rounded border border-border/50 bg-card accent-primary cursor-pointer"
+                    className="w-5 h-5 rounded border border-slate-600 bg-slate-700 text-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer accent-blue-500"
                   />
-                  <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                  <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
                     Visto
                   </span>
                 </label>
@@ -433,24 +413,29 @@ export default function EditTicketPage() {
             <FormSection title="Resumen">
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-foreground/60">Tipo:</span>
-                  <span className="font-medium capitalize">{ticket.type}</span>
+                  <span className="text-slate-400">Tipo:</span>
+                  <span className="font-medium text-white capitalize">{ticket?.type}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-foreground/60">Estado:</span>
-                  <span className="font-medium capitalize">{ticket.status}</span>
+                  <span className="text-slate-400">Estado:</span>
+                  <span className="font-medium text-white capitalize">{ticket?.status}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-foreground/60">Prioridad:</span>
-                  <span className="font-medium capitalize">{ticket.priority}</span>
+                  <span className="text-slate-400">Prioridad:</span>
+                  {!isCreating && (
+                    <div className={`px-4 py-1.5 rounded-full border ${getPriorityColor(ticket?.priority)} flex items-center gap-2 text-sm font-medium`}>
+                      {getPriorityIcon(ticket?.priority)}
+                      <span className="capitalize">{ticket?.priority}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="h-px bg-border/30 my-2"></div>
-                {!isCreating && <p className="text-xs text-foreground/50">#{ticket.ticketNumber}</p>}
+                <div className="h-px bg-slate-700 my-3"></div>
+                {!isCreating && <p className="text-xs text-slate-500">#{ticket?.ticketNumber}</p>}
               </div>
             </FormSection>
 
             {/* Action Buttons */}
-            <div className="sticky bottom-6 space-y-3">
+            <div className="md:sticky bottom-6 space-y-3">
               <button
                 onClick={saveChanges}
                 disabled={saving}
@@ -466,7 +451,7 @@ export default function EditTicketPage() {
               </button>
               <button
                 onClick={() => router(-1)}
-                className="w-full px-4 py-3 bg-slate-700 text-slate-100 font-semibold rounded-lg hover:bg-slate-600 transition-all shadow-md hover:shadow-slate-500/30"
+                className="w-full px-4 py-3 bg-slate-700 text-slate-100 font-semibold rounded-lg hover:bg-slate-600 transition-all shadow-md hover:shadow-slate-700/30"
               >
                 ✕ Cancelar
               </button>
@@ -488,10 +473,10 @@ function FormSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-card border border-border/50 rounded-lg p-6">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-foreground mb-1">{title}</h2>
-        {description && <p className="text-sm text-foreground/60">{description}</p>}
+    <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 md:p-6">
+      <div className="mb-4 md:mb-6">
+        <h2 className="text-base md:text-lg font-semibold text-white mb-1">{title}</h2>
+        {description && <p className="text-xs md:text-sm text-slate-400">{description}</p>}
       </div>
       {children}
     </div>
@@ -509,9 +494,9 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-foreground mb-2">
+      <label className="block text-xs md:text-sm font-medium text-slate-300 mb-2">
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && <span className="text-red-400 ml-1">*</span>}
       </label>
       {children}
     </div>

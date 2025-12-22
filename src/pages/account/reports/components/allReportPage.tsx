@@ -222,7 +222,7 @@ export default function AllReportsPage() {
   }
   // --- RENDERIZADO DEL COMPONENTE ---
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="bg-gray-900 text-white">
       <PagesHeader 
         title={pageName} 
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
