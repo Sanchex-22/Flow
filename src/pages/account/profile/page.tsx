@@ -14,12 +14,10 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage({ userId }: ProfilePageProps) {
   const { data, error, isLoading } = useSWR(`${VITE_API_URL}/api/users/profile/${userId}`, fetcher)
-  
+  console.log("User Data:", data);
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <Loader/>
-      </div>
     );
   }
 
@@ -91,7 +89,7 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               {/* Basic Info */}
               <div>
                 <h1 className="text-3xl font-bold mb-2">{formatValue(userData?.person?.fullName)}</h1>
-                <p className="text-gray-400 text-lg mb-3">{formatValue(userData?.person?.position)}</p>
+                <p className="text-gray-400 text-lg mb-3">{formatValue(userData?.person?.department?.name)}</p>
                 <div className="flex items-center space-x-4">
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRoleBadge(userData?.role)}`}
@@ -276,11 +274,6 @@ export default function ProfilePage({ userId }: ProfilePageProps) {
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Departamento</label>
                 <p className="text-white">{formatValue(userData?.person?.department?.name)}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Descripción del Departamento</label>
-                <p className="text-white">{formatValue(userData?.person?.department?.description)}</p>
               </div>
 
               <div>

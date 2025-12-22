@@ -53,8 +53,6 @@ const Layout: React.FC<RoutesProps> = () => {
     setCurrentPathname({ name: window.location.pathname });
   }, []);
 
-  // ✅ Solo hacer la petición si está logueado
-  console.log(profile?.id)
   const { data, error } = useSWR(
     isLogged ? `${VITE_API_URL}/api/companies/${profile?.id}/my-companies` : null,
     fetcher,
