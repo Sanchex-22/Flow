@@ -187,10 +187,15 @@ export const AllUsers: React.FC = () => {
     if (isLoading) return <Loader />
     if (error || !data) return <div className="text-center p-8 text-red-500">Error al cargar usuarios</div>
 
-    const totalUsers = data?.length || 0
-    const activeUsers = data?.filter((u) => u.isActive).length || 0
-    const usersWithEquipment = data?.filter((u) => u.person?.status === "Con Equipos").length || 0
-    const departments = Array.from(new Set(data?.map((u) => u.person?.department?.name).filter(Boolean))).length || 0
+    // Add a safety check at the start of your KPI calculations
+    const isDataArray = Array.isArray(data);
+
+    const totalUsers = isDataArray ? data.length : 0;
+    const activeUsers = isDataArray ? data.filter((u) => u?.isActive).length : 0;
+    const usersWithEquipment = isDataArray ? data.filter((u) => u.person?.status === "Con Equipos").length : 0;
+    const departments = isDataArray
+        ? Array.from(new Set(data.map((u) => u.person?.department?.name).filter(Boolean))).length
+        : 0;
 
     return (
         <div className="relative bg-gray-900 text-white">
