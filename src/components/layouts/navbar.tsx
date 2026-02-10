@@ -94,7 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
                   className="border-r-2 pr-2"
                 />
                 <span className="text-yellow-700 font-bold tracking-wider">
-                  Flow
+                  IT
                 </span>
               </a>
             )}
@@ -147,7 +147,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPathname }) => {
                   className="border-r-2 pr-2"
                 />
                 <span className="text-yellow-700 font-bold tracking-wider">
-                  Flow
+                  IT
                 </span>
               </div>
           <button

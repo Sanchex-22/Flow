@@ -93,8 +93,8 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         path="/"
         element={
           <EnvolveLayout
-            title="FlowRH | Home"
-            description="FlowRH | Home"
+            title="IT | Home"
+            description="IT | Home"
             isLogged={isLogged}
             profile={profile}
             currentPathname={pathnameLocation}
