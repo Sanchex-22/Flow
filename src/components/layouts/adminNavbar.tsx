@@ -31,7 +31,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
   const { setSearch } = useSearch()
   const location = useLocation()
-  const AppName = import.meta.env.VITE_APP_NAME || "Planilla";
+  const AppName = import.meta.env.VITE_APP_NAME || "IT";
   
   useEffect(() => {
     setSearch("")
