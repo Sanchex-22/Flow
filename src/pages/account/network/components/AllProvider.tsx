@@ -249,7 +249,7 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
             <PagesHeader
                 title={pageName}
                 description={`${pageName} in ${selectedCompany?.name}`}
-                showCreate
+                showCreatePath={`create-provider`}
             />
 
             {/* Stats Card */}

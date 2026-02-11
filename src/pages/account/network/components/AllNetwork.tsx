@@ -368,7 +368,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
         : 'bg-gray-100 text-gray-900'
     }`}>
       {/* Header Section */}
-      <PagesHeader title={pageName} description={`${pageName} in ${selectedCompany?.name}`} showCreate/>
+      <PagesHeader title={pageName} description={`${pageName} in ${selectedCompany?.name}`} showCreate />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

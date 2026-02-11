@@ -12,10 +12,13 @@ interface PagesHeaderProps {
   title: string;
   description?: string;
 
-  /** Botón crear (si true se renderiza) */
+  /** Botón crear clásico */
   showCreate?: boolean;
 
-  /** Botones estándar (si existe la función → se renderiza) */
+  /** Nuevo botón crear con ruta */
+  showCreatePath?: string; // aquí pasas "/create-provider"
+
+  /** Botones estándar */
   onExport?: () => void;
   onImport?: () => void;
   onReport?: () => void;
@@ -23,6 +26,7 @@ interface PagesHeaderProps {
   /** Botones especiales */
   onDownloadTemplate?: () => void;
   onImportCsv?: () => void;
+  onModal?: () => void;
   importingCsv?: boolean;
 }
 
@@ -32,21 +36,21 @@ const BUTTON_BASE =
 const PagesHeader: React.FC<PagesHeaderProps> = ({
   title,
   description,
-
   showCreate = false,
-
+  showCreatePath,
   onExport,
   onImport,
   onReport,
-
   onDownloadTemplate,
   onImportCsv,
+  onModal,
   importingCsv = false,
 }) => {
   return (
     <div className="mb-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        {/* ================= LEFT ================= */}
+        
+        {/* LEFT */}
         <div>
           <h1 className="text-2xl font-bold capitalize">
             {title}
@@ -58,7 +62,7 @@ const PagesHeader: React.FC<PagesHeaderProps> = ({
           )}
         </div>
 
-        {/* ================= RIGHT ================= */}
+        {/* RIGHT */}
         <div
           className="
             grid grid-cols-2 gap-2
@@ -67,40 +71,46 @@ const PagesHeader: React.FC<PagesHeaderProps> = ({
             lg:flex lg:flex-wrap lg:justify-end
           "
         >
-          {/* EXPORT */}
           {onExport && (
             <button
               onClick={onExport}
               className={`${BUTTON_BASE} bg-gray-700 hover:bg-gray-600 text-white`}
             >
               <Download className="w-4 h-4" />
-              <span>Exportar</span>
+              Exportar
             </button>
           )}
 
-          {/* IMPORT */}
+          {onModal && (
+            <button
+              onClick={onModal}
+              className={`${BUTTON_BASE} bg-gray-700 hover:bg-gray-600 text-white`}
+            >
+              <Plus className="w-4 h-4" />
+              Crear
+            </button>
+          )}
+
           {onImport && (
             <button
               onClick={onImport}
               className={`${BUTTON_BASE} bg-gray-700 hover:bg-gray-600 text-white`}
             >
               <Upload className="w-4 h-4" />
-              <span>Importar</span>
+              Importar
             </button>
           )}
 
-          {/* DOWNLOAD TEMPLATE */}
           {onDownloadTemplate && (
             <button
               onClick={onDownloadTemplate}
               className={`${BUTTON_BASE} bg-purple-600 hover:bg-purple-700 text-white`}
             >
               <Download className="w-4 h-4" />
-              <span>Descargar Template</span>
+              Descargar Template
             </button>
           )}
 
-          {/* IMPORT CSV */}
           {onImportCsv && (
             <button
               onClick={onImportCsv}
@@ -129,33 +139,39 @@ const PagesHeader: React.FC<PagesHeaderProps> = ({
               ) : (
                 <Upload className="w-4 h-4" />
               )}
-              <span>
-                {importingCsv
-                  ? "Importando..."
-                  : "Importar CSV"}
-              </span>
+              {importingCsv ? "Importando..." : "Importar CSV"}
             </button>
           )}
 
-          {/* REPORT */}
           {onReport && (
             <button
               onClick={onReport}
               className={`${BUTTON_BASE} bg-purple-600 hover:bg-purple-700 text-white`}
             >
               <FileText className="w-4 h-4" />
-              <span>Reporte</span>
+              Reporte
             </button>
           )}
 
-          {/* CREATE */}
+          {/* CREATE ORIGINAL */}
           {showCreate && (
             <a
               href="create"
               className={`${BUTTON_BASE} bg-blue-600 hover:bg-blue-700 text-white col-span-2 sm:col-span-1`}
             >
               <Plus className="w-4 h-4" />
-              <span>Crear</span>
+              Crear
+            </a>
+          )}
+
+          {/* NUEVO CREATE CON RUTA DINÁMICA */}
+          {showCreatePath && (
+            <a
+              href={showCreatePath}
+              className={`${BUTTON_BASE} bg-blue-600 hover:bg-blue-700 text-white col-span-2 sm:col-span-1`}
+            >
+              <Plus className="w-4 h-4" />
+              Crear
             </a>
           )}
         </div>
