@@ -1,6 +1,7 @@
 "use client"
 
 import { Outlet } from "react-router-dom"
+import { useTheme } from "../../../context/themeContext";
 
 interface CurrentPathname {
   name: string;
@@ -14,10 +15,10 @@ interface SubRoutesProps {
   }[]
 }
 const MaintenancePage:React.FC<SubRoutesProps> = () => {
-
+  const { isDarkMode, } = useTheme();
   return (
-    <div className="h-[90vh] bg-gray-900 text-white p-6 flex flex-col">
-      <Outlet/>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} p-6 flex flex-col`}>
+      <Outlet />
     </div>
   )
 }

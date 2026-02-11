@@ -8,6 +8,7 @@ import { useCompany } from "../../../../context/routerContext"
 import Loader from "../../../../components/loaders/loader"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { usePageName } from "../../../../hook/usePageName"
+import { useTheme } from "../../../../context/themeContext" // Import useTheme
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -46,12 +47,12 @@ const reportMetadata: { [key: string]: { descripcion: string; icono: string; est
   itPerformanceReport: { descripcion: "Métricas de eficiencia y productividad", icono: "chart", estado: "Pendiente" },
 }
 
-const getIcon = (iconName: string) => {
+const getIcon = (iconName: string, isDarkMode: boolean) => { // Added isDarkMode parameter
   const iconProps = {
     className: "w-full h-full",
     viewBox: "0 0 24 24",
     fill: "none",
-    stroke: "currentColor",
+    stroke: isDarkMode ? "currentColor" : "#4A5568", // Conditional stroke color
     strokeWidth: "1.5",
     strokeLinecap: "round",
     strokeLinejoin: "round",
@@ -118,6 +119,7 @@ export default function AllReportsPage() {
   const { selectedCompany } = useCompany()
   const { data, error, isLoading } = useSWR<DashboardApiResponse>(`${VITE_API_URL}/api/reports/${selectedCompany?.id}/all`, fetcher)
   const { pageName } = usePageName();
+  const { isDarkMode } = useTheme(); // Use the theme context
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
 
@@ -215,42 +217,80 @@ export default function AllReportsPage() {
         return "bg-gray-600 text-gray-100"
     }
   }
+
   if (isLoading) {
     return (
       <Loader />
     )
   }
+
   // --- RENDERIZADO DEL COMPONENTE ---
   return (
-    <div className="bg-gray-900 text-white">
+    <div className={`transition-colors ${
+      isDarkMode
+        ? 'bg-gray-900 text-white'
+        : 'bg-gray-100 text-gray-900'
+    }`}>
       <PagesHeader 
         title={pageName} 
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {error && <p className="col-span-full text-center text-red-500">Error al cargar los datos. Por favor, intente de nuevo.</p>}
+        {error && <p className={`col-span-full text-center text-red-500 transition-colors ${
+          isDarkMode
+            ? 'text-red-500'
+            : 'text-red-700'
+        }`}>Error al cargar los datos. Por favor, intente de nuevo.</p>}
         {data && reportsData.map((reporte) => (
-          <div key={reporte.id} className="bg-gray-800 rounded-lg p-6 border border-gray-700 flex flex-col justify-between">
+          <div key={reporte.id} className={`rounded-lg p-6 border flex flex-col justify-between transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200 shadow'
+          }`}>
             <div>
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 text-gray-400">{getIcon(reporte.icono)}</div>
+                <div className={`w-12 h-12 transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-400'
+                    : 'text-gray-600'
+                }`}>{getIcon(reporte.icono, isDarkMode)}</div> {/* Pass isDarkMode to getIcon */}
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(reporte.estado)}`}>
                   {reporte.estado}
                 </span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">{reporte.titulo}</h3>
-              <p className="text-gray-400 text-sm mb-4">{reporte.descripcion}</p>
+              <h3 className={`text-lg font-semibold mb-2 transition-colors ${
+                isDarkMode
+                  ? 'text-white'
+                  : 'text-gray-900'
+              }`}>{reporte.titulo}</h3>
+              <p className={`text-sm mb-4 transition-colors ${
+                isDarkMode
+                  ? 'text-gray-400'
+                  : 'text-gray-600'
+              }`}>{reporte.descripcion}</p>
               <div className="space-y-3">
                 <div>
-                  <span className="text-gray-400 text-xs">Tipo:</span>
+                  <span className={`text-xs transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-500'
+                  }`}>Tipo:</span>
                   <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getTypeBadge(reporte.tipo)}`}>
                     {reporte.tipo}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400 text-xs">Última actualización:</span>
-                  <span className="ml-2 text-sm">{reporte.ultimaActualizacion}</span>
+                  <span className={`text-xs transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-500'
+                  }`}>Última actualización:</span>
+                  <span className={`ml-2 text-sm transition-colors ${
+                    isDarkMode
+                      ? 'text-white'
+                      : 'text-gray-800'
+                  }`}>{reporte.ultimaActualizacion}</span>
                 </div>
               </div>
             </div>
@@ -267,10 +307,18 @@ export default function AllReportsPage() {
               </button>
               <button
                 onClick={() => handleDownloadReport(reporte)}
-                className="p-2.5 bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white rounded-lg transition-colors"
+                className={`p-2.5 rounded-lg transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-900'
+                }`}
                 title="Descargar Excel"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-5 h-5 transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7,10 12,15 17,10" />
                   <line x1="12" y1="15" x2="12" y2="3" />

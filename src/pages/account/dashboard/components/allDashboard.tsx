@@ -3,6 +3,7 @@
 
 import useSWR from "swr";
 import React, { useState } from "react";
+import { useTheme } from "../../../../context/themeContext";
 import { useCompany } from "../../../../context/routerContext";
 import Loader from "../../../../components/loaders/loader";
 import ReportPreviewModal from "../../../../components/modals/ReportPreviewModal";
@@ -121,8 +122,9 @@ const ActivityIcon: React.FC<{ icon: string }> = ({ icon }) => {
 
 // ------------ COMPONENTE PRINCIPAL ACTUALIZADO ----------
 const AllDashboard: React.FC<DashboardProps> = ({}) => {
+  const { isDarkMode } = useTheme();
   const { selectedCompany } = useCompany();
-  const [showReportModal, setShowReportModal] = useState(false); // ← Estado del modal
+  const [showReportModal, setShowReportModal] = useState(false);
   const { pageName } = usePageName();
   const {
     data: dashboardData,
@@ -160,14 +162,18 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
 
   if (error)
     return (
-      <div className="flex-1 p-6 text-center text-red-500">
+      <div className={`flex-1 p-6 text-center ${
+        isDarkMode ? 'text-red-500' : 'text-red-600'
+      }`}>
         Error al cargar el dashboard: {error.message}
       </div>
     );
 
   if (!dashboardData)
     return (
-      <div className="flex-1 p-6 text-center text-gray-400">
+      <div className={`flex-1 p-6 text-center ${
+        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+      }`}>
         No hay datos disponibles para esta empresa.
       </div>
     );
@@ -179,19 +185,31 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
     <>
       <div className="flex-1">
         {/* Header */}
-        <PagesHeader title={pageName} description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} onExport={handleGenerateReport}/>
+        <PagesHeader 
+          title={pageName} 
+          description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
+          onExport={handleGenerateReport}
+        />
 
-        {/* KPI CARDS (igual que antes) */}
+        {/* KPI CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Equipos */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <span className="text-gray-400 text-sm">Total Equipos</span>
-            <div className="text-3xl font-bold">{dashboardData?.kpi?.totalEquipments?.count}</div>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Total Equipos
+            </span>
+            <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {dashboardData?.kpi?.totalEquipments?.count}
+            </div>
             <div
               className={`mt-2 text-sm ${
                 dashboardData?.kpi?.totalEquipments?.change >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
+                  ? "text-green-500"
+                  : "text-red-500"
               }`}
             >
               {dashboardData?.kpi?.totalEquipments?.change >= 0 ? "↗" : "↘"}{" "}
@@ -200,16 +218,22 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
           </div>
 
           {/* Mantenimientos Pendientes */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <span className="text-gray-400 text-sm">Mantenimientos Pendientes</span>
-            <div className="text-3xl font-bold">
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Mantenimientos Pendientes
+            </span>
+            <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               {dashboardData.kpi.pendingMaintenances.count}
             </div>
             <div
               className={`mt-2 text-sm ${
                 dashboardData.kpi.pendingMaintenances.change >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
+                  ? "text-green-500"
+                  : "text-red-500"
               }`}
             >
               {dashboardData.kpi.pendingMaintenances.change >= 0 ? "↗" : "↘"}{" "}
@@ -218,16 +242,22 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
           </div>
 
           {/* Equipos Activos */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <span className="text-gray-400 text-sm">Equipos Activos</span>
-            <div className="text-3xl font-bold">
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Equipos Activos
+            </span>
+            <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               {dashboardData.kpi.activeEquipments.count}
             </div>
             <div
               className={`mt-2 text-sm ${
                 dashboardData.kpi.activeEquipments.change >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
+                  ? "text-green-500"
+                  : "text-red-500"
               }`}
             >
               {dashboardData.kpi.activeEquipments.change >= 0 ? "↗" : "↘"}{" "}
@@ -236,14 +266,22 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
           </div>
 
           {/* Usuarios Activos */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <span className="text-gray-400 text-sm">Usuarios Activos</span>
-            <div className="text-3xl font-bold">{dashboardData.kpi.activeUsers.count}</div>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Usuarios Activos
+            </span>
+            <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {dashboardData.kpi.activeUsers.count}
+            </div>
             <div
               className={`mt-2 text-sm ${
                 dashboardData.kpi.activeUsers.change >= 0
-                  ? "text-green-400"
-                  : "text-red-400"
+                  ? "text-green-500"
+                  : "text-red-500"
               }`}
             >
               {dashboardData.kpi.activeUsers.change >= 0 ? "↗" : "↘"}{" "}
@@ -252,12 +290,18 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
           </div>
         </div>
 
-        {/* INVENTARIO + ACTIVIDAD (igual que antes) */}
+        {/* INVENTARIO + ACTIVIDAD */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* INVENTARIO POR CATEGORÍA */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h2 className="text-xl font-bold mb-2">Inventario por Categoría</h2>
-            <p className="text-gray-400 text-sm mb-6">
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <h2 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Inventario por Categoría
+            </h2>
+            <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Distribución de equipos por tipo
             </p>
 
@@ -267,12 +311,18 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span>{category.name}</span>
+                      <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                        {category.name}
+                      </span>
                     </div>
-                    <span>{category.count}</span>
+                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      {category.count}
+                    </span>
                   </div>
 
-                  <div className="w-full bg-gray-700 rounded-full h-2 mt-1">
+                  <div className={`w-full rounded-full h-2 mt-1 ${
+                    isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                  }`}>
                     <div
                       className="bg-blue-500 h-2 rounded-full"
                       style={{
@@ -286,18 +336,30 @@ const AllDashboard: React.FC<DashboardProps> = ({}) => {
           </div>
 
           {/* ACTIVIDAD RECIENTE */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h2 className="text-xl font-bold mb-2">Actividad Reciente</h2>
-            <p className="text-gray-400 text-sm mb-6">Últimas acciones registradas</p>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <h2 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Actividad Reciente
+            </h2>
+            <p className={`text-sm mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Últimas acciones registradas
+            </p>
 
             <div className="space-y-4">
               {dashboardData.recentActivity.map((activity, idx) => (
                 <div key={idx} className="flex items-start space-x-3">
                   <ActivityIcon icon={activity.icon} />
                   <div className="flex-1">
-                    <p className="text-sm">{activity.type}</p>
-                    <p className="text-gray-400 text-sm">{activity.description}</p>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {activity.type}
+                    </p>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {activity.description}
+                    </p>
+                    <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                       {formatDate(activity.date)}
                     </div>
                   </div>

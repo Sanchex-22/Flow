@@ -9,6 +9,7 @@ import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
 import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
+import { useTheme } from "../../../../context/themeContext"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -73,6 +74,7 @@ const getStatusBadge = (user: UsuarioFull) => {
 }
 
 export const AllUsers: React.FC = () => {
+    const { isDarkMode, } = useTheme();
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
     const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
     const { pageName } = usePageName()
@@ -130,13 +132,13 @@ export const AllUsers: React.FC = () => {
     const filteredUsers = useMemo(() => {
         if (!data || !Array.isArray(data)) return []
 
-        return data.filter((user) => {
+        return data?.filter((user) => {
             const statusMatch =
                 statusFilter === "Todos" ||
                 (statusFilter === "Activos" && user?.isActive) ||
                 (statusFilter === "Inactivos" && !user?.isActive) ||
-                (statusFilter === "Con Equipos" && user.person?.status === "Con Equipos") ||
-                (statusFilter === "Sin Equipos" && user.person?.status === "Sin Equipos")
+                (statusFilter === "Con Equipos" && user?.person?.status === "Con Equipos") ||
+                (statusFilter === "Sin Equipos" && user?.person?.status === "Sin Equipos")
 
             const searchMatch =
                 search.trim() === "" ||
@@ -150,10 +152,10 @@ export const AllUsers: React.FC = () => {
     }, [data, search, statusFilter])
 
     const columnConfig = {
-        "fullName": (item: UsuarioFull) => (
+        "Nombre Completo": (item: UsuarioFull) => (
             <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(item?.person?.fullName)}`}>
-                    {item?.person?.fullName.charAt(0).toUpperCase()}
+                    {item?.person?.fullName?.charAt(0)?.toUpperCase()}
                 </div>
                 <div>
                     <div className="font-medium text-sm">{item?.person?.fullName}</div>
@@ -161,7 +163,7 @@ export const AllUsers: React.FC = () => {
                 </div>
             </div>
         ),
-        "email": (item: UsuarioFull) => (
+        "Email": (item: UsuarioFull) => (
             <div className="text-sm">
                 <div className="flex items-center space-x-1 mb-1">
                     <span>{item.email}</span>
@@ -171,13 +173,13 @@ export const AllUsers: React.FC = () => {
                 </div>
             </div>
         ),
-        "department": (item: UsuarioFull) => (
+        "Departamento": (item: UsuarioFull) => (
             <div>
-                <div className="font-medium text-sm">{item.person?.department?.name || "Sin departamento"}</div>
-                <div className="text-xs text-gray-400">{item.person?.position}</div>
+                <div className="font-medium text-sm">{item?.person?.department?.name || "Sin departamento"}</div>
+                <div className="text-xs text-gray-400">{item?.person?.position}</div>
             </div>
         ),
-        "isActive": (item: UsuarioFull) => (
+        "Estado": (item: UsuarioFull) => (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item)}`}>
                 {item.isActive ? "Activo" : "Inactivo"}
             </span>
@@ -193,36 +195,52 @@ export const AllUsers: React.FC = () => {
     const totalUsers = isDataArray ? data.length : 0;
     const activeUsers = isDataArray ? data.filter((u) => u?.isActive).length : 0;
     const usersWithEquipment = isDataArray ? data.filter((u) => u.person?.status === "Con Equipos").length : 0;
-    const departments = isDataArray
-        ? Array.from(new Set(data.map((u) => u.person?.department?.name).filter(Boolean))).length
+    const departments = isDataArray 
+        ? Array.from(new Set(data.map((u) => u.person?.department?.name).filter(Boolean))).length 
         : 0;
 
     return (
-        <div className="relative bg-gray-900 text-white">
+        <div className="relative">
             <PagesHeader
-                title={pageName}
+                title={"Usuarios"}
                 description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
                 showCreate
             />
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                    isDarkMode 
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                }`}>
                     <span className="text-gray-400 text-sm">Total Usuarios</span>
                     <div className="text-3xl font-bold mb-1">{totalUsers}</div>
                     <div className="text-sm text-gray-400">Registrados en el sistema</div>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                    isDarkMode 
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                }`}>
                     <span className="text-gray-400 text-sm">Usuarios Activos</span>
                     <div className="text-3xl font-bold mb-1">{activeUsers}</div>
                     <div className="text-sm text-gray-400">Con acceso al sistema</div>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                    isDarkMode 
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                }`}>
                     <span className="text-gray-400 text-sm">Con Equipos</span>
                     <div className="text-3xl font-bold mb-1">{usersWithEquipment}</div>
                     <div className="text-sm text-gray-400">Tienen equipos asignados</div>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                    isDarkMode 
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                }`}>
                     <span className="text-gray-400 text-sm">Departamentos</span>
                     <div className="text-3xl font-bold mb-1">{departments}</div>
                     <div className="text-sm text-gray-400">Diferentes áreas</div>
@@ -245,7 +263,7 @@ export const AllUsers: React.FC = () => {
                 </select>
             </div>
 
-            {filteredUsers.length === 0 ? (
+            {filteredUsers?.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
                     <p className="text-white font-medium">No se encontraron usuarios</p>
                 </div>

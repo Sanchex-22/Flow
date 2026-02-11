@@ -3,6 +3,7 @@
 import useSWR, { mutate } from "swr"
 import { useEffect, useState } from "react"
 import * as XLSX from 'xlsx'
+import { useTheme } from "../../../../context/themeContext"
 import Loader from "../../../../components/loaders/loader"
 import { useCompany } from "../../../../context/routerContext"
 import { usePageName } from "../../../../hook/usePageName"
@@ -59,6 +60,7 @@ interface DeleteConfirmation {
 }
 
 export default function AllDevices() {
+    const { isDarkMode } = useTheme()
     const { search } = useSearch()
     const [selectedType, ] = useState("Todos los...")
     const [activeTab, setActiveTab] = useState("Todos los Equipos")
@@ -127,7 +129,11 @@ export default function AllDevices() {
 
     if (error || !data) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+            <div className={`min-h-screen flex items-center justify-center transition-colors ${
+              isDarkMode
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-50 text-gray-900'
+            }`}>
                 <span>Error al cargar los dispositivos.</span>
             </div>
         )
@@ -171,13 +177,21 @@ export default function AllDevices() {
     const getStatusBadge = (estado: string) => {
         switch (estado) {
             case "En Uso":
-                return "bg-blue-600 text-blue-100"
+                return isDarkMode 
+                  ? "bg-blue-600 text-blue-100" 
+                  : "bg-blue-100 text-blue-800"
             case "Mantenimiento":
-                return "bg-yellow-600 text-yellow-100"
+                return isDarkMode 
+                  ? "bg-yellow-600 text-yellow-100" 
+                  : "bg-yellow-100 text-yellow-800"
             case "Activo":
-                return "bg-green-600 text-green-100"
+                return isDarkMode 
+                  ? "bg-green-600 text-green-100" 
+                  : "bg-green-100 text-green-800"
             default:
-                return "bg-gray-600 text-gray-100"
+                return isDarkMode 
+                  ? "bg-gray-600 text-gray-100" 
+                  : "bg-gray-200 text-gray-800"
         }
     }
 
@@ -232,34 +246,39 @@ export default function AllDevices() {
         }
     }
 
-    // Configuración de columnas personalizadas
     const columnConfig = {
         "Equipo": (item: CreateEquipmentData) => (
             <div>
                 <div className="font-medium">{item?.model || "N/A"}</div>
-                <div className="text-sm text-gray-400">{item?.brand || "N/A"}</div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {item?.brand || "N/A"}
+                </div>
+                <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                     {item?.plateNumber || "N/A"} | {item?.serialNumber || "N/A"}
                 </div>
             </div>
         ),
         "Usuario/Ubicación": (item: CreateEquipmentData) => (
             <div className="flex items-start space-x-2">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 mt-0.5 text-gray-400">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-4 h-4 mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                     <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
                 </svg>
                 <div>
-                    <div className="text-sm font-medium">{item?.assignedToUser?.person?.fullName || "Sin asignar"}</div>
-                    <div className="flex items-center space-x-1 text-xs text-gray-400 mt-1">
+                    <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {item?.assignedToUser?.person?.fullName || "Sin asignar"}
+                    </div>
+                    <div className={`flex items-center space-x-1 text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                             <circle cx="12" cy="10" r="3" />
                         </svg>
                         <span>{item?.company?.name || "N/A"}</span>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">{item?.location || "N/A"}</div>
+                    <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
+                      {item?.location || "N/A"}
+                    </div>
                 </div>
             </div>
         ),
@@ -269,8 +288,8 @@ export default function AllDevices() {
             </span>
         ),
         "Garantía": (item: CreateEquipmentData) => (
-            <div className="flex items-center space-x-1 text-sm">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-gray-400">
+            <div className={`flex items-center space-x-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                     <line x1="16" y1="2" x2="16" y2="6" />
                     <line x1="8" y1="2" x2="8" y2="6" />
@@ -280,7 +299,9 @@ export default function AllDevices() {
             </div>
         ),
         "Costo": (item: CreateEquipmentData) => (
-            <span className="text-sm font-medium">{item?.cost || "N/A"}</span>
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {item?.cost || "N/A"}
+            </span>
         ),
     };
 
@@ -298,7 +319,11 @@ export default function AllDevices() {
     };
 
     return (
-        <div className="bg-gray-900 text-white">
+        <div className={`transition-colors ${
+          isDarkMode
+            ? 'bg-gray-900 text-white'
+            : 'bg-gray-100 text-gray-900'
+        }`}>
             {/* Notificación */}
             {notification.show && (
                 <div
@@ -312,32 +337,46 @@ export default function AllDevices() {
             {/* Modal de Confirmación de Borrado */}
             {deleteConfirmation.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-                    <div className="bg-gray-800 rounded-lg p-8 shadow-2xl max-w-md w-full border border-gray-700">
+                    <div className={`rounded-lg p-8 shadow-2xl max-w-md w-full border transition-colors ${
+                      isDarkMode
+                        ? 'bg-gray-800 border-gray-700'
+                        : 'bg-white border-gray-200'
+                    }`}>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold">Confirmar Eliminación</h2>
+                            <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              Confirmar Eliminación
+                            </h2>
                             <button
                                 onClick={closeDeleteConfirmation}
                                 disabled={deleteConfirmation.isDeleting}
-                                className="text-gray-400 hover:text-white transition-colors"
+                                className={`transition-colors ${
+                                  isDarkMode
+                                    ? 'text-gray-400 hover:text-white'
+                                    : 'text-gray-600 hover:text-gray-900'
+                                }`}
                             >
                                 <X size={20} />
                             </button>
                         </div>
-                        <p className="text-gray-300 mb-6">
-                            ¿Estás seguro de que quieres eliminar el equipo <span className="font-bold text-white">{deleteConfirmation.equipo?.model} ({deleteConfirmation.equipo?.serialNumber})</span>? Esta acción no se puede deshacer.
+                        <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            ¿Estás seguro de que quieres eliminar el equipo <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{deleteConfirmation.equipo?.model} ({deleteConfirmation.equipo?.serialNumber})</span>? Esta acción no se puede deshacer.
                         </p>
                         <div className="flex justify-end space-x-4">
                             <button
                                 onClick={closeDeleteConfirmation}
                                 disabled={deleteConfirmation.isDeleting}
-                                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition-colors disabled:opacity-50"
+                                className={`px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
+                                  isDarkMode
+                                    ? 'bg-gray-600 hover:bg-gray-500'
+                                    : 'bg-gray-300 hover:bg-gray-400'
+                                }`}
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={deleteEquipment}
                                 disabled={deleteConfirmation.isDeleting}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed text-white"
                             >
                                 {deleteConfirmation.isDeleting && (
                                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -361,88 +400,158 @@ export default function AllDevices() {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400 text-sm">Total Equipos</span>
-                        <div className="w-6 h-6">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-400">
+                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Total Equipos
+                        </span>
+                        <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
                                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                                 <line x1="8" y1="21" x2="16" y2="21" />
                                 <line x1="12" y1="17" x2="12" y2="21" />
                             </svg>
                         </div>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{totalEquipos}</div>
-                    <div className="text-sm text-gray-400">En {selectedCompany?.name}</div>
+                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {totalEquipos}
+                    </div>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      En {selectedCompany?.name}
+                    </div>
                 </div>
 
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400 text-sm">En Uso</span>
-                        <div className="w-6 h-6">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-400">
+                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          En Uso
+                        </span>
+                        <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                 <circle cx="9" cy="7" r="4" />
                                 <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
                             </svg>
                         </div>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{enUso}</div>
-                    <div className="text-sm text-gray-400">Equipos asignados</div>
+                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {enUso}
+                    </div>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Equipos asignados
+                    </div>
                 </div>
 
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400 text-sm">Disponibles</span>
-                        <div className="w-6 h-6">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-gray-400">
+                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Disponibles
+                        </span>
+                        <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
                                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                                 <line x1="8" y1="21" x2="16" y2="21" />
                                 <line x1="12" y1="17" x2="12" y2="21" />
                             </svg>
                         </div>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{disponibles}</div>
-                    <div className="text-sm text-gray-400">Sin asignar</div>
+                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {disponibles}
+                    </div>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Sin asignar
+                    </div>
                 </div>
 
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className={`rounded-lg p-6 border transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
+                }`}>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400 text-sm">Garantías por Vencer</span>
-                        <div className="w-6 h-6">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full text-yellow-400">
+                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Garantías por Vencer
+                        </span>
+                        <div className={`w-6 h-6 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
                                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                                 <path d="M12 9v4" />
                                 <path d="m12 17 .01 0" />
                             </svg>
                         </div>
                     </div>
-                    <div className="text-3xl font-bold mb-1">{garantiasPorVencer}</div>
-                    <div className="text-sm text-gray-400">Próximos 30 días</div>
+                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {garantiasPorVencer}
+                    </div>
+                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Próximos 30 días
+                    </div>
                 </div>
             </div>
 
             {/* Tabs */}
             <div className="mb-6">
-                <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg w-fit">
+                <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-800'
+                    : 'bg-gray-200'
+                }`}>
                     <button
                         onClick={() => setActiveTab('Todos los Equipos')}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'Todos los Equipos' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}>
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                          activeTab === 'Todos los Equipos' 
+                            ? isDarkMode
+                              ? 'bg-gray-700 text-white'
+                              : 'bg-white text-gray-900'
+                            : isDarkMode
+                            ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
+                        }`}
+                    >
                         Todos los Equipos
                     </button>
                     <button
                         onClick={() => setActiveTab('Asignaciones')}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'Asignaciones' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}>
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                          activeTab === 'Asignaciones' 
+                            ? isDarkMode
+                              ? 'bg-gray-700 text-white'
+                              : 'bg-white text-gray-900'
+                            : isDarkMode
+                            ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
+                        }`}
+                    >
                         Asignaciones
                     </button>
                     <button
                         onClick={() => setActiveTab('Garantías')}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'Garantías' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}>
+                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                          activeTab === 'Garantías' 
+                            ? isDarkMode
+                              ? 'bg-gray-700 text-white'
+                              : 'bg-white text-gray-900'
+                            : isDarkMode
+                            ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
+                        }`}
+                    >
                         Garantías
                     </button>
                 </div>
             </div>
-
 
             <Tabla
                 datos={getTabData()}

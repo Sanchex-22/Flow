@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import useSWR, { mutate } from "swr";
+import { useTheme } from "../../../../context/themeContext";
 import Loader from "../../../../components/loaders/loader";
 import { Company, useCompany } from "../../../../context/routerContext";
 import { CurrentPathname } from "../../../../components/layouts/main";
@@ -110,6 +111,7 @@ const mapApiProviderToFrontend = (item: ApiNetworkProvider): FrontendNetworkProv
 };
 
 const NetworkProvidersPage: React.FC<Props> = ({ }) => {
+    const { isDarkMode } = useTheme();
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
     const { data, error, isLoading } = useSWR<ApiNetworkProvider[] | null>(
         `${VITE_API_URL}/api/network/providers/${selectedCompany?.id}/all`,
@@ -179,32 +181,49 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
         }
     };
 
-    // Configuración de columnas personalizadas
     const columnConfig = {
         "nombre": (item: FrontendNetworkProvider) => (
-            <p className="text-white font-medium">{item.nombre}</p>
+            <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {item.nombre}
+            </p>
         ),
         "ipProveedor": (item: FrontendNetworkProvider) => (
             <div>
-                <p className="text-white">{item.ipProveedor}</p>
-                <p className="text-gray-400 text-sm">{item.dnsGateway}</p>
+                <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+                  {item.ipProveedor}
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {item.dnsGateway}
+                </p>
             </div>
         ),
         "velocidad": (item: FrontendNetworkProvider) => (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-gray-300 border border-slate-600">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors ${
+              isDarkMode
+                ? 'bg-slate-700 text-gray-300 border-slate-600'
+                : 'bg-gray-200 text-gray-700 border-gray-300'
+            }`}>
                 {item.velocidad}
             </span>
         ),
         "costoMensual": (item: FrontendNetworkProvider) => (
-            <p className="text-white">{item.costoMensual}</p>
+            <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+              {item.costoMensual}
+            </p>
         ),
         "notas": (item: FrontendNetworkProvider) => (
-            <p className="text-gray-400 text-sm max-w-[200px] truncate">{item.notas}</p>
+            <p className={`text-sm max-w-[200px] truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {item.notas}
+            </p>
         ),
         "dispositivosMalla": (item: FrontendNetworkProvider) => (
             <div>
-                <p className="text-gray-400 text-sm">Malla: {item.dispositivosMalla}</p>
-                <p className="text-gray-400 text-sm">Switch: {item.dispositivosSwitch}</p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Malla: {item.dispositivosMalla}
+                </p>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Switch: {item.dispositivosSwitch}
+                </p>
             </div>
         ),
     };
@@ -215,14 +234,18 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
 
     if (error) {
         return (
-            <div className="text-center p-8 text-red-500">
+            <div className={`text-center p-8 ${isDarkMode ? 'text-red-500' : 'text-red-600'}`}>
                 Error al cargar proveedores de red: {error.message}
             </div>
         );
     }
 
     return (
-        <div className="bg-slate-900 text-gray-100">
+        <div className={`transition-colors ${
+          isDarkMode
+            ? 'bg-slate-900 text-gray-100'
+            : 'bg-gray-100 text-gray-900'
+        }`}>
             <PagesHeader
                 title={pageName}
                 description={`${pageName} in ${selectedCompany?.name}`}
@@ -230,21 +253,34 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
             />
 
             {/* Stats Card */}
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 mb-8">
+            <div className={`border rounded-xl p-6 mb-8 transition-colors ${
+              isDarkMode
+                ? 'bg-slate-800 border-slate-700'
+                : 'bg-white border-gray-200'
+            }`}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-gray-400 text-sm mb-1">Total Proveedores</p>
-                        <p className="text-2xl font-semibold text-white">{proveedores.length}</p>
-                        <p className="text-gray-500 text-sm">Registrados en el sistema</p>
+                        <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Total Proveedores
+                        </p>
+                        <p className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {proveedores.length}
+                        </p>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
+                          Registrados en el sistema
+                        </p>
                     </div>
                 </div>
             </div>
 
-
             {filteredProveedores.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                    <p className="text-white font-medium">No se encontraron proveedores registrados.</p>
-                    <p className="text-gray-500 text-sm mt-1">Agrega tu primer proveedor para comenzar.</p>
+                <div className={`p-8 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      No se encontraron proveedores registrados.
+                    </p>
+                    <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
+                      Agrega tu primer proveedor para comenzar.
+                    </p>
                 </div>
             ) : (
                 <Tabla
@@ -260,35 +296,57 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
             {/* Modal de confirmación de eliminación */}
             {deleteConfirmation.show && deleteConfirmation.provider && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-slate-800 rounded-lg shadow-xl max-w-sm w-full mx-4 border border-slate-700">
-                        <div className="flex items-center justify-between p-6 border-b border-slate-700">
-                            <h3 className="text-lg font-semibold text-white">Confirmar eliminación</h3>
+                    <div className={`rounded-lg shadow-xl max-w-sm w-full mx-4 border transition-colors ${
+                      isDarkMode
+                        ? 'bg-slate-800 border-slate-700'
+                        : 'bg-white border-gray-200'
+                    }`}>
+                        <div className={`flex items-center justify-between p-6 border-b transition-colors ${
+                          isDarkMode
+                            ? 'border-slate-700'
+                            : 'border-gray-200'
+                        }`}>
+                            <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              Confirmar eliminación
+                            </h3>
                             <button
                                 onClick={closeDeleteModal}
                                 disabled={deleteConfirmation.isDeleting}
-                                className="text-gray-400 hover:text-white transition-colors"
+                                className={`transition-colors ${
+                                  isDarkMode
+                                    ? 'text-gray-400 hover:text-white'
+                                    : 'text-gray-600 hover:text-gray-900'
+                                }`}
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="p-6">
-                            <p className="text-gray-300 mb-2">
+                            <p className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
                                 ¿Estás seguro de que deseas eliminar este proveedor?
                             </p>
-                            <p className="text-white font-semibold text-lg">
+                            <p className={`font-semibold text-lg mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                 {deleteConfirmation.provider.nombre}
                             </p>
-                            <p className="text-gray-500 text-sm mt-4">
+                            <p className={`text-sm mt-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
                                 Esta acción no se puede deshacer.
                             </p>
                         </div>
 
-                        <div className="flex gap-3 p-6 border-t border-slate-700 bg-slate-750">
+                        <div className={`flex gap-3 p-6 border-t transition-colors ${
+                          isDarkMode
+                            ? 'border-slate-700 bg-slate-800'
+                            : 'border-gray-200 bg-gray-50'
+                        }`}>
                             <button
                                 onClick={closeDeleteModal}
                                 disabled={deleteConfirmation.isDeleting}
-                                className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+                                className={`flex-1 px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50 ${
+                                  isDarkMode
+                                    ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                                    : 'bg-gray-300 hover:bg-gray-400 text-gray-900'
+                                }`}
                             >
                                 Cancelar
                             </button>

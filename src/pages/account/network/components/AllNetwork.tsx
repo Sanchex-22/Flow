@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useMemo } from "react"
 import useSWR, { mutate } from "swr"
+import { useTheme } from "../../../../context/themeContext"
 import { useCompany } from "../../../../context/routerContext"
 import DeleteNetworkModal from "./deleteModal"
 import Loader from "../../../../components/loaders/loader"
@@ -141,17 +142,22 @@ interface Props {
 }
 
 const PasswordField: React.FC<{ password: string }> = ({ password }) => {
+  const { isDarkMode } = useTheme()
   const [showPassword, setShowPassword] = useState(false)
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-white text-sm font-mono">
+      <span className={`text-sm font-mono ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
         {showPassword ? password : "•".repeat(Math.min(password.length, 8))}
       </span>
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="p-1 text-gray-400 hover:text-gray-300 transition-colors"
+        className={`p-1 transition-colors ${
+          isDarkMode
+            ? 'text-gray-400 hover:text-gray-300'
+            : 'text-gray-600 hover:text-gray-700'
+        }`}
         title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
       >
         {showPassword ? (
@@ -165,6 +171,7 @@ const PasswordField: React.FC<{ password: string }> = ({ password }) => {
 }
 
 const AllNetwork: React.FC<Props> = ({ }) => {
+  const { isDarkMode } = useTheme()
   const { search } = useSearch()
   const { pageName } = usePageName()
   const [filterStatus, setFilterStatus] = useState("TODOS")
@@ -235,15 +242,25 @@ const AllNetwork: React.FC<Props> = ({ }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case NetworkDeviceStatus.ONLINE:
-        return "bg-green-900 text-green-300 border-green-700"
+        return isDarkMode
+          ? "bg-green-900 text-green-300 border-green-700"
+          : "bg-green-100 text-green-800 border-green-300"
       case NetworkDeviceStatus.OFFLINE:
-        return "bg-red-900 text-red-300 border-red-700"
+        return isDarkMode
+          ? "bg-red-900 text-red-300 border-red-700"
+          : "bg-red-100 text-red-800 border-red-300"
       case NetworkDeviceStatus.MAINTENANCE:
-        return "bg-yellow-900 text-yellow-300 border-yellow-700"
+        return isDarkMode
+          ? "bg-yellow-900 text-yellow-300 border-yellow-700"
+          : "bg-yellow-100 text-yellow-800 border-yellow-300"
       case NetworkDeviceStatus.DECOMMISSIONED:
-        return "bg-gray-700 text-gray-300 border-gray-600"
+        return isDarkMode
+          ? "bg-gray-700 text-gray-300 border-gray-600"
+          : "bg-gray-200 text-gray-700 border-gray-400"
       default:
-        return "bg-slate-700 text-slate-300 border-slate-600"
+        return isDarkMode
+          ? "bg-slate-700 text-slate-300 border-slate-600"
+          : "bg-gray-200 text-gray-700 border-gray-400"
     }
   }
 
@@ -271,12 +288,15 @@ const AllNetwork: React.FC<Props> = ({ }) => {
     }
   }
 
-  // Configuración de columnas personalizadas
   const columnConfig = {
     "nombre": (item: FrontendNetworkConnection) => (
       <div>
-        <p className="text-white font-medium">{item.nombre}</p>
-        <p className="text-gray-400 text-sm">{item.ssid}</p>
+        <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          {item.nombre}
+        </p>
+        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {item.ssid}
+        </p>
       </div>
     ),
     "password": (item: FrontendNetworkConnection) => (
@@ -284,23 +304,37 @@ const AllNetwork: React.FC<Props> = ({ }) => {
     ),
     "ip": (item: FrontendNetworkConnection) => (
       <div>
-        <p className="text-white text-sm">{item.ip}</p>
-        <p className="text-gray-400 text-xs">{item.dns}</p>
+        <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          {item.ip}
+        </p>
+        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {item.dns}
+        </p>
       </div>
     ),
     "gw": (item: FrontendNetworkConnection) => (
-      <p className="text-white text-sm">{item.gw}</p>
+      <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        {item.gw}
+      </p>
     ),
     "velocidadBajada": (item: FrontendNetworkConnection) => (
       <div className="text-sm">
-        <p className="text-white">↓ {item.velocidadBajada} Mbps</p>
-        <p className="text-gray-400 text-xs">↑ {item.velocidadSubida} Mbps</p>
+        <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+          ↓ {item.velocidadBajada} Mbps
+        </p>
+        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          ↑ {item.velocidadSubida} Mbps
+        </p>
       </div>
     ),
     "proveedor": (item: FrontendNetworkConnection) => (
       <div>
-        <p className="text-white text-sm">{item.proveedor}</p>
-        <p className="text-gray-400 text-xs">{item.proveedorVelocidad}</p>
+        <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          {item.proveedor}
+        </p>
+        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          {item.proveedorVelocidad}
+        </p>
       </div>
     ),
     "estado": (item: FrontendNetworkConnection) => (
@@ -312,7 +346,9 @@ const AllNetwork: React.FC<Props> = ({ }) => {
       </div>
     ),
     "ubicacion": (item: FrontendNetworkConnection) => (
-      <p className="text-gray-400 text-sm">{item.ubicacion}</p>
+      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        {item.ubicacion}
+      </p>
     ),
   };
 
@@ -326,47 +362,83 @@ const AllNetwork: React.FC<Props> = ({ }) => {
   const proveedores = new Set(conexiones.map((c) => c.proveedor)).size
 
   return (
-    <div className="bg-slate-900 text-gray-100">
+    <div className={`transition-colors ${
+      isDarkMode
+        ? 'bg-slate-900 text-gray-100'
+        : 'bg-gray-100 text-gray-900'
+    }`}>
       {/* Header Section */}
       <PagesHeader title={pageName} description={`${pageName} in ${selectedCompany?.name}`} showCreate/>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <div className={`border rounded-xl p-6 transition-colors ${
+          isDarkMode
+            ? 'bg-slate-800 border-slate-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Total Redes</p>
-              <p className="text-2xl font-semibold text-white">{totalRedes}</p>
+              <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Total Redes
+              </p>
+              <p className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {totalRedes}
+              </p>
             </div>
             <Network size={32} className="text-blue-500" />
           </div>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <div className={`border rounded-xl p-6 transition-colors ${
+          isDarkMode
+            ? 'bg-slate-800 border-slate-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">En Línea</p>
-              <p className="text-2xl font-semibold text-green-400">{enLinea}</p>
+              <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                En Línea
+              </p>
+              <p className={`text-2xl font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                {enLinea}
+              </p>
             </div>
             <CheckCircle size={32} className="text-green-500" />
           </div>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <div className={`border rounded-xl p-6 transition-colors ${
+          isDarkMode
+            ? 'bg-slate-800 border-slate-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Proveedores</p>
-              <p className="text-2xl font-semibold text-white">{proveedores}</p>
+              <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Proveedores
+              </p>
+              <p className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {proveedores}
+              </p>
             </div>
             <Router size={32} className="text-purple-500" />
           </div>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <div className={`border rounded-xl p-6 transition-colors ${
+          isDarkMode
+            ? 'bg-slate-800 border-slate-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm mb-1">Desconectadas</p>
-              <p className="text-2xl font-semibold text-red-400">{desconectadas}</p>
+              <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Desconectadas
+              </p>
+              <p className={`text-2xl font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                {desconectadas}
+              </p>
             </div>
             <AlertCircle size={32} className="text-red-500" />
           </div>
@@ -376,7 +448,11 @@ const AllNetwork: React.FC<Props> = ({ }) => {
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <select
-          className="px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+          className={`px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px] transition-colors ${
+            isDarkMode
+              ? 'bg-slate-700 border border-slate-600 text-white'
+              : 'bg-white border border-gray-300 text-gray-900'
+          }`}
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
@@ -390,8 +466,8 @@ const AllNetwork: React.FC<Props> = ({ }) => {
       </div>
 
       {filteredConexiones.length === 0 ? (
-        <div className="p-8 text-center">
-          <p className="text-gray-400">No hay redes registradas</p>
+        <div className={`p-8 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p>No hay redes registradas</p>
         </div>
       ) : (
         <Tabla

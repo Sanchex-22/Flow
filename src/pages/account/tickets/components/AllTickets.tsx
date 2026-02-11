@@ -10,6 +10,7 @@ import { useSearch } from "../../../../context/searchContext"
 import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
 import * as XLSX from 'xlsx'
+import { useTheme } from "../../../../context/themeContext"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -74,6 +75,7 @@ const getStatusBadge = (user: UsuarioFull) => {
 }
 
 export const AllUsers: React.FC = () => {
+    const { isDarkMode } = useTheme()
   const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
   const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
   const { pageName } = usePageName()
@@ -194,7 +196,11 @@ export const AllUsers: React.FC = () => {
   const departments = Array.from(new Set(data?.map((u) => u.person?.department?.name).filter(Boolean))).length || 0
 
   return (
-    <div className="relative bg-gray-900 text-white">
+    <div className={`transition-colors ${
+      isDarkMode
+        ? 'bg-slate-900 text-gray-100'
+        : 'bg-gray-100 text-gray-900'
+    }`}>
       <PagesHeader
         title={pageName}
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
@@ -203,37 +209,69 @@ export const AllUsers: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <span className="text-gray-400 text-sm">Total Usuarios</span>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>          <span className="text-gray-400 text-sm">Total Usuarios</span>
           <div className="text-3xl font-bold mb-1">{totalUsers}</div>
           <div className="text-sm text-gray-400">Registrados en el sistema</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <span className="text-gray-400 text-sm">Usuarios Activos</span>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>          <span className="text-gray-400 text-sm">Usuarios Activos</span>
           <div className="text-3xl font-bold mb-1">{activeUsers}</div>
           <div className="text-sm text-gray-400">Con acceso al sistema</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <span className="text-gray-400 text-sm">Con Equipos</span>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>          <span className="text-gray-400 text-sm">Con Equipos</span>
           <div className="text-3xl font-bold mb-1">{usersWithEquipment}</div>
           <div className="text-sm text-gray-400">Tienen equipos asignados</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <span className="text-gray-400 text-sm">Departamentos</span>
+          <div className={`rounded-lg p-6 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>          <span className="text-gray-400 text-sm">Departamentos</span>
           <div className="text-3xl font-bold mb-1">{departments}</div>
           <div className="text-sm text-gray-400">Diferentes áreas</div>
         </div>
       </div>
 
       {/* Users List */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 mb-8">
-        <div className="p-6 border-b border-gray-700">
-          <h2 className="text-xl font-bold mb-2">Lista de Usuarios</h2>
-          <p className="text-gray-400 text-sm mb-6">{filteredUsers?.length} de {data?.length || 0} usuarios encontrados</p>
+      <div className={`rounded-lg border mb-8 transition-colors ${
+        isDarkMode
+          ? 'bg-gray-800 border-gray-700'
+          : 'bg-white border-gray-200'
+      }`}>
+        <div className={`p-6 border-b transition-colors ${
+          isDarkMode
+            ? 'border-gray-700'
+            : 'border-gray-200'
+        }`}>
+          <h2 className={`text-xl font-bold mb-2 transition-colors ${
+            isDarkMode
+              ? 'text-white'
+              : 'text-gray-900'
+          }`}>Lista de Usuarios</h2>
+          <p className={`text-sm mb-6 transition-colors ${
+            isDarkMode
+              ? 'text-gray-400'
+              : 'text-gray-500'
+          }`}>{filteredUsers?.length} de {data?.length || 0} usuarios encontrados</p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <select
-              className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`border rounded-lg px-4 py-2 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600'
+                  : 'bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200'
+              }`}
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
@@ -246,8 +284,16 @@ export const AllUsers: React.FC = () => {
           </div>
 
           {filteredUsers.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">
-              <p className="text-white font-medium">No se encontraron usuarios</p>
+            <div className={`p-8 text-center transition-colors ${
+              isDarkMode
+                ? 'text-gray-400'
+                : 'text-gray-500'
+            }`}>
+              <p className={`font-medium transition-colors ${
+                isDarkMode
+                  ? 'text-white'
+                  : 'text-gray-900'
+              }`}>No se encontraron usuarios</p>
             </div>
           ) : (
             <Tabla
@@ -265,31 +311,63 @@ export const AllUsers: React.FC = () => {
       {/* Delete Modal */}
       {deleteConfirmation.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
+          <div className={`rounded-lg p-6 max-w-md w-full mx-4 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-white">Confirmar Eliminación</h3>
-              <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className="text-gray-400 hover:text-white">
+              <h3 className={`text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? 'text-white'
+                  : 'text-gray-900'
+              }`}>Confirmar Eliminación</h3>
+              <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={`transition-colors ${
+                isDarkMode
+                  ? 'text-gray-400 hover:text-white'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}>
                 <X size={20} />
               </button>
             </div>
 
             <div className="mb-6">
-              <p className="text-gray-300 mb-2">¿Estás seguro de que deseas eliminar al usuario:</p>
-              <div className="bg-gray-700 rounded-lg p-3 border border-gray-600">
+              <p className={`mb-2 transition-colors ${
+                isDarkMode
+                  ? 'text-gray-300'
+                  : 'text-gray-700'
+              }`}>¿Estás seguro de que deseas eliminar al usuario:</p>
+              <div className={`rounded-lg p-3 border transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 border-gray-600'
+                  : 'bg-gray-100 border-gray-300'
+              }`}>
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(deleteConfirmation.user?.person.fullName || "")}`}>
                     {deleteConfirmation.user?.person.fullName?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div className="font-medium text-sm text-white">{deleteConfirmation.user?.person.fullName}</div>
-                    <div className="text-xs text-gray-400">{deleteConfirmation.user?.email}</div>
+                    <div className={`font-medium text-sm transition-colors ${
+                      isDarkMode
+                        ? 'text-white'
+                        : 'text-gray-900'
+                    }`}>{deleteConfirmation.user?.person.fullName}</div>
+                    <div className={`text-xs transition-colors ${
+                      isDarkMode
+                        ? 'text-gray-400'
+                        : 'text-gray-500'
+                    }`}>{deleteConfirmation.user?.email}</div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="flex space-x-3">
-              <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white rounded-lg">
+              <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-800'
+              }`}>
                 Cancelar
               </button>
               <button onClick={deleteUser} disabled={deleteConfirmation.isDeleting} className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg">
@@ -352,6 +430,7 @@ interface TicketDeleteConfirmation {
 }
 
 export const AllTickets: React.FC = () => {
+  const { isDarkMode } = useTheme()
   const { search } = useSearch()
   const { selectedCompany } = useCompany()
   const { pageName } = usePageName()
@@ -479,8 +558,16 @@ export const AllTickets: React.FC = () => {
 
   if (!selectedCompany?.id) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white p-6 flex items-center justify-center">
-        <p className="text-xl text-gray-400">Selecciona una compañía para ver los tickets</p>
+      <div className={`min-h-screen p-6 flex items-center justify-center transition-colors ${
+        isDarkMode
+          ? 'bg-gray-900 text-white'
+          : 'bg-gray-100 text-gray-900'
+      }`}>
+        <p className={`text-xl transition-colors ${
+          isDarkMode
+            ? 'text-gray-400'
+            : 'text-gray-600'
+        }`}>Selecciona una compañía para ver los tickets</p>
       </div>
     )
   }
@@ -523,7 +610,11 @@ export const AllTickets: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-900 text-white">
+    <div className={`transition-colors ${
+      isDarkMode
+        ? 'bg-gray-900 text-white'
+        : 'bg-gray-100 text-gray-900'
+    }`}>
       <PagesHeader
         title={pageName}
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
@@ -533,17 +624,29 @@ export const AllTickets: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className={`rounded-lg p-6 border transition-colors ${
+          isDarkMode
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <span className="text-gray-400 text-sm">Total Tickets</span>
           <div className="text-3xl font-bold mb-1">{totalTickets}</div>
           <div className="text-sm text-gray-400">Registrados</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className={`rounded-lg p-6 border transition-colors ${
+          isDarkMode
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <span className="text-gray-400 text-sm">Pendientes</span>
           <div className="text-3xl font-bold mb-1">{pendientes}</div>
           <div className="text-sm text-gray-400">Requieren atención</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className={`rounded-lg p-6 border transition-colors ${
+          isDarkMode
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
           <span className="text-gray-400 text-sm">Completados</span>
           <div className="text-3xl font-bold mb-1">{completados}</div>
           <div className="text-sm text-gray-400">Finalizados</div>
@@ -552,12 +655,24 @@ export const AllTickets: React.FC = () => {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-800 p-1 rounded-lg w-fit">
+        <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${
+          isDarkMode
+            ? 'bg-gray-800'
+            : 'bg-gray-200'
+        }`}>
           {["Todos", "Pendientes", "Completados"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === tab ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white hover:bg-gray-700"}`}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === tab
+                  ? isDarkMode
+                    ? 'bg-gray-700 text-white'
+                    : 'bg-blue-600 text-white'
+                  : isDarkMode
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-300'
+              }`}
             >
               {tab}
             </button>
@@ -566,11 +681,19 @@ export const AllTickets: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-gray-400">
+        <div className={`p-8 text-center transition-colors ${
+          isDarkMode
+            ? 'text-gray-400'
+            : 'text-gray-600'
+        }`}>
           <p>Cargando tickets...</p>
         </div>
       ) : filteredTickets?.length === 0 ? (
-        <div className="p-8 text-center text-gray-400">
+        <div className={`p-8 text-center transition-colors ${
+          isDarkMode
+            ? 'text-gray-400'
+            : 'text-gray-600'
+        }`}>
           <p>No hay tickets disponibles</p>
         </div>
       ) : (
@@ -587,19 +710,43 @@ export const AllTickets: React.FC = () => {
       {/* Delete Modal */}
       {deleteConfirmation.show && deleteConfirmation.ticket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
+          <div className={`rounded-lg p-6 max-w-md w-full mx-4 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-white">Confirmar Eliminación</h3>
-              <button onClick={closeDeleteModal} disabled={deleteConfirmation.isDeleting} className="text-gray-400 hover:text-white">
+              <h3 className={`text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? 'text-white'
+                  : 'text-gray-900'
+              }`}>Confirmar Eliminación</h3>
+              <button onClick={closeDeleteModal} disabled={deleteConfirmation.isDeleting} className={`transition-colors ${
+                isDarkMode
+                  ? 'text-gray-400 hover:text-white'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}>
                 <X size={20} />
               </button>
             </div>
 
-            <p className="text-gray-300 mb-2">¿Estás seguro de eliminar el ticket?</p>
-            <p className="text-white font-semibold mb-6">{deleteConfirmation.ticket.title}</p>
+            <p className={`mb-2 transition-colors ${
+              isDarkMode
+                ? 'text-gray-300'
+                : 'text-gray-700'
+            }`}>¿Estás seguro de eliminar el ticket?</p>
+            <p className={`font-semibold mb-6 transition-colors ${
+              isDarkMode
+                ? 'text-white'
+                : 'text-gray-900'
+            }`}>{deleteConfirmation.ticket.title}</p>
 
             <div className="flex space-x-3">
-              <button onClick={closeDeleteModal} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white rounded-lg">
+              <button onClick={closeDeleteModal} disabled={deleteConfirmation.isDeleting} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-800'
+              }`}>
                 Cancelar
               </button>
               <button onClick={handleDeleteConfirm} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg">
@@ -620,11 +767,27 @@ export const AllTickets: React.FC = () => {
       {/* Create Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
-            <h3 className="text-lg font-medium text-white mb-4">Crear Nuevo Ticket</h3>
-            <p className="text-gray-400 text-sm">Modal de creación de tickets</p>
+          <div className={`rounded-lg p-6 max-w-md w-full mx-4 border transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}>
+            <h3 className={`text-lg font-medium mb-4 transition-colors ${
+              isDarkMode
+                ? 'text-white'
+                : 'text-gray-900'
+            }`}>Crear Nuevo Ticket</h3>
+            <p className={`text-sm transition-colors ${
+              isDarkMode
+                ? 'text-gray-400'
+                : 'text-gray-500'
+            }`}>Modal de creación de tickets</p>
             <div className="mt-6 flex gap-3">
-              <button onClick={() => setIsCreateModalOpen(false)} className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg">
+              <button onClick={() => setIsCreateModalOpen(false)} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+              }`}>
                 Cerrar
               </button>
             </div>

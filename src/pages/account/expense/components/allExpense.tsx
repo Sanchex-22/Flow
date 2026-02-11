@@ -6,6 +6,7 @@ import * as XLSX from "xlsx"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
+import { useTheme } from "../../../../context/themeContext" // Import useTheme
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -38,6 +39,7 @@ export default function AllExpensePage() {
   const { pageName } = usePageName()
   const { selectedCompany } = useCompany()
   const { search } = useSearch()
+  const { isDarkMode } = useTheme() // Use the theme context
 
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,7 +61,6 @@ export default function AllExpensePage() {
     () => expenses.reduce((a, e) => a + e.annualCost, 0),
     [expenses]
   )
-
 
   /** 🔍 FILTRO GLOBAL */
   const filteredExpenses = useMemo(() => {
@@ -126,7 +127,11 @@ export default function AllExpensePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 transition-colors ${
+      isDarkMode
+        ? 'bg-slate-900 text-gray-100'
+        : 'bg-gray-100 text-gray-900'
+    }`}>
       {/* Header */}
       <PagesHeader
         title={pageName}
@@ -136,48 +141,148 @@ export default function AllExpensePage() {
       />
 
       {/* Stats */}
-      <div className="bg-gray-800 rounded-xl p-4">
-        <p className="text-sm text-gray-400">Gasto Total Anual</p>
-        <p className="text-2xl font-semibold">${totalAnnualCost.toFixed(2)}</p>
+      <div className={`rounded-xl p-4 transition-colors ${
+        isDarkMode
+          ? 'bg-gray-800'
+          : 'bg-white shadow'
+      }`}>
+        <p className={`text-sm transition-colors ${
+          isDarkMode
+            ? 'text-gray-400'
+            : 'text-gray-500'
+        }`}>Gasto Total Anual</p>
+        <p className={`text-2xl font-semibold transition-colors ${
+          isDarkMode
+            ? 'text-white'
+            : 'text-gray-900'
+        }`}>${totalAnnualCost.toFixed(2)}</p>
       </div>
 
       {/* Table */}
-      <div className="bg-gray-800 rounded-xl p-4 overflow-x-auto">
+      <div className={`rounded-xl p-4 overflow-x-auto transition-colors ${
+        isDarkMode
+          ? 'bg-gray-800'
+          : 'bg-white shadow'
+      }`}>
         {loading ? (
-          <p className="text-gray-400">Cargando...</p>
+          <p className={`transition-colors ${
+            isDarkMode
+              ? 'text-gray-400'
+              : 'text-gray-600'
+          }`}>Cargando...</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-700">
-                <th className="text-left py-3 px-2 font-semibold text-gray-300">Aplicación</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-300">Proveedor</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-300">Categoría</th>
-                <th className="text-center py-3 px-2 font-semibold text-gray-300">Estado</th>
-                <th className="text-right py-3 px-2 font-semibold text-gray-300">Costo Anual</th>
-                <th className="text-center py-3 px-2 font-semibold text-gray-300">Usuarios</th>
-                <th className="text-right py-3 px-2 font-semibold text-gray-300">Costo/Usuario</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-300">Renovación</th>
-                <th className="text-left py-3 px-2 font-semibold text-gray-300">Frecuencia</th>
-                <th className="text-center py-3 px-2 font-semibold text-gray-300">Acciones</th>
+              <tr className={`border-b transition-colors ${
+                isDarkMode
+                  ? 'border-gray-700'
+                  : 'border-gray-200'
+              }`}>
+                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Aplicación</th>
+                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Proveedor</th>
+                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Categoría</th>
+                <th className={`text-center py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Estado</th>
+                <th className={`text-right py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Costo Anual</th>
+                <th className={`text-center py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Usuarios</th>
+                <th className={`text-right py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Costo/Usuario</th>
+                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Renovación</th>
+                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Frecuencia</th>
+                <th className={`text-center py-3 px-2 font-semibold transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-300'
+                    : 'text-gray-700'
+                }`}>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredExpenses.map((e) => (
-                <tr key={e.id} className="border-b border-gray-700 hover:bg-gray-700 transition">
-                  <td className="py-3 px-2 text-gray-100">{e.applicationName}</td>
-                  <td className="py-3 px-2 text-gray-400">{e.provider}</td>
-                  <td className="py-3 px-2 text-gray-400">{e.category}</td>
+                <tr key={e.id} className={`border-b transition-colors ${
+                  isDarkMode
+                    ? 'border-gray-700 hover:bg-gray-700'
+                    : 'border-gray-200 hover:bg-gray-50'
+                }`}>
+                  <td className={`py-3 px-2 transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-100'
+                      : 'text-gray-800'
+                  }`}>{e.applicationName}</td>
+                  <td className={`py-3 px-2 transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }`}>{e.provider}</td>
+                  <td className={`py-3 px-2 transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }`}>{e.category}</td>
                   <td className="py-3 px-2 text-center">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === 'Active' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
                       }`}>
                       {e.status}
                     </span>
                   </td>
-                  <td className="py-3 px-2 text-right text-gray-100 font-medium">${e.annualCost.toFixed(2)}</td>
-                  <td className="py-3 px-2 text-center text-gray-400">{e.numberOfUsers}</td>
-                  <td className="py-3 px-2 text-right text-gray-400">${e.costPerUser.toFixed(2)}</td>
-                  <td className="py-3 px-2 text-gray-400 text-sm">{new Date(e.renewalDate).toLocaleDateString('es-ES')}</td>
-                  <td className="py-3 px-2 text-gray-400 text-sm">{e.paymentFrequency}</td>
+                  <td className={`py-3 px-2 text-right font-medium transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-100'
+                      : 'text-gray-800'
+                  }`}>${e.annualCost.toFixed(2)}</td>
+                  <td className={`py-3 px-2 text-center transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }`}>{e.numberOfUsers}</td>
+                  <td className={`py-3 px-2 text-right transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }`}>${e.costPerUser.toFixed(2)}</td>
+                  <td className={`py-3 px-2 text-sm transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }`}>{new Date(e.renewalDate).toLocaleDateString('es-ES')}</td>
+                  <td className={`py-3 px-2 text-sm transition-colors ${
+                    isDarkMode
+                      ? 'text-gray-400'
+                      : 'text-gray-600'
+                  }`}>{e.paymentFrequency}</td>
                   <td className="py-3 px-2 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
@@ -213,15 +318,35 @@ export default function AllExpensePage() {
       {/* Delete Modal */}
       {deleteModal.open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-sm">
-            <h2 className="text-xl font-semibold text-white mb-2">Confirmar eliminación</h2>
-            <p className="text-gray-400 mb-6">
-              ¿Está seguro de que desea eliminar <span className="font-semibold text-white">{deleteModal.name}</span>? Esta acción no se puede deshacer.
+          <div className={`rounded-xl p-6 max-w-sm transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800'
+              : 'bg-white shadow'
+          }`}>
+            <h2 className={`text-xl font-semibold mb-2 transition-colors ${
+              isDarkMode
+                ? 'text-white'
+                : 'text-gray-900'
+            }`}>Confirmar eliminación</h2>
+            <p className={`mb-6 transition-colors ${
+              isDarkMode
+                ? 'text-gray-400'
+                : 'text-gray-700'
+            }`}>
+              ¿Está seguro de que desea eliminar <span className={`font-semibold transition-colors ${
+                isDarkMode
+                  ? 'text-white'
+                  : 'text-gray-900'
+              }`}>{deleteModal.name}</span>? Esta acción no se puede deshacer.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteModal({ open: false, id: null, name: "" })}
-                className="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 transition"
+                className={`px-4 py-2 border rounded-lg hover:bg-gray-700 transition ${
+                  isDarkMode
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                }`}
                 disabled={isDeleting}
               >
                 Cancelar
