@@ -36,8 +36,6 @@ import ExpensePage from "../pages/account/expense/page";
 import AllExpensePage from "../pages/account/expense/components/allExpense";
 import ReportsPage from "../pages/account/reports/page";
 import AllReportsPage from "../pages/account/reports/components/allReportPage";
-import SettingsPage from "../pages/account/settings/page";
-import AllSettingsPage from "../pages/account/settings/components/allSettingsPage";
 import DashboardPage from "../pages/account/dashboard/page";
 import AllDashboard from "../pages/account/dashboard/components/allDashboard";
 import InventoryPage from "../pages/account/inventory/page";
@@ -46,6 +44,9 @@ import UpdateExpensePage from "../pages/account/expense/components/updateExpense
 import { AllUsers } from "../pages/account/users/components/AllUsers";
 import { AllTickets } from "../pages/account/tickets/components/AllTickets";
 import UpdateCompany from "../pages/account/settings/components/updateCompany";
+import SettingsPage from "../pages/account/settings/page";
+import AllSettingsPage from "../pages/account/settings/components/allSettingsPage";
+import { UpdateDepartment } from "../pages/account/settings/components/updateDepartment";
 
 // Tipado de usuario
 export interface User {
@@ -502,9 +503,11 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<AllSettingsPage/>} />
-        <Route path="create" element={<UpdateCompany/>} />
-        <Route path="edit/:id" element={<UpdateCompany/>} />
+        <Route path="all" element={<AllSettingsPage />} />
+        <Route path="create" element={<UpdateCompany />} />
+        <Route path="edit/:id" element={<UpdateCompany />} />
+        <Route path="departments/edit" element={<UpdateDepartment />} />
+        <Route path="departments/create" element={<UpdateDepartment />} />
       </Route>
 
       <Route
