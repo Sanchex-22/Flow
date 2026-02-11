@@ -43,9 +43,9 @@ import AllDashboard from "../pages/account/dashboard/components/allDashboard";
 import InventoryPage from "../pages/account/inventory/page";
 import AllInventory from "../pages/account/inventory/components/allInventory";
 import UpdateExpensePage from "../pages/account/expense/components/updateExpense";
-import UpdateCompany from "../pages/account/settings/components/updateCompany";
 import { AllUsers } from "../pages/account/users/components/AllUsers";
 import { AllTickets } from "../pages/account/tickets/components/AllTickets";
+import UpdateCompany from "../pages/account/settings/components/updateCompany";
 
 // Tipado de usuario
 export interface User {

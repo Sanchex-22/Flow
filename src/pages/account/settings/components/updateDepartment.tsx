@@ -52,7 +52,6 @@ export function UpdateDepartment() {
         if (!res.ok) throw new Error("Error al cargar el departamento")
 
         const data = await res.json()
-
         setFormData({
           name: data.name,
           description: data.description || "",
@@ -119,7 +118,6 @@ export function UpdateDepartment() {
       setLoading(false)
     }
   }
-
   if (loading) return <Loader />
 
   return (
