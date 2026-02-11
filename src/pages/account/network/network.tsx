@@ -16,7 +16,7 @@ const NetworkPage: React.FC<SubRoutesProps> = () => {
   const { isDarkMode } = useTheme();
 
   return (
-    <div className={`px-6 py-4 transition-colors ${
+    <div className={`min-h-screen px-6 py-4 transition-colors ${
       isDarkMode
         ? 'bg-slate-900 text-gray-100'
         : 'bg-gray-100 text-gray-900'
