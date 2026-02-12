@@ -140,7 +140,7 @@ export default function UpdateExpensePage() {
 
       // redirige luego de crear
       setTimeout(() => {
-        navigate(`/${selectedCompany?.code}/devices/all`)
+        navigate(`/${selectedCompany?.code}/expenses/all`)
       }, 1200)
     } catch (err: any) {
       setError(err.message)
@@ -153,7 +153,7 @@ export default function UpdateExpensePage() {
     <div className={`min-h-screen transition-colors ${
       isDarkMode
         ? 'bg-gray-950 text-white'
-        : 'bg-white text-gray-900'
+        : 'bg-white-100 text-gray-900'
     }`}>
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
@@ -200,31 +200,36 @@ export default function UpdateExpensePage() {
           }`}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              placeholder="Nombre de la aplicación"
-              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
-                isDarkMode
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
-              }`}
-              value={form.applicationName}
-              onChange={(e) =>
-                setForm({ ...form, applicationName: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="Proveedor"
-              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
-                isDarkMode
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
-              }`}
-              value={form.provider}
-              onChange={(e) =>
-                setForm({ ...form, provider: e.target.value })
-              }
-            />
+            <div className="flex flex-col">
+              <label htmlFor="Nombre de la aplicación">Nombre de la aplicación</label>
+              <input
+                placeholder="Nombre de la aplicación"
+                className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+                }`}
+                value={form.applicationName}
+                onChange={(e) =>
+                  setForm({ ...form, applicationName: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="Proveedor">Proveedor</label>
+              <input
+                placeholder="Proveedor"
+                className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+                }`}
+                value={form.provider}
+                onChange={(e) =>
+                  setForm({ ...form, provider: e.target.value })
+                }
+              />
+            </div>
 
             <select
               className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
@@ -265,57 +270,65 @@ export default function UpdateExpensePage() {
                 </option>
               ))}
             </select>
-
-            <input
-              type="number"
-              placeholder="Costo anual"
-              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
-                isDarkMode
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
-              }`}
-              value={form.annualCost}
-              onChange={(e) =>
-                setForm({ ...form, annualCost: Number(e.target.value) })
-              }
-            />
-
-            <input
-              type="number"
-              placeholder="Número de usuarios"
-              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
-                isDarkMode
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
-              }`}
-              value={form.numberOfUsers}
-              onChange={(e) =>
-                setForm({ ...form, numberOfUsers: Number(e.target.value) })
-              }
-            />
-
-            <input
-              readOnly
-              className={`rounded-lg p-3 border transition-colors ${
-                isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-gray-200 border-gray-400 text-gray-900'
-              }`}
-              value={`$ ${form.costPerUser.toFixed(2)}`}
-            />
-
-            <input
-              type="date"
-              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
-                isDarkMode
-                  ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
-                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
-              }`}
-              value={form.renewalDate}
-              onChange={(e) =>
-                setForm({ ...form, renewalDate: e.target.value })
-              }
-            />
+            <div className="flex flex-col">
+              <label htmlFor="Costo Annual">Costo Anual</label>
+              <input
+                type="number"
+                placeholder="Costo anual"
+                className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+                }`}
+                value={form.annualCost}
+                onChange={(e) =>
+                  setForm({ ...form, annualCost: Number(e.target.value) })
+                }
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="Número de usuarios">Número de usuarios</label>
+              <input
+                type="number"
+                placeholder="Número de usuarios"
+                className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+                }`}
+                value={form.numberOfUsers}
+                onChange={(e) =>
+                  setForm({ ...form, numberOfUsers: Number(e.target.value) })
+                }
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="Costo por usuario">Costo por usuario</label>
+              <input
+                readOnly
+                className={`rounded-lg p-3 border transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-gray-200 border-gray-400 text-gray-900'
+                }`}
+                value={`$ ${form.costPerUser.toFixed(2)}`}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="Fecha de Rnovacion">Fecha de Rnovacion</label>
+              <input
+                type="date"
+                className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                    : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
+                }`}
+                value={form.renewalDate}
+                onChange={(e) =>
+                  setForm({ ...form, renewalDate: e.target.value })
+                }
+              />
+            </div>
 
             <select
               className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${

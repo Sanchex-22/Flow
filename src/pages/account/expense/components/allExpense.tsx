@@ -190,7 +190,7 @@ export default function AllExpensePage() {
     >
       {/* Header */}
       <PagesHeader
-        title={pageName}
+        title={"Gastos Anuales de Software"}
         description={
           pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."
         }
