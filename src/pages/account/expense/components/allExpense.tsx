@@ -1,16 +1,26 @@
+"use client"
+
 import { useEffect, useMemo, useState } from "react"
-import { Eye, Trash2, Edit } from "lucide-react"
+import { Download, Filter } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useCompany } from "../../../../context/routerContext"
 import * as XLSX from "xlsx"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
-import { useTheme } from "../../../../context/themeContext" // Import useTheme
+import { useTheme } from "../../../../context/themeContext"
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL as string
 
-export interface AnnualSoftwareExpense {
+interface AssignedUser {
+  id: string
+  name: string
+  lastName: string
+  email?: string
+  department?: string
+}
+
+interface AnnualSoftwareExpense {
   id: string
   applicationName: string
   provider: string
@@ -22,16 +32,8 @@ export interface AnnualSoftwareExpense {
   renewalDate: string
   paymentFrequency: string
   additionalNotes?: string | null
-  assignedUsers?: string | string[] | null
+  assignedUsers?: AssignedUser[]
   createdAt: string
-}
-
-/** 🔑 Helper seguro */
-const normalizeToString = (value: unknown): string => {
-  if (!value) return ""
-  if (Array.isArray(value)) return value.join(" ")
-  if (typeof value === "string") return value
-  return String(value)
 }
 
 export default function AllExpensePage() {
@@ -39,329 +41,379 @@ export default function AllExpensePage() {
   const { pageName } = usePageName()
   const { selectedCompany } = useCompany()
   const { search } = useSearch()
-  const { isDarkMode } = useTheme() // Use the theme context
+  const { isDarkMode } = useTheme()
 
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
-  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({
-    open: false,
-    id: null,
-    name: ""
-  })
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [allUsers, setAllUsers] = useState<
+    Set<string>
+  >(new Set())
 
   useEffect(() => {
     fetch(`${API_URL}/api/annual-software-expense/getAll`)
       .then((r) => r.json())
-      .then(setExpenses)
+      .then((data: AnnualSoftwareExpense[]) => {
+        setExpenses(data)
+
+        // Extraer todos los usuarios únicos
+        const usersSet = new Set<string>()
+        data.forEach((expense) => {
+          if (expense.assignedUsers && Array.isArray(expense.assignedUsers)) {
+            expense.assignedUsers.forEach((user) => {
+              usersSet.add(`${user.name} ${user.lastName}`)
+            })
+          }
+        })
+        setAllUsers(usersSet)
+      })
       .finally(() => setLoading(false))
   }, [])
 
-  const totalAnnualCost = useMemo(
-    () => expenses.reduce((a, e) => a + e.annualCost, 0),
-    [expenses]
-  )
+  // Crear tabla tipo Excel
+  const tableData = useMemo(() => {
+    const usersArray = Array.from(allUsers).sort()
+    const applicationsArray = expenses.map((e) => e.applicationName).sort()
 
-  /** 🔍 FILTRO GLOBAL */
-  const filteredExpenses = useMemo(() => {
-    if (!search.trim()) return expenses
+    // Crear objeto con datos
+    const data: Record<string, Record<string, number>> = {}
 
-    const term = search.toLowerCase()
+    usersArray.forEach((userName) => {
+      data[userName] = {}
+      applicationsArray.forEach((app) => {
+        data[userName][app] = 0
+      })
 
-    return expenses.filter((e) =>
-      e.applicationName.toLowerCase().includes(term) ||
-      e.provider.toLowerCase().includes(term) ||
-      e.category.toLowerCase().includes(term) ||
-      e.status.toLowerCase().includes(term) ||
-      e.paymentFrequency.toLowerCase().includes(term) ||
-      normalizeToString(e.assignedUsers).toLowerCase().includes(term) ||
-      normalizeToString(e.additionalNotes).toLowerCase().includes(term) ||
-      e.annualCost.toString().includes(term) ||
-      e.numberOfUsers.toString().includes(term) ||
-      e.costPerUser.toString().includes(term)
-    )
-  }, [expenses, search])
+      // Llenar con costos
+      expenses.forEach((expense) => {
+        if (
+          expense.assignedUsers &&
+          Array.isArray(expense.assignedUsers)
+        ) {
+          const userInExpense = expense.assignedUsers.find(
+            (u) => `${u.name} ${u.lastName}` === userName
+          )
+          if (userInExpense) {
+            data[userName][expense.applicationName] = expense.costPerUser
+          }
+        }
+      })
+    })
+
+    return { users: usersArray, applications: applicationsArray, data }
+  }, [expenses, allUsers])
 
   const handleExportExcel = () => {
-    const dataToExport = expenses.map((e) => ({
-      Aplicación: e.applicationName,
-      Proveedor: e.provider,
-      Categoría: e.category,
-      Estado: e.status,
-      "Costo Anual": e.annualCost,
-      "Número de Usuarios": e.numberOfUsers,
-      "Costo por Usuario": e.costPerUser,
-      "Fecha de Renovación": new Date(e.renewalDate).toLocaleDateString("es-ES"),
-      "Frecuencia de Pago": e.paymentFrequency,
-      "Usuarios Asignados": normalizeToString(e.assignedUsers) || "-",
-      Notas: e.additionalNotes || "-"
-    }))
+    const wsData: Record<string, unknown>[] = []
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport)
-    ws["!cols"] = [25, 15, 15, 12, 15, 18, 18, 18, 18, 20, 30].map((w) => ({ wch: w }))
+    // Header row
+    const headerRow: Record<string, unknown> = {
+      Empleado: "Empleado",
+      Departamento: "Departamento"
+    }
+    tableData.applications.forEach((app) => {
+      headerRow[app] = app
+    })
+    headerRow.Total = "Total"
+
+    wsData.push(headerRow)
+
+    // Data rows
+    tableData.users.forEach((user) => {
+      const row: Record<string, unknown> = {
+        Empleado: user,
+        Departamento: "" // Puedes extraer esto del usuario si lo tienes
+      }
+
+      let total = 0
+      tableData.applications.forEach((app) => {
+        const cost = tableData.data[user][app]
+        row[app] = cost === 0 ? "-" : cost.toFixed(2)
+        total += cost
+      })
+      row.Total = total.toFixed(2)
+
+      wsData.push(row)
+    })
+
+    // Totales por aplicación
+    const totalsRow: Record<string, unknown> = {
+      Empleado: "TOTAL",
+      Departamento: ""
+    }
+    let grandTotal = 0
+    tableData.applications.forEach((app) => {
+      let appTotal = 0
+      tableData.users.forEach((user) => {
+        appTotal += tableData.data[user][app]
+      })
+      totalsRow[app] = appTotal.toFixed(2)
+      grandTotal += appTotal
+    })
+    totalsRow.Total = grandTotal.toFixed(2)
+    wsData.push(totalsRow)
+
+    // Crear sheet
+    const ws = XLSX.utils.json_to_sheet(wsData)
+    ws["!cols"] = [25, 25, ...Array(tableData.applications.length).fill(15), 15].map(
+      (w) => ({ wch: w })
+    )
 
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, "Gastos")
-    XLSX.writeFile(wb, `gastos_${new Date().toISOString().split("T")[0]}.xlsx`)
+    XLSX.utils.book_append_sheet(wb, ws, "Costos Usuario")
+    XLSX.writeFile(
+      wb,
+      `costos_usuario_${new Date().toISOString().split("T")[0]}.xlsx`
+    )
   }
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setDeleteModal({ open: true, id, name })
-  }
-
-  const handleConfirmDelete = async () => {
-    if (!deleteModal.id) return
-    setIsDeleting(true)
-
-    try {
-      const res = await fetch(`${API_URL}/api/annual-software-expense/delete/${deleteModal.id}`, {
-        method: "DELETE"
-      })
-      if (res.ok) {
-        setExpenses((prev) => prev.filter((e) => e.id !== deleteModal.id))
-        setDeleteModal({ open: false, id: null, name: "" })
-      }
-    } finally {
-      setIsDeleting(false)
-    }
+  if (loading) {
+    return (
+      <div
+        className={`min-h-screen flex items-center justify-center transition-colors ${
+          isDarkMode
+            ? "bg-gray-950 text-gray-100"
+            : "bg-gray-50 text-gray-900"
+        }`}
+      >
+        <p>Cargando...</p>
+      </div>
+    )
   }
 
   return (
-    <div className={`space-y-6 transition-colors ${
-      isDarkMode
-        ? 'bg-slate-900 text-gray-100'
-        : 'bg-gray-100 text-gray-900'
-    }`}>
+    <div
+      className={`min-h-screen space-y-6 transition-colors ${
+        isDarkMode
+          ? "bg-gray-950 text-gray-100"
+          : "bg-gray-100 text-gray-900"
+      }`}
+    >
       {/* Header */}
       <PagesHeader
         title={pageName}
-        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+        description={
+          pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."
+        }
         showCreate
         onExport={handleExportExcel}
       />
 
-      {/* Stats */}
-      <div className={`rounded-xl p-4 transition-colors ${
-        isDarkMode
-          ? 'bg-gray-800'
-          : 'bg-white shadow'
-      }`}>
-        <p className={`text-sm transition-colors ${
-          isDarkMode
-            ? 'text-gray-400'
-            : 'text-gray-500'
-        }`}>Gasto Total Anual</p>
-        <p className={`text-2xl font-semibold transition-colors ${
-          isDarkMode
-            ? 'text-white'
-            : 'text-gray-900'
-        }`}>${totalAnnualCost.toFixed(2)}</p>
-      </div>
-
       {/* Table */}
-      <div className={`rounded-xl p-4 overflow-x-auto transition-colors ${
-        isDarkMode
-          ? 'bg-gray-800'
-          : 'bg-white shadow'
-      }`}>
-        {loading ? (
-          <p className={`transition-colors ${
-            isDarkMode
-              ? 'text-gray-400'
-              : 'text-gray-600'
-          }`}>Cargando...</p>
-        ) : (
+      <div
+        className={`rounded-xl overflow-hidden border transition-colors ${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200 shadow"
+        }`}
+      >
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className={`border-b transition-colors ${
-                isDarkMode
-                  ? 'border-gray-700'
-                  : 'border-gray-200'
-              }`}>
-                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
+              <tr
+                className={`transition-colors ${
                   isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Aplicación</th>
-                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Proveedor</th>
-                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Categoría</th>
-                <th className={`text-center py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Estado</th>
-                <th className={`text-right py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Costo Anual</th>
-                <th className={`text-center py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Usuarios</th>
-                <th className={`text-right py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Costo/Usuario</th>
-                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Renovación</th>
-                <th className={`text-left py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Frecuencia</th>
-                <th className={`text-center py-3 px-2 font-semibold transition-colors ${
-                  isDarkMode
-                    ? 'text-gray-300'
-                    : 'text-gray-700'
-                }`}>Acciones</th>
+                    ? "bg-blue-900 border-b border-gray-700"
+                    : "bg-blue-100 border-b border-gray-300"
+                }`}
+              >
+                <th
+                  className={`text-left py-3 px-4 font-bold transition-colors ${
+                    isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  Empleado
+                </th>
+                <th
+                  className={`text-left py-3 px-4 font-bold transition-colors ${
+                    isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  Departamento
+                </th>
+                {tableData.applications.map((app) => {
+                  // Encontrar el gasto correspondiente a esta aplicación
+                  const expense = expenses.find((e) => e.applicationName === app)
+                  return (
+                    <th
+                      key={app}
+                      className={`text-center py-3 px-2 font-bold transition-colors ${
+                        isDarkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="text-xs break-words">{app}</div>
+                        {expense && (
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/${selectedCompany?.code}/expenses/edit/${expense.id}`
+                              )
+                            }
+                            className={`text-xs px-2 py-1 rounded transition-colors ${
+                              isDarkMode
+                                ? "bg-orange-600 hover:bg-orange-700 text-white"
+                                : "bg-orange-500 hover:bg-orange-600 text-white"
+                            }`}
+                            title="Editar aplicación"
+                          >
+                            ✎ Editar
+                          </button>
+                        )}
+                      </div>
+                    </th>
+                  )
+                })}
+                <th
+                  className={`text-right py-3 px-4 font-bold transition-colors ${
+                    isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  Total
+                </th>
               </tr>
             </thead>
             <tbody>
-              {filteredExpenses.map((e) => (
-                <tr key={e.id} className={`border-b transition-colors ${
+              {tableData.users.map((user, userIdx) => {
+                const userTotal = tableData.applications.reduce(
+                  (sum, app) => sum + tableData.data[user][app],
+                  0
+                )
+                return (
+                  <tr
+                    key={user}
+                    className={`border-b transition-colors ${
+                      isDarkMode
+                        ? `border-gray-700 ${
+                            userIdx % 2 === 0
+                              ? "bg-gray-800 hover:bg-gray-700"
+                              : "bg-gray-800/50 hover:bg-gray-700"
+                          }`
+                        : `border-gray-200 ${
+                            userIdx % 2 === 0
+                              ? "bg-gray-50 hover:bg-gray-100"
+                              : "bg-white hover:bg-gray-50"
+                          }`
+                    }`}
+                  >
+                    <td
+                      className={`py-3 px-4 font-semibold transition-colors ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      {user}
+                    </td>
+                    <td
+                      className={`py-3 px-4 transition-colors ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      -
+                    </td>
+                    {tableData.applications.map((app) => {
+                      const cost = tableData.data[user][app]
+                      return (
+                        <td
+                          key={`${user}-${app}`}
+                          className={`py-3 px-3 text-center text-xs transition-colors ${
+                            cost > 0
+                              ? isDarkMode
+                                ? "text-green-400 font-medium"
+                                : "text-green-700 font-medium"
+                              : isDarkMode
+                              ? "text-gray-500"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {cost > 0 ? cost.toFixed(2) : "-"}
+                        </td>
+                      )
+                    })}
+                    <td
+                      className={`py-3 px-4 text-right font-bold transition-colors ${
+                        isDarkMode ? "text-blue-400" : "text-blue-600"
+                      }`}
+                    >
+                      ${userTotal.toFixed(2)}
+                    </td>
+                  </tr>
+                )
+              })}
+
+              {/* Total Row */}
+              <tr
+                className={`font-bold transition-colors ${
                   isDarkMode
-                    ? 'border-gray-700 hover:bg-gray-700'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <td className={`py-3 px-2 transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-100'
-                      : 'text-gray-800'
-                  }`}>{e.applicationName}</td>
-                  <td className={`py-3 px-2 transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                  }`}>{e.provider}</td>
-                  <td className={`py-3 px-2 transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                  }`}>{e.category}</td>
-                  <td className="py-3 px-2 text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${e.status === 'Active' ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
-                      }`}>
-                      {e.status}
-                    </span>
-                  </td>
-                  <td className={`py-3 px-2 text-right font-medium transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-100'
-                      : 'text-gray-800'
-                  }`}>${e.annualCost.toFixed(2)}</td>
-                  <td className={`py-3 px-2 text-center transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                  }`}>{e.numberOfUsers}</td>
-                  <td className={`py-3 px-2 text-right transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                  }`}>${e.costPerUser.toFixed(2)}</td>
-                  <td className={`py-3 px-2 text-sm transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                  }`}>{new Date(e.renewalDate).toLocaleDateString('es-ES')}</td>
-                  <td className={`py-3 px-2 text-sm transition-colors ${
-                    isDarkMode
-                      ? 'text-gray-400'
-                      : 'text-gray-600'
-                  }`}>{e.paymentFrequency}</td>
-                  <td className="py-3 px-2 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => navigate(`/${selectedCompany?.code}/expenses/edit/${e.id}`)}
-                        className="flex items-center gap-1 px-3 py-1 border border-blue-600 text-blue-400 rounded-lg hover:bg-blue-600 hover:text-white transition"
-                        title="Ver Reporte"
-                      >
-                        <Eye size={14} />
-                      </button>
-                      <button
-                        onClick={() => navigate(`/${selectedCompany?.code}/expenses/edit/${e.id}`)}
-                        className="flex items-center gap-1 px-3 py-1 border border-orange-600 text-orange-400 rounded-lg hover:bg-orange-600 hover:text-white transition"
-                        title="Editar Reporte"
-                      >
-                        <Edit size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(e.id, e.applicationName)}
-                        className="flex items-center gap-1 px-3 py-1 border border-red-600 text-red-400 rounded-lg hover:bg-red-600 hover:text-white transition"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    ? "bg-gray-700 border-t-2 border-gray-600"
+                    : "bg-gray-100 border-t-2 border-gray-300"
+                }`}
+              >
+                <td
+                  className={`py-4 px-4 transition-colors ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  TOTAL
+                </td>
+                <td
+                  className={`py-4 px-4 transition-colors ${
+                    isDarkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  -
+                </td>
+                {tableData.applications.map((app) => {
+                  const appTotal = tableData.users.reduce(
+                    (sum, user) => sum + tableData.data[user][app],
+                    0
+                  )
+                  return (
+                    <td
+                      key={`total-${app}`}
+                      className={`py-4 px-3 text-center transition-colors ${
+                        isDarkMode ? "text-green-400" : "text-green-700"
+                      }`}
+                    >
+                      {appTotal.toFixed(2)}
+                    </td>
+                  )
+                })}
+                <td
+                  className={`py-4 px-4 text-right transition-colors ${
+                    isDarkMode ? "text-green-400" : "text-green-700"
+                  }`}
+                >
+                  $
+                  {tableData.users
+                    .reduce((total, user) => {
+                      return (
+                        total +
+                        tableData.applications.reduce(
+                          (sum, app) => sum + tableData.data[user][app],
+                          0
+                        )
+                      )
+                    }, 0)
+                    .toFixed(2)}
+                </td>
+              </tr>
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
-      {/* Delete Modal */}
-      {deleteModal.open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`rounded-xl p-6 max-w-sm transition-colors ${
-            isDarkMode
-              ? 'bg-gray-800'
-              : 'bg-white shadow'
-          }`}>
-            <h2 className={`text-xl font-semibold mb-2 transition-colors ${
-              isDarkMode
-                ? 'text-white'
-                : 'text-gray-900'
-            }`}>Confirmar eliminación</h2>
-            <p className={`mb-6 transition-colors ${
-              isDarkMode
-                ? 'text-gray-400'
-                : 'text-gray-700'
-            }`}>
-              ¿Está seguro de que desea eliminar <span className={`font-semibold transition-colors ${
-                isDarkMode
-                  ? 'text-white'
-                  : 'text-gray-900'
-              }`}>{deleteModal.name}</span>? Esta acción no se puede deshacer.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setDeleteModal({ open: false, id: null, name: "" })}
-                className={`px-4 py-2 border rounded-lg hover:bg-gray-700 transition ${
-                  isDarkMode
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                }`}
-                disabled={isDeleting}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition disabled:opacity-50"
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Eliminando..." : "Eliminar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Help text */}
+      <div
+        className={`rounded-lg p-4 text-sm transition-colors ${
+          isDarkMode
+            ? "bg-gray-800 border border-gray-700 text-gray-400"
+            : "bg-gray-100 border border-gray-300 text-gray-600"
+        }`}
+      >
+        <p>
+          💡 La tabla muestra el costo por usuario para cada aplicación. Los
+          valores "-" indican que el usuario no tiene asignada esa aplicación.
+        </p>
+      </div>
     </div>
   )
 }

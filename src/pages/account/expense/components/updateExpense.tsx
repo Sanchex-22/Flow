@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTheme } from "../../../../context/themeContext"
 import { useCompany } from "../../../../context/routerContext"
+import { useState, useEffect } from "react"
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -69,8 +70,10 @@ export const SoftwareCategoryLabels: Record<SoftwareCategory, string> = {
 // Page Component
 // ================================
 export default function UpdateExpensePage() {
+  const { isDarkMode } = useTheme()
   const navigate = useNavigate()
   const { selectedCompany } = useCompany()
+
   const [form, setForm] = useState({
     applicationName: "",
     provider: "",
@@ -133,7 +136,6 @@ export default function UpdateExpensePage() {
         throw new Error(data?.error || "Error al crear el gasto.")
       }
 
-
       setSuccess("Gasto creado correctamente ✅")
 
       // redirige luego de crear
@@ -148,35 +150,63 @@ export default function UpdateExpensePage() {
   }
 
   return (
-    <div className="h-full text-white">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className={`min-h-screen transition-colors ${
+      isDarkMode
+        ? 'bg-gray-950 text-white'
+        : 'bg-white text-gray-900'
+    }`}>
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-semibold">Agregar Nuevo Gasto</h1>
-          <p className="text-sm text-gray-400">
+          <h1 className="text-3xl font-bold">Agregar Nuevo Gasto</h1>
+          <p className={`text-sm mt-2 transition-colors ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
             Registra una suscripción o aplicación empresarial
           </p>
         </div>
 
         {/* Alerts */}
         {error && (
-          <div className="bg-red-900/40 border border-red-700 text-red-300 px-4 py-2 rounded-lg text-sm">
+          <div
+            className={`border rounded-lg px-4 py-3 text-sm transition-colors ${
+              isDarkMode
+                ? "bg-red-900/40 border-red-700 text-red-300"
+                : "bg-red-50 border-red-300 text-red-800"
+            }`}
+          >
             ❌ {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-900/40 border border-green-700 text-green-300 px-4 py-2 rounded-lg text-sm">
+          <div
+            className={`border rounded-lg px-4 py-3 text-sm transition-colors ${
+              isDarkMode
+                ? "bg-green-900/40 border-green-700 text-green-300"
+                : "bg-green-50 border-green-300 text-green-800"
+            }`}
+          >
             ✅ {success}
           </div>
         )}
 
         {/* Form */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
+        <div
+          className={`border rounded-2xl p-6 space-y-5 transition-colors ${
+            isDarkMode
+              ? 'bg-gray-900 border-gray-800'
+              : 'bg-gray-50 border-gray-200'
+          }`}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               placeholder="Nombre de la aplicación"
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+              }`}
               value={form.applicationName}
               onChange={(e) =>
                 setForm({ ...form, applicationName: e.target.value })
@@ -185,7 +215,11 @@ export default function UpdateExpensePage() {
 
             <input
               placeholder="Proveedor"
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+              }`}
               value={form.provider}
               onChange={(e) =>
                 setForm({ ...form, provider: e.target.value })
@@ -193,7 +227,11 @@ export default function UpdateExpensePage() {
             />
 
             <select
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
+              }`}
               value={form.category}
               onChange={(e) =>
                 setForm({
@@ -211,7 +249,11 @@ export default function UpdateExpensePage() {
             </select>
 
             <select
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
+              }`}
               value={form.status}
               onChange={(e) =>
                 setForm({ ...form, status: e.target.value as ExpenseStatus })
@@ -227,7 +269,11 @@ export default function UpdateExpensePage() {
             <input
               type="number"
               placeholder="Costo anual"
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+              }`}
               value={form.annualCost}
               onChange={(e) =>
                 setForm({ ...form, annualCost: Number(e.target.value) })
@@ -236,8 +282,12 @@ export default function UpdateExpensePage() {
 
             <input
               type="number"
-              placeholder="Usuarios"
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              placeholder="Número de usuarios"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+              }`}
               value={form.numberOfUsers}
               onChange={(e) =>
                 setForm({ ...form, numberOfUsers: Number(e.target.value) })
@@ -246,13 +296,21 @@ export default function UpdateExpensePage() {
 
             <input
               readOnly
-              className="rounded-lg p-2 bg-gray-700 border border-gray-600"
-              value={`$ ${form.costPerUser}`}
+              className={`rounded-lg p-3 border transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-700 border-gray-600 text-white'
+                  : 'bg-gray-200 border-gray-400 text-gray-900'
+              }`}
+              value={`$ ${form.costPerUser.toFixed(2)}`}
             />
 
             <input
               type="date"
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
+              }`}
               value={form.renewalDate}
               onChange={(e) =>
                 setForm({ ...form, renewalDate: e.target.value })
@@ -260,7 +318,11 @@ export default function UpdateExpensePage() {
             />
 
             <select
-              className="rounded-lg p-2 bg-gray-800 border border-gray-700"
+              className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
+              }`}
               value={form.paymentFrequency}
               onChange={(e) =>
                 setForm({
@@ -280,7 +342,11 @@ export default function UpdateExpensePage() {
           <textarea
             rows={3}
             placeholder="Notas adicionales"
-            className="w-full rounded-lg p-2 bg-gray-800 border border-gray-700"
+            className={`w-full rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
+            }`}
             value={form.additionalNotes}
             onChange={(e) =>
               setForm({ ...form, additionalNotes: e.target.value })
@@ -288,10 +354,14 @@ export default function UpdateExpensePage() {
           />
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex justify-end gap-3 pt-6">
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 border border-gray-700 rounded-lg"
+              className={`px-6 py-2.5 border rounded-lg font-medium transition-colors ${
+                isDarkMode
+                  ? 'border-gray-700 text-white hover:bg-gray-800'
+                  : 'border-gray-300 text-gray-900 hover:bg-gray-100'
+              }`}
             >
               Cancelar
             </button>
@@ -299,7 +369,11 @@ export default function UpdateExpensePage() {
             <button
               onClick={submit}
               disabled={loading}
-              className="px-4 py-2 bg-white text-black rounded-lg disabled:opacity-50"
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
+                isDarkMode
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
             >
               {loading ? "Guardando..." : "Agregar Gasto"}
             </button>
