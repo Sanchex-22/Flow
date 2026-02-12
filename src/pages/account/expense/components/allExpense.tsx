@@ -1,13 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Download, Filter } from "lucide-react"
+// import { Download, Filter } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useCompany } from "../../../../context/routerContext"
 import * as XLSX from "xlsx"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
-import { useSearch } from "../../../../context/searchContext"
+// import { useSearch } from "../../../../context/searchContext"
 import { useTheme } from "../../../../context/themeContext"
 
 const API_URL = import.meta.env.VITE_API_URL as string
@@ -40,7 +40,7 @@ export default function AllExpensePage() {
   const navigate = useNavigate()
   const { pageName } = usePageName()
   const { selectedCompany } = useCompany()
-  const { search } = useSearch()
+  // const { search } = useSearch()
   const { isDarkMode } = useTheme()
 
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
