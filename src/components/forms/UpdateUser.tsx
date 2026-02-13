@@ -231,7 +231,7 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
         }
       } else {
         // ✅ MODO CREACIÓN: Una sola llamada POST con companyIds
-        const response = await fetch(`${VITE_API_URL}/api/users`, {
+        const response = await fetch(`${VITE_API_URL}/api/users/create`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
