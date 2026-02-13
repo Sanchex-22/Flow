@@ -64,6 +64,17 @@ const routesConfig = [
       { name: "Edit User", href: "/users/edit" },
     ]
   },
+  // {
+  //   disable:false,
+  //   icon: LucideBookUser,
+  //   name: "Employees",
+  //   href: "/employees/all",
+  //   roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+  //   subroutes: [
+  //     { name: "Create Employee", href: "/employees/create" },
+  //     { name: "Edit Employee", href: "/employees/edit" },
+  //   ]
+  // },
   {
     icon: ReportsIcon,
     name: "Reports",

@@ -1,7 +1,6 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import LoginPage from "../pages/auth/loginPage";
-// import Dashboard from "../pages/account/principal";
 import ProtectedLogin from "./protectedLogin";
 import ProtectedRoute from "./protectedRoutes";
 import useUser from "../hook/useUser";

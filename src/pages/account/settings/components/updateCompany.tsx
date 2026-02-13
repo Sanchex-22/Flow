@@ -208,6 +208,7 @@ export default function UpdateCompany() {
           label="RUC" 
           value={formData.ruc} 
           onChange={(value) => setFormData({ ...formData, ruc: value })} 
+          required
         />
 
         <InputNode
