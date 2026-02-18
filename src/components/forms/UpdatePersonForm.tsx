@@ -8,6 +8,7 @@ import { useCompany } from "../../context/routerContext"
 
 const { VITE_API_URL } = import.meta.env;
 
+// --- Interfaces ---
 interface Department {
   id: string;
   name: string;
@@ -35,6 +36,7 @@ interface PersonData {
   position: string | null;
   status: string;
   userCode: string;
+  companyId: string;
   user: User | null;
   department: {
     id: string;
@@ -64,19 +66,13 @@ interface Props {
   selectedCompany?: any;
 }
 
+// --- Fetcher para SWR ---
 const fetcher = async (url: string) => {
   const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const res = await fetch(url, {
-    method: "GET",
-    headers,
-    credentials: "include",
-  });
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  
+  const res = await fetch(url, { method: "GET", headers, credentials: "include" });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 };
@@ -90,16 +86,18 @@ export default function UpdatePersonForm({ userID, personId, departments, select
   const currentPersonId = userID || personId;
   const isEditMode = Boolean(currentPersonId);
 
+  // --- SWR Hooks ---
   const { data: personData, error: personError } = useSWR<PersonData>(
     currentPersonId ? `${VITE_API_URL}/api/persons/${currentPersonId}` : null,
     fetcher
   );
 
   const { data: users } = useSWR<User[]>(
-    `${VITE_API_URL}/api/users/full/${selectedCompany?.id}`,
+    selectedCompany?.id ? `${VITE_API_URL}/api/users/full/${selectedCompany.id}` : null,
     fetcher
   );
 
+  // --- State ---
   const [formData, setFormData] = useState<PersonFormData>({
     userId: "",
     firstName: "",
@@ -115,6 +113,7 @@ export default function UpdatePersonForm({ userID, personId, departments, select
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>("");
 
+  // Llenar formulario en modo edición
   useEffect(() => {
     if (personData && isEditMode) {
       setFormData({
@@ -130,38 +129,31 @@ export default function UpdatePersonForm({ userID, personId, departments, select
     }
   }, [personData, isEditMode]);
 
+  // --- Handlers ---
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "El nombre es requerido";
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "El apellido es requerido";
-    }
+    if (!formData.firstName.trim()) newErrors.firstName = "El nombre es requerido";
+    if (!formData.lastName.trim()) newErrors.lastName = "El apellido es requerido";
     if (formData.contactEmail && !/^\S+@\S+\.\S+$/.test(formData.contactEmail)) {
       newErrors.contactEmail = "Email inválido";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
+    if (!selectedCompany?.id) {
+      setSubmitError("No se ha detectado una compañía activa.");
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError("");
@@ -171,12 +163,13 @@ export default function UpdatePersonForm({ userID, personId, departments, select
 
       const payload = {
         userId: formData.userId || null,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        contactEmail: formData.contactEmail || null,
-        phoneNumber: formData.phoneNumber || null,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        contactEmail: formData.contactEmail.trim() || null,
+        phoneNumber: formData.phoneNumber.trim() || null,
         departmentId: formData.departmentId || null,
-        position: formData.position || null,
+        companyId: selectedCompany.id, // Requerido por el controlador
+        position: formData.position.trim() || null,
         status: formData.status,
       };
 
@@ -184,231 +177,171 @@ export default function UpdatePersonForm({ userID, personId, departments, select
         ? `${VITE_API_URL}/api/persons/edit/${currentPersonId}`
         : `${VITE_API_URL}/api/persons/create`;
 
-      const method = isEditMode ? "PUT" : "POST";
-
+      // Tu controlador usa PUT para editar y POST para crear
       const response = await fetch(endpoint, {
-        method,
+        method: isEditMode ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        credentials: "include",
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error al guardar");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Error al guardar la persona");
-      }
-
-      setSubmitError("");
-      setTimeout(() => {
-        navigate(`/${selectedCompany?.code}/persons/all`);
-      }, 1000);
+      navigate(`/${selectedCompany?.code}/persons/all`);
     } catch (error: any) {
-      console.error("Error submitting form:", error);
-      setSubmitError(error.message || "Error al guardar la persona");
+      setSubmitError(error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // --- CLASES DINÁMICAS (LIGHT/DARK MODE) ---
-  const bgClasses = isDarkMode
-    ? "bg-gray-800 border-gray-700"
-    : "bg-white border-gray-200";
+  // --- Estilos Dinámicos ---
+  const bgClasses = isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200";
+  const textClasses = isDarkMode ? "text-white" : "text-gray-900";
+  const labelClasses = isDarkMode ? "text-gray-300" : "text-gray-700";
+  const inputClasses = isDarkMode 
+    ? "w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" 
+    : "w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500";
+  
+  const primaryButton = "px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50";
+  const secondaryButton = isDarkMode 
+    ? "px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-medium transition-all" 
+    : "px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all";
 
-  const textClasses = isDarkMode
-    ? "text-white"
-    : "text-gray-900";
-
-  const labelClasses = isDarkMode
-    ? "text-gray-300"
-    : "text-gray-700";
-
-  const inputClasses = isDarkMode
-    ? "w-full bg-gray-700 border border-gray-600 text-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    : "w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500";
-
-  const inputDisabledClasses = isDarkMode
-    ? "w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-gray-400 cursor-not-allowed"
-    : "w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 text-gray-600 cursor-not-allowed";
-
-  const errorTextClasses = isDarkMode
-    ? "text-red-400 text-sm mt-1"
-    : "text-red-500 text-sm mt-1";
-
-  const buttonClasses = "px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed";
-
-  const primaryButtonClasses = isDarkMode
-    ? `${buttonClasses} bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-800`
-    : `${buttonClasses} bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300`;
-
-  const secondaryButtonClasses = isDarkMode
-    ? `${buttonClasses} bg-gray-600 hover:bg-gray-700`
-    : `${buttonClasses} bg-gray-400 hover:bg-gray-500`;
-
-  const errorBgClasses = isDarkMode
-    ? "bg-red-600/80"
-    : "bg-red-500/80";
-
-  if (personError) {
-    return (
-      <div className={`border rounded-lg p-6 ${isDarkMode ? "bg-red-900/30 border-red-600 text-red-300" : "bg-red-50 border-red-200 text-red-600"}`}>
-        <p>Error al cargar los datos de la persona</p>
-      </div>
-    );
-  }
+  if (personError) return <div className="p-4 text-red-500">Error al cargar datos del perfil.</div>;
 
   return (
-    <form onSubmit={handleSubmit} className={`space-y-6 rounded-lg p-8 border ${bgClasses}`}>
-      {/* --- Error Message --- */}
+    <form onSubmit={handleSubmit} className={`max-w-4xl mx-auto space-y-6 rounded-xl p-8 border shadow-sm ${bgClasses}`}>
+      
+      {/* Header */}
+      <div className="border-b border-gray-700 pb-4 mb-6">
+        <h2 className={`text-2xl font-bold ${textClasses}`}>
+          {isEditMode ? "Actualizar Perfil" : "Crear Nueva Persona"}
+        </h2>
+        <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+          Compañía: <span className="text-blue-500 font-semibold">{selectedCompany?.name}</span>
+        </p>
+      </div>
+
+      {/* Error Global */}
       {submitError && (
-        <div className={`p-4 rounded-lg text-white font-medium text-sm ${errorBgClasses}`}>
+        <div className="p-4 bg-red-500/10 border border-red-500 text-red-500 rounded-lg text-sm">
           {submitError}
         </div>
       )}
 
-      {/* --- Header --- */}
-      <div className="mb-6">
-        <h2 className={`text-2xl font-bold ${textClasses}`}>
-          {isEditMode ? "Editar Persona" : "Registrar Nueva Persona"}
-        </h2>
-        <p className={isDarkMode ? "text-gray-400 text-sm" : "text-gray-600 text-sm"}>
-          {isEditMode ? `Editando persona ID: ${currentPersonId}` : "Complete los datos de la persona"}
-        </p>
-      </div>
-
-      {/* --- Form Fields --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Usuario (Opcional) */}
-        <div>
+        
+        {/* Usuario Vinculado */}
+        <div className="md:col-span-2">
           <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Usuario {isEditMode ? "(Opcional)" : "(Opcional)"}
+            Vincular Usuario (Opcional)
           </label>
           <select
             name="userId"
             value={formData.userId}
             onChange={handleChange}
-            className={`${inputClasses} ${errors.userId ? "border-red-500" : ""}`}
+            className={inputClasses}
           >
-            <option value="">Seleccionar usuario (opcional)</option>
-            {users?.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.username} ({user.email})
-              </option>
+            <option value="">-- Sin usuario asignado --</option>
+            {users?.map(u => (
+              <option key={u.id} value={u.id}>{u.username} ({u.email})</option>
             ))}
           </select>
-          <p className={isDarkMode ? "text-xs text-gray-400 mt-1" : "text-xs text-gray-500 mt-1"}>
-            Puede asignar o cambiar el usuario en cualquier momento
+          <p className="mt-1 text-xs text-gray-500 italic">
+            * Si el usuario no pertenece a la compañía, se vinculará automáticamente.
           </p>
-          {errors.userId && <p className={errorTextClasses}>{errors.userId}</p>}
         </div>
 
         {/* Nombre */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Nombre *
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Nombre *</label>
           <input
             type="text"
             name="firstName"
             value={formData.firstName}
             onChange={handleChange}
             className={`${inputClasses} ${errors.firstName ? "border-red-500" : ""}`}
-            placeholder="Juan"
+            placeholder="Ej. Juan"
           />
-          {errors.firstName && <p className={errorTextClasses}>{errors.firstName}</p>}
+          {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
         </div>
 
         {/* Apellido */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Apellido *
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Apellido *</label>
           <input
             type="text"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
             className={`${inputClasses} ${errors.lastName ? "border-red-500" : ""}`}
-            placeholder="Pérez"
+            placeholder="Ej. Pérez"
           />
-          {errors.lastName && <p className={errorTextClasses}>{errors.lastName}</p>}
+          {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
         </div>
 
-        {/* Email Contacto */}
+        {/* Email */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Email de Contacto
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Email de Contacto</label>
           <input
             type="email"
             name="contactEmail"
             value={formData.contactEmail}
             onChange={handleChange}
-            className={`${inputClasses} ${errors.contactEmail ? "border-red-500" : ""}`}
-            placeholder="contacto@ejemplo.com"
+            className={inputClasses}
+            placeholder="juan.perez@ejemplo.com"
           />
-          {errors.contactEmail && <p className={errorTextClasses}>{errors.contactEmail}</p>}
         </div>
 
         {/* Teléfono */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Teléfono
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Teléfono</label>
           <input
-            type="tel"
+            type="text"
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleChange}
             className={inputClasses}
-            placeholder="+507 1234-5678"
+            placeholder="+507 6000-0000"
           />
         </div>
 
         {/* Departamento */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Departamento
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Departamento</label>
           <select
             name="departmentId"
             value={formData.departmentId}
             onChange={handleChange}
             className={inputClasses}
           >
-            <option value="">Seleccionar departamento</option>
-            {departments?.map((dept) => (
-              <option key={dept.id} value={dept.id}>
-                {dept.name}
-              </option>
+            <option value="">Seleccione un departamento</option>
+            {departments.map(d => (
+              <option key={d.id} value={d.id}>{d.name}</option>
             ))}
           </select>
         </div>
 
         {/* Posición */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Posición
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Cargo / Posición</label>
           <input
             type="text"
             name="position"
             value={formData.position}
             onChange={handleChange}
             className={inputClasses}
-            placeholder="Desarrollador"
+            placeholder="Ej. Gerente de Ventas"
           />
         </div>
 
         {/* Estado */}
         <div>
-          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-            Estado
-          </label>
+          <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Estado</label>
           <select
             name="status"
             value={formData.status}
@@ -420,45 +353,35 @@ export default function UpdatePersonForm({ userID, personId, departments, select
           </select>
         </div>
 
-        {/* User Code (readonly en Edit) */}
-        {isEditMode && personData?.userCode && (
+        {/* User Code (Solo lectura en edición) */}
+        {isEditMode && (
           <div>
-            <label className={`block text-sm font-medium ${labelClasses} mb-2`}>
-              Código de Persona
-            </label>
+            <label className={`block text-sm font-medium ${labelClasses} mb-2`}>Código de Sistema</label>
             <input
               type="text"
+              value={personData?.userCode || ""}
               disabled
-              value={personData.userCode}
-              className={inputDisabledClasses}
+              className={`${inputClasses} opacity-60 cursor-not-allowed`}
             />
-            <p className={isDarkMode ? "text-xs text-gray-400 mt-1" : "text-xs text-gray-500 mt-1"}>
-              Código asignado automáticamente
-            </p>
           </div>
         )}
       </div>
 
-      {/* --- Buttons --- */}
-      <div className="flex justify-end gap-3 pt-4">
+      {/* Footer / Acciones */}
+      <div className="flex justify-end gap-3 pt-6 border-t border-gray-700">
         <button
           type="button"
-          onClick={() => navigate(`/${selectedCompany?.code}/persons/all`)}
-          className={secondaryButtonClasses}
-          disabled={isSubmitting}
+          onClick={() => navigate(-1)}
+          className={secondaryButton}
         >
           Cancelar
         </button>
         <button
           type="submit"
-          className={primaryButtonClasses}
           disabled={isSubmitting}
+          className={primaryButton}
         >
-          {isSubmitting
-            ? "Guardando..."
-            : isEditMode
-            ? "Actualizar Persona"
-            : "Crear Persona"}
+          {isSubmitting ? "Procesando..." : isEditMode ? "Actualizar Persona" : "Registrar Persona"}
         </button>
       </div>
     </form>
