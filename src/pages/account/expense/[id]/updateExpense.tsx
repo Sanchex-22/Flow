@@ -6,6 +6,7 @@ import { useTheme } from "../../../../context/themeContext"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { Edit2, Save, X, Trash2, UserPlus } from "lucide-react"
 import Loader from "../../../../components/loaders/loader"
+import { useCompany } from "../../../../context/routerContext"
 
 const API_URL = import.meta.env.VITE_API_URL as string
 
@@ -130,7 +131,7 @@ export default function ExpenseDetailPage() {
   const [availablePersons, setAvailablePersons] = useState<PersonOption[]>([])
   const [selectedPersonsToAssign, setSelectedPersonsToAssign] = useState<Set<string>>(new Set())
   const [isAssigningPersons, setIsAssigningPersons] = useState(false)
-
+ const { selectedCompany } = useCompany();
   // Cargar gasto
   const loadExpense = async () => {
     setLoading(true)
@@ -156,7 +157,8 @@ export default function ExpenseDetailPage() {
   // Cargar personas disponibles
   const loadAvailablePersons = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/persons/all`)
+      // const response = await fetch(`${API_URL}/api/persons/all`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/persons/company/${selectedCompany?.id}`)
       if (!response.ok) {
         throw new Error("Error al cargar personas disponibles")
       }
