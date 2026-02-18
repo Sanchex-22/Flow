@@ -14,17 +14,20 @@ import Loader from "../../../../components/loaders/loader"
 
 const API_URL = import.meta.env.VITE_API_URL as string
 
-interface AssignedUser {
+interface AssignedPerson {
   id: string
-  username?: string
-  name?: string
+  firstName?: string
   lastName?: string
-  email?: string
-  department?: string
-  person?: {
-    department?: {
-      name?: string
-    }
+  fullName?: string
+  contactEmail?: string
+  department?: {
+    id: string
+    name: string
+  }
+  user?: {
+    id: string
+    username: string
+    email: string
   }
 }
 
@@ -40,20 +43,26 @@ interface AnnualSoftwareExpense {
   renewalDate: string
   paymentFrequency: string
   additionalNotes?: string | null
-  assignedUsers?: AssignedUser[]
+  assignedPersons?: AssignedPerson[]
   createdAt: string
 }
 
-const getFullName = (user: AssignedUser): string => {
-  if (user.name && user.lastName) {
-    return `${user.name} ${user.lastName}`
+const getFullName = (person: AssignedPerson): string => {
+  if (person.fullName) {
+    return person.fullName
   }
-  return user.username || "Usuario Desconocido"
+  if (person.firstName && person.lastName) {
+    return `${person.firstName} ${person.lastName}`
+  }
+  if (person.user?.username) {
+    return person.user.username
+  }
+  return "Persona Desconocida"
 }
 
 // ✅ Helper para extraer department
-const getDepartment = (user: AssignedUser | undefined): string => {
-  return user?.person?.department?.name || user?.department || "-"
+const getDepartment = (person: AssignedPerson | undefined): string => {
+  return person?.department?.name || "-"
 }
 
 export default function AllExpensePage() {
@@ -65,9 +74,9 @@ export default function AllExpensePage() {
 
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
-  const [allUniqueUsers, setAllUniqueUsers] = useState<AssignedUser[]>([])
+  const [allUniquePersons, setAllUniquePersons] = useState<AssignedPerson[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedUserFullName, setSelectedUserFullName] = useState<string | null>(null)
+  const [selectedPersonFullName, setSelectedPersonFullName] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`${API_URL}/api/annual-software-expense/getAll`)
@@ -76,19 +85,19 @@ export default function AllExpensePage() {
         setExpenses(data)
         console.log("📊 Gastos cargados:", data)
 
-        const usersMap = new Map<string, AssignedUser>()
+        const personsMap = new Map<string, AssignedPerson>()
         data.forEach((expense) => {
-          if (expense.assignedUsers && Array.isArray(expense.assignedUsers)) {
-            expense.assignedUsers.forEach((user) => {
-              const fullName = getFullName(user)
-              if (!usersMap.has(fullName)) {
-                usersMap.set(fullName, user)
+          if (expense.assignedPersons && Array.isArray(expense.assignedPersons)) {
+            expense.assignedPersons.forEach((person) => {
+              const fullName = getFullName(person)
+              if (!personsMap.has(fullName)) {
+                personsMap.set(fullName, person)
               }
             })
           }
         })
 
-        const uniqueUsers = Array.from(usersMap.values()).sort((a, b) => {
+        const uniquePersons = Array.from(personsMap.values()).sort((a, b) => {
           const nameA = getFullName(a).toLowerCase()
           const nameB = getFullName(b).toLowerCase()
           if (nameA < nameB) return -1
@@ -96,8 +105,8 @@ export default function AllExpensePage() {
           return 0
         })
 
-        console.log("👥 Usuarios únicos extraídos:", uniqueUsers)
-        setAllUniqueUsers(uniqueUsers)
+        console.log("👥 Personas únicas extraídas:", uniquePersons)
+        setAllUniquePersons(uniquePersons)
       })
       .catch((error) => {
         console.error("❌ Error al cargar gastos:", error)
@@ -111,40 +120,40 @@ export default function AllExpensePage() {
     }
     const lowerCaseSearch = search.toLowerCase()
     return expenses.filter((expense) => {
-      return expense.assignedUsers?.some((user) =>
-        getFullName(user).toLowerCase().includes(lowerCaseSearch)
+      return expense.assignedPersons?.some((person) =>
+        getFullName(person).toLowerCase().includes(lowerCaseSearch)
       )
     })
   }, [expenses, search])
 
   const tableData = useMemo(() => {
-    const usersArray = allUniqueUsers.map((user) => getFullName(user))
+    const personsArray = allUniquePersons.map((person) => getFullName(person))
     const applicationsArray = Array.from(
       new Set(filteredExpenses.map((e) => e.applicationName))
     ).sort()
 
     const data: Record<string, Record<string, number>> = {}
 
-    usersArray.forEach((userName) => {
-      data[userName] = {}
+    personsArray.forEach((personName) => {
+      data[personName] = {}
       applicationsArray.forEach((app) => {
-        data[userName][app] = 0
+        data[personName][app] = 0
       })
 
       filteredExpenses.forEach((expense) => {
-        if (expense.assignedUsers && Array.isArray(expense.assignedUsers)) {
-          const userInExpense = expense.assignedUsers.find(
-            (u) => getFullName(u) === userName
+        if (expense.assignedPersons && Array.isArray(expense.assignedPersons)) {
+          const personInExpense = expense.assignedPersons.find(
+            (p) => getFullName(p) === personName
           )
-          if (userInExpense) {
-            data[userName][expense.applicationName] = expense.costPerUser
+          if (personInExpense) {
+            data[personName][expense.applicationName] = expense.costPerUser
           }
         }
       })
     })
 
-    return { users: usersArray, applications: applicationsArray, data }
-  }, [filteredExpenses, allUniqueUsers])
+    return { persons: personsArray, applications: applicationsArray, data }
+  }, [filteredExpenses, allUniquePersons])
 
   const handleExportExcel = () => {
     const wb = XLSX.utils.book_new()
@@ -153,7 +162,7 @@ export default function AllExpensePage() {
     const summaryData: Record<string, unknown>[] = []
 
     const headerRow: Record<string, unknown> = {
-      Empleado: "Empleado",
+      Colaborador: "Colaborador",
       Departamento: "Departamento",
     }
     tableData.applications.forEach((app) => {
@@ -165,18 +174,18 @@ export default function AllExpensePage() {
 
     let grandTotal = 0
 
-    tableData.users.forEach((userFullName) => {
-      const userObj = allUniqueUsers.find(
-        (u) => getFullName(u) === userFullName
+    tableData.persons.forEach((personFullName) => {
+      const personObj = allUniquePersons.find(
+        (p) => getFullName(p) === personFullName
       )
       const row: Record<string, unknown> = {
-        Empleado: userFullName,
-        Departamento: getDepartment(userObj),
+        Colaborador: personFullName,
+        Departamento: getDepartment(personObj),
       }
 
       let total = 0
       tableData.applications.forEach((app) => {
-        const cost = tableData.data[userFullName][app]
+        const cost = tableData.data[personFullName][app]
         row[app] = cost === 0 ? "-" : cost
         total += cost
       })
@@ -187,14 +196,14 @@ export default function AllExpensePage() {
     })
 
     const totalsRow: Record<string, unknown> = {
-      Empleado: "TOTAL",
+      Colaborador: "TOTAL",
       Departamento: "",
     }
 
     tableData.applications.forEach((app) => {
       let appTotal = 0
-      tableData.users.forEach((userFullName) => {
-        appTotal += tableData.data[userFullName][app]
+      tableData.persons.forEach((personFullName) => {
+        appTotal += tableData.data[personFullName][app]
       })
       totalsRow[app] = appTotal
     })
@@ -249,27 +258,27 @@ export default function AllExpensePage() {
     // ===== HOJAS POR DEPARTAMENTO =====
     const departmentMap = new Map<string, string[]>()
 
-    // Agrupar usuarios por departamento
-    tableData.users.forEach((userFullName) => {
-      const userObj = allUniqueUsers.find(
-        (u) => getFullName(u) === userFullName
+    // Agrupar personas por departamento
+    tableData.persons.forEach((personFullName) => {
+      const personObj = allUniquePersons.find(
+        (p) => getFullName(p) === personFullName
       )
-      const dept = getDepartment(userObj)
+      const dept = getDepartment(personObj)
 
       if (!departmentMap.has(dept)) {
         departmentMap.set(dept, [])
       }
-      departmentMap.get(dept)!.push(userFullName)
+      departmentMap.get(dept)!.push(personFullName)
     })
 
     // Crear una hoja por cada departamento
     Array.from(departmentMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .forEach(([deptName, usersInDept]) => {
+      .forEach(([deptName, personsInDept]) => {
         const deptData: Record<string, unknown>[] = []
 
         const deptHeaderRow: Record<string, unknown> = {
-          Empleado: "Empleado",
+          Colaborador: "Colaborador",
         }
         tableData.applications.forEach((app) => {
           deptHeaderRow[app] = app
@@ -280,31 +289,31 @@ export default function AllExpensePage() {
 
         let deptGrandTotal = 0
 
-        usersInDept.forEach((userFullName) => {
+        personsInDept.forEach((personFullName) => {
           const row: Record<string, unknown> = {
-            Empleado: userFullName,
+            Colaborador: personFullName,
           }
 
-          let userTotal = 0
+          let personTotal = 0
           tableData.applications.forEach((app) => {
-            const cost = tableData.data[userFullName][app]
+            const cost = tableData.data[personFullName][app]
             row[app] = cost === 0 ? "-" : cost
-            userTotal += cost
+            personTotal += cost
           })
-          row.Total = userTotal
-          deptGrandTotal += userTotal
+          row.Total = personTotal
+          deptGrandTotal += personTotal
 
           deptData.push(row)
         })
 
         // Fila de totales
         const deptTotalRow: Record<string, unknown> = {
-          Empleado: "TOTAL",
+          Colaborador: "TOTAL",
         }
         tableData.applications.forEach((app) => {
           let appTotal = 0
-          usersInDept.forEach((userFullName) => {
-            appTotal += tableData.data[userFullName][app]
+          personsInDept.forEach((personFullName) => {
+            appTotal += tableData.data[personFullName][app]
           })
           deptTotalRow[app] = appTotal
         })
@@ -372,13 +381,13 @@ export default function AllExpensePage() {
 
     tableData.applications.forEach((app) => {
       let appTotal = 0
-      let userCount = 0
+      let personCount = 0
 
-      tableData.users.forEach((userFullName) => {
-        const cost = tableData.data[userFullName][app]
+      tableData.persons.forEach((personFullName) => {
+        const cost = tableData.data[personFullName][app]
         if (cost > 0) {
           appTotal += cost
-          userCount += 1
+          personCount += 1
         }
       })
 
@@ -386,7 +395,7 @@ export default function AllExpensePage() {
 
       appData.push({
         Aplicación: app,
-        "Usuarios Asignados": userCount,
+        "Usuarios Asignados": personCount,
         "Costo Total": appTotal,
       })
     })
@@ -446,25 +455,25 @@ export default function AllExpensePage() {
     )
   }
 
-  const openUserDetailModal = (userFullName: string) => {
-    setSelectedUserFullName(userFullName)
+  const openPersonDetailModal = (personFullName: string) => {
+    setSelectedPersonFullName(personFullName)
     setIsModalOpen(true)
   }
 
-  const closeUserDetailModal = () => {
+  const closePersonDetailModal = () => {
     setIsModalOpen(false)
-    setSelectedUserFullName(null)
+    setSelectedPersonFullName(null)
   }
 
-  const userExpensesDetail = useMemo(() => {
-    if (!selectedUserFullName) return []
+  const personExpensesDetail = useMemo(() => {
+    if (!selectedPersonFullName) return []
 
     const detail: { applicationName: string; cost: number }[] = []
     filteredExpenses.forEach((expense) => {
-      const userInExpense = expense.assignedUsers?.find(
-        (u) => getFullName(u) === selectedUserFullName
+      const personInExpense = expense.assignedPersons?.find(
+        (p) => getFullName(p) === selectedPersonFullName
       )
-      if (userInExpense) {
+      if (personInExpense) {
         detail.push({
           applicationName: expense.applicationName,
           cost: expense.costPerUser,
@@ -472,10 +481,10 @@ export default function AllExpensePage() {
       }
     })
     return detail
-  }, [selectedUserFullName, filteredExpenses])
+  }, [selectedPersonFullName, filteredExpenses])
 
-  const downloadUserExpensePDF = async () => {
-    if (!selectedUserFullName) return
+  const downloadPersonExpensePDF = async () => {
+    if (!selectedPersonFullName) return
 
     const input = document.getElementById("expense-detail-modal-content")
     if (input) {
@@ -499,30 +508,30 @@ export default function AllExpensePage() {
       }
 
       pdf.save(
-        `desglose_gastos_${selectedUserFullName.replace(/\s/g, "_")}.pdf`
+        `desglose_gastos_${selectedPersonFullName.replace(/\s/g, "_")}.pdf`
       )
     }
   }
 
-  const downloadUserExpenseExcel = () => {
-    if (!selectedUserFullName || userExpensesDetail.length === 0) {
+  const downloadPersonExpenseExcel = () => {
+    if (!selectedPersonFullName || personExpensesDetail.length === 0) {
       alert("No hay datos para descargar")
       return
     }
 
-    const userObj = allUniqueUsers.find(
-      (u) => getFullName(u) === selectedUserFullName
+    const personObj = allUniquePersons.find(
+      (p) => getFullName(p) === selectedPersonFullName
     )
-    const totalCost = userExpensesDetail.reduce((sum, item) => sum + item.cost, 0)
+    const totalCost = personExpensesDetail.reduce((sum, item) => sum + item.cost, 0)
 
     const wsData: Record<string, unknown>[] = []
 
-    wsData.push({ "Desglose de Gastos": selectedUserFullName })
+    wsData.push({ "Desglose de Gastos": selectedPersonFullName })
     wsData.push({})
 
-    wsData.push({ "Empleado": selectedUserFullName })
-    wsData.push({ "Departamento": getDepartment(userObj) })
-    wsData.push({ "Email": userObj?.email || "-" })
+    wsData.push({ "Colaborador": selectedPersonFullName })
+    wsData.push({ "Departamento": getDepartment(personObj) })
+    wsData.push({ "Email": personObj?.contactEmail || personObj?.user?.email || "-" })
     wsData.push({})
 
     wsData.push({
@@ -530,7 +539,7 @@ export default function AllExpensePage() {
       "Costo Mensual/Anual": "Costo",
     })
 
-    userExpensesDetail.forEach((item) => {
+    personExpensesDetail.forEach((item) => {
       wsData.push({
         "Aplicación": item.applicationName,
         "Costo Mensual/Anual": item.cost,
@@ -551,7 +560,7 @@ export default function AllExpensePage() {
 
     XLSX.writeFile(
       wb,
-      `desglose_gastos_${selectedUserFullName.replace(/\s/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`
+      `desglose_gastos_${selectedPersonFullName.replace(/\s/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`
     )
   }
 
@@ -562,7 +571,7 @@ export default function AllExpensePage() {
   }
 
   console.log("📋 Tabla data:", tableData)
-  console.log("👥 Usuarios a mostrar:", tableData.users)
+  console.log("👥 Personas a mostrar:", tableData.persons)
 
   return (
     <div
@@ -592,14 +601,14 @@ export default function AllExpensePage() {
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Total de Usuarios
+            Total de Personas
           </p>
           <p
             className={`text-3xl font-bold mt-2 transition-colors ${
               isDarkMode ? "text-blue-400" : "text-blue-600"
             }`}
           >
-            {tableData.users.length}
+            {tableData.persons.length}
           </p>
         </div>
 
@@ -646,12 +655,12 @@ export default function AllExpensePage() {
             }`}
           >
             $
-            {tableData.users
-              .reduce((total, user) => {
+            {tableData.persons
+              .reduce((total, person) => {
                 return (
                   total +
                   tableData.applications.reduce(
-                    (sum, app) => sum + tableData.data[user][app],
+                    (sum, app) => sum + tableData.data[person][app],
                     0
                   )
                 )
@@ -681,7 +690,7 @@ export default function AllExpensePage() {
                     isDarkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
-                  Empleado
+                  Colaborador
                 </th>
                 <th
                   className={`text-left py-3 px-4 font-bold transition-colors ${
@@ -734,29 +743,29 @@ export default function AllExpensePage() {
               </tr>
             </thead>
             <tbody>
-              {tableData.users.length > 0 ? (
+              {tableData.persons.length > 0 ? (
                 <>
-                  {tableData.users.map((userFullName, userIdx) => {
-                    const userTotal = tableData.applications.reduce(
-                      (sum, app) => sum + tableData.data[userFullName][app],
+                  {tableData.persons.map((personFullName, personIdx) => {
+                    const personTotal = tableData.applications.reduce(
+                      (sum, app) => sum + tableData.data[personFullName][app],
                       0
                     )
-                    const userObj = allUniqueUsers.find(
-                      (u) => getFullName(u) === userFullName
+                    const personObj = allUniquePersons.find(
+                      (p) => getFullName(p) === personFullName
                     )
 
                     return (
                       <tr
-                        key={userFullName}
+                        key={personFullName}
                         className={`border-b transition-colors ${
                           isDarkMode
                             ? `border-gray-700 ${
-                                userIdx % 2 === 0
+                                personIdx % 2 === 0
                                   ? "bg-gray-800 hover:bg-gray-700"
                                   : "bg-gray-800/50 hover:bg-gray-700"
                               }`
                             : `border-gray-200 ${
-                                userIdx % 2 === 0
+                                personIdx % 2 === 0
                                   ? "bg-gray-50 hover:bg-gray-100"
                                   : "bg-white hover:bg-gray-50"
                               }`
@@ -766,22 +775,22 @@ export default function AllExpensePage() {
                           className={`py-3 px-4 font-semibold transition-colors ${
                             isDarkMode ? "text-white" : "text-gray-900"
                           } cursor-pointer hover:underline`}
-                          onClick={() => openUserDetailModal(userFullName)}
+                          onClick={() => openPersonDetailModal(personFullName)}
                         >
-                          {userFullName}
+                          {personFullName}
                         </td>
                         <td
                           className={`py-3 px-4 transition-colors ${
                             isDarkMode ? "text-gray-400" : "text-gray-600"
                           }`}
                         >
-                          {getDepartment(userObj)}
+                          {getDepartment(personObj)}
                         </td>
                         {tableData.applications.map((app) => {
-                          const cost = tableData.data[userFullName][app]
+                          const cost = tableData.data[personFullName][app]
                           return (
                             <td
-                              key={`${userFullName}-${app}`}
+                              key={`${personFullName}-${app}`}
                               className={`py-3 px-3 text-center text-xs transition-colors ${
                                 cost > 0
                                   ? isDarkMode
@@ -801,7 +810,7 @@ export default function AllExpensePage() {
                             isDarkMode ? "text-blue-400" : "text-blue-600"
                           }`}
                         >
-                          ${userTotal.toFixed(2)}
+                          ${personTotal.toFixed(2)}
                         </td>
                       </tr>
                     )
@@ -829,9 +838,9 @@ export default function AllExpensePage() {
                       -
                     </td>
                     {tableData.applications.map((app) => {
-                      const appTotal = tableData.users.reduce(
-                        (sum, userFullName) =>
-                          sum + tableData.data[userFullName][app],
+                      const appTotal = tableData.persons.reduce(
+                        (sum, personFullName) =>
+                          sum + tableData.data[personFullName][app],
                         0
                       )
                       return (
@@ -851,13 +860,13 @@ export default function AllExpensePage() {
                       }`}
                     >
                       $
-                      {tableData.users
-                        .reduce((total, userFullName) => {
+                      {tableData.persons
+                        .reduce((total, personFullName) => {
                           return (
                             total +
                             tableData.applications.reduce(
                               (sum, app) =>
-                                sum + tableData.data[userFullName][app],
+                                sum + tableData.data[personFullName][app],
                               0
                             )
                           )
@@ -872,7 +881,7 @@ export default function AllExpensePage() {
                     colSpan={tableData.applications.length + 3}
                     className="py-8 text-center text-gray-500"
                   >
-                    No hay usuarios con datos asignados
+                    No hay personas con datos asignados
                   </td>
                 </tr>
               )}
@@ -890,15 +899,15 @@ export default function AllExpensePage() {
       >
         <p>
           💡 La tabla muestra el costo por usuario para cada aplicación. Haz clic en el nombre de un
-          empleado para ver el desglose de sus gastos. Los valores "-" indican que el usuario no
+          Colaborador para ver el desglose de sus gastos. Los valores "-" indican que la persona no
           tiene asignada esa aplicación para los filtros actuales.
         </p>
       </div>
 
-      {isModalOpen && selectedUserFullName && (
+      {isModalOpen && selectedPersonFullName && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-          onClick={closeUserDetailModal}
+          onClick={closePersonDetailModal}
         >
           <div
             className={`relative p-6 rounded-lg shadow-xl w-full md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-y-auto transition-colors ${
@@ -907,11 +916,11 @@ export default function AllExpensePage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold mb-4">
-              Desglose de Gastos para: {selectedUserFullName}
+              Desglose de Gastos para: {selectedPersonFullName}
             </h2>
 
             <div id="expense-detail-modal-content" className="space-y-4">
-              {userExpensesDetail.length > 0 ? (
+              {personExpensesDetail.length > 0 ? (
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead
                     className={`${
@@ -940,7 +949,7 @@ export default function AllExpensePage() {
                       isDarkMode ? "divide-gray-700" : "divide-gray-200"
                     }`}
                   >
-                    {userExpensesDetail.map((item, index) => (
+                    {personExpensesDetail.map((item, index) => (
                       <tr
                         key={index}
                         className={`${isDarkMode ? "bg-gray-800" : "bg-white"}`}
@@ -979,7 +988,7 @@ export default function AllExpensePage() {
                         }`}
                       >
                         $
-                        {userExpensesDetail
+                        {personExpensesDetail
                           .reduce((sum, item) => sum + item.cost, 0)
                           .toFixed(2)}
                       </td>
@@ -987,13 +996,13 @@ export default function AllExpensePage() {
                   </tbody>
                 </table>
               ) : (
-                <p>No hay gastos asignados a este empleado que coincidan con los filtros actuales.</p>
+                <p>No hay gastos asignados a esta persona que coincidan con los filtros actuales.</p>
               )}
             </div>
 
             <div className="mt-6 flex justify-end gap-3 flex-wrap">
               <button
-                onClick={downloadUserExpenseExcel}
+                onClick={downloadPersonExpenseExcel}
                 className={`px-4 py-2 rounded-md transition-colors ${
                   isDarkMode
                     ? "bg-green-600 hover:bg-green-700 text-white"
@@ -1003,7 +1012,7 @@ export default function AllExpensePage() {
                 📥 Descargar Excel
               </button>
               <button
-                onClick={downloadUserExpensePDF}
+                onClick={downloadPersonExpensePDF}
                 className={`px-4 py-2 rounded-md transition-colors ${
                   isDarkMode
                     ? "bg-blue-600 hover:bg-blue-700 text-white"
@@ -1013,7 +1022,7 @@ export default function AllExpensePage() {
                 📄 Descargar PDF
               </button>
               <button
-                onClick={closeUserDetailModal}
+                onClick={closePersonDetailModal}
                 className={`px-4 py-2 rounded-md transition-colors ${
                   isDarkMode
                     ? "bg-gray-600 hover:bg-gray-700 text-white"

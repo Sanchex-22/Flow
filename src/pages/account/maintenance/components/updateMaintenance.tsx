@@ -5,6 +5,7 @@ import { Company, useCompany } from "../../../../context/routerContext";
 import { UsuarioFull } from "../../../../utils/usuarioFull";
 import UpdateMaintenanceForm from "../../../../components/forms/updateMaintenance";
 import { CurrentPathname } from "../../../../components/layouts/main";
+import { useTheme } from "../../../../context/themeContext";
 const { VITE_API_URL } = import.meta.env;
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -27,7 +28,7 @@ interface Props {
 const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
     const { id: maintenanceID } = useParams<{ id: string }>();
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany();
-
+    const { isDarkMode } = useTheme()
     const renderPage = maintenanceID ? "Editar Mantenimiento" : "Crear Mantenimiento";
     document.title = renderPage;
 
@@ -58,13 +59,9 @@ const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
 
 
     return (
-        <div className="relative p-6 bg-gray-900 min-h-screen font-inter text-white">
+        <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
             {/* Contenedor principal del formulario */}
-            <div className="max-w-4xl mx-auto py-12">
-                <h1 className="text-3xl font-bold text-center mb-2">{renderPage}</h1>
-                <p className="text-center text-gray-400 mb-10">
-                    Ingresa los detalles del mantenimiento para registrarlo en el sistema.
-                </p>
+            <div className="max-w-4xl mx-auto ">
                 <UpdateMaintenanceForm
                     maintenanceId={maintenanceID}
                     selectedCompany={selectedCompany}

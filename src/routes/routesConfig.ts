@@ -1,5 +1,5 @@
 
-import { TicketIcon } from "lucide-react";
+import { LucideBookUser, TicketIcon } from "lucide-react";
 import { DashboardIcon, DevicesIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
@@ -64,17 +64,17 @@ const routesConfig = [
       { name: "Edit User", href: "/users/edit" },
     ]
   },
-  // {
-  //   disable:false,
-  //   icon: LucideBookUser,
-  //   name: "Employees",
-  //   href: "/employees/all",
-  //   roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
-  //   subroutes: [
-  //     { name: "Create Employee", href: "/employees/create" },
-  //     { name: "Edit Employee", href: "/employees/edit" },
-  //   ]
-  // },
+  {
+    disable:false,
+    icon: LucideBookUser,
+    name: "Persons",
+    href: "/persons/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "Create Person", href: "/persons/create" },
+      { name: "Edit Person", href: "/persons/edit" },
+    ]
+  },
   {
     icon: ReportsIcon,
     name: "Reports",

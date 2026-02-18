@@ -9,21 +9,38 @@ import Loader from "../../../../components/loaders/loader"
 
 const API_URL = import.meta.env.VITE_API_URL as string
 
-interface UserOption {
+interface PersonOption {
   id: string
-  username: string
-  name?: string
+  firstName?: string
   lastName?: string
-  email?: string
-  department?: string
+  fullName?: string
+  contactEmail?: string
+  department?: {
+    id: string
+    name: string
+  }
+  user?: {
+    id: string
+    username: string
+    email: string
+  }
 }
 
-interface AssignedUser {
+interface AssignedPerson {
   id: string
-  username: string
-  name?: string
+  firstName?: string
   lastName?: string
-  email?: string
+  fullName?: string
+  contactEmail?: string
+  department?: {
+    id: string
+    name: string
+  }
+  user?: {
+    id: string
+    username: string
+    email: string
+  }
 }
 
 enum PaymentFrequency {
@@ -94,7 +111,7 @@ interface ExpenseData {
   renewalDate: string
   paymentFrequency: string
   additionalNotes?: string
-  assignedUsers?: AssignedUser[]
+  assignedPersons?: AssignedPerson[]
 }
 
 export default function ExpenseDetailPage() {
@@ -104,15 +121,15 @@ export default function ExpenseDetailPage() {
 
   const [expense, setExpense] = useState<ExpenseData | null>(null)
   const [editExpense, setEditExpense] = useState<ExpenseData | null>(null)
-  const [assignedUsers, setAssignedUsers] = useState<AssignedUser[]>([])
+  const [assignedPersons, setAssignedPersons] = useState<AssignedPerson[]>([])
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [showAssignUserModal, setShowAssignUserModal] = useState(false)
-  const [availableUsers, setAvailableUsers] = useState<UserOption[]>([])
-  const [selectedUsersToAssign, setSelectedUsersToAssign] = useState<Set<string>>(new Set())
-  const [isAssigningUsers, setIsAssigningUsers] = useState(false)
+  const [showAssignPersonModal, setShowAssignPersonModal] = useState(false)
+  const [availablePersons, setAvailablePersons] = useState<PersonOption[]>([])
+  const [selectedPersonsToAssign, setSelectedPersonsToAssign] = useState<Set<string>>(new Set())
+  const [isAssigningPersons, setIsAssigningPersons] = useState(false)
 
   // Cargar gasto
   const loadExpense = async () => {
@@ -127,7 +144,7 @@ export default function ExpenseDetailPage() {
       const data: ExpenseData = await response.json()
       setExpense(data)
       setEditExpense(data)
-      setAssignedUsers(data.assignedUsers || [])
+      setAssignedPersons(data.assignedPersons || [])
     } catch (error) {
       console.error("Error loading expense:", error)
       alert("No se pudo cargar el gasto")
@@ -136,22 +153,22 @@ export default function ExpenseDetailPage() {
     }
   }
 
-  // Cargar usuarios disponibles
-  const loadAvailableUsers = async () => {
+  // Cargar personas disponibles
+  const loadAvailablePersons = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/users/getAll`)
+      const response = await fetch(`${API_URL}/api/persons/all`)
       if (!response.ok) {
-        throw new Error("Error al cargar usuarios disponibles")
+        throw new Error("Error al cargar personas disponibles")
       }
-      const data: UserOption[] = await response.json()
-      setAvailableUsers(data)
+      const data: PersonOption[] = await response.json()
+      setAvailablePersons(data)
       
-      // Inicializar checkboxes con los usuarios ya asignados
-      const assignedIds = new Set(assignedUsers.map((u) => u.id))
-      setSelectedUsersToAssign(assignedIds)
+      // Inicializar checkboxes con las personas ya asignadas
+      const assignedIds = new Set(assignedPersons.map((p) => p.id))
+      setSelectedPersonsToAssign(assignedIds)
     } catch (error) {
-      console.error("Error loading available users:", error)
-      alert("No se pudieron cargar los usuarios disponibles.")
+      console.error("Error loading available persons:", error)
+      alert("No se pudieron cargar las personas disponibles.")
     }
   }
 
@@ -162,10 +179,10 @@ export default function ExpenseDetailPage() {
   }, [id])
 
   useEffect(() => {
-    if (showAssignUserModal) {
-      loadAvailableUsers()
+    if (showAssignPersonModal) {
+      loadAvailablePersons()
     }
-  }, [showAssignUserModal])
+  }, [showAssignPersonModal])
 
   const handleSaveChanges = async () => {
     if (!editExpense) return
@@ -199,7 +216,7 @@ export default function ExpenseDetailPage() {
       const updated: ExpenseData = await response.json()
       setExpense(updated)
       setEditExpense(updated)
-      setAssignedUsers(updated.assignedUsers || [])
+      setAssignedPersons(updated.assignedPersons || [])
       setIsEditing(false)
       alert("✅ Cambios guardados exitosamente")
     } catch (error) {
@@ -212,44 +229,44 @@ export default function ExpenseDetailPage() {
     }
   }
 
-  // Asignar múltiples usuarios
-  const assignSelectedUsers = async () => {
-    if (selectedUsersToAssign.size === 0) {
-      alert("❌ Selecciona al menos un usuario")
+  // Asignar múltiples personas
+  const assignSelectedPersons = async () => {
+    if (selectedPersonsToAssign.size === 0) {
+      alert("❌ Selecciona al menos una persona")
       return
     }
 
-    setIsAssigningUsers(true)
+    setIsAssigningPersons(true)
     try {
-      const assignedIds = new Set(assignedUsers.map((u) => u.id))
-      const newUserIds = Array.from(selectedUsersToAssign).filter(
+      const assignedIds = new Set(assignedPersons.map((p) => p.id))
+      const newPersonIds = Array.from(selectedPersonsToAssign).filter(
         (id) => !assignedIds.has(id)
       )
 
-      // Asignar cada usuario nuevo
-      for (const userId of newUserIds) {
+      // Asignar cada persona nueva
+      for (const personId of newPersonIds) {
         const response = await fetch(
-          `${API_URL}/api/annual-software-expense/assign-existing-user/${id}`,
+          `${API_URL}/api/annual-software-expense/assign-existing-person/${id}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId }),
+            body: JSON.stringify({ personId }),
           }
         )
 
         if (!response.ok) {
-          throw new Error("Error al asignar uno o más usuarios")
+          throw new Error("Error al asignar una o más personas")
         }
       }
 
-      // Desasignar usuarios deseleccionados
-      const usersToRemove = Array.from(assignedIds).filter(
-        (id) => !selectedUsersToAssign.has(id)
+      // Desasignar personas deseleccionadas
+      const personsToRemove = Array.from(assignedIds).filter(
+        (id) => !selectedPersonsToAssign.has(id)
       )
 
-      for (const userId of usersToRemove) {
+      for (const personId of personsToRemove) {
         const response = await fetch(
-          `${API_URL}/api/annual-software-expense/assigned-users/delete/${userId}`,
+          `${API_URL}/api/annual-software-expense/assigned-persons/delete/${personId}`,
           {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
@@ -258,29 +275,29 @@ export default function ExpenseDetailPage() {
         )
 
         if (!response.ok) {
-          throw new Error("Error al desasignar uno o más usuarios")
+          throw new Error("Error al desasignar una o más personas")
         }
       }
 
       await loadExpense()
-      setShowAssignUserModal(false)
-      alert("✅ Usuarios asignados correctamente")
+      setShowAssignPersonModal(false)
+      alert("✅ Personas asignadas correctamente")
     } catch (error) {
-      console.error("Error assigning users:", error)
+      console.error("Error assigning persons:", error)
       alert(
         `❌ Error: ${error instanceof Error ? error.message : "Error desconocido"}`
       )
     } finally {
-      setIsAssigningUsers(false)
+      setIsAssigningPersons(false)
     }
   }
 
-  const removeUser = async (userId: string) => {
-    if (!confirm("¿Eliminar usuario asignado?")) return
+  const removePerson = async (personId: string) => {
+    if (!confirm("¿Eliminar persona asignada?")) return
 
     try {
       const response = await fetch(
-        `${API_URL}/api/annual-software-expense/assigned-users/delete/${userId}`,
+        `${API_URL}/api/annual-software-expense/assigned-persons/delete/${personId}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -290,13 +307,13 @@ export default function ExpenseDetailPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Error al eliminar usuario")
+        throw new Error(errorData.error || "Error al eliminar persona")
       }
 
       await loadExpense()
-      alert("✅ Usuario eliminado correctamente")
+      alert("✅ Persona eliminada correctamente")
     } catch (error) {
-      console.error("Error deleting user:", error)
+      console.error("Error deleting person:", error)
       alert(
         `❌ ${error instanceof Error ? error.message : "Error desconocido"}`
       )
@@ -347,21 +364,27 @@ export default function ExpenseDetailPage() {
     setEditExpense({ ...editExpense, [field]: value })
   }
 
-  const getDisplayName = (user: AssignedUser) => {
-    if (user.name && user.lastName) {
-      return `${user.name} ${user.lastName}`
+  const getDisplayName = (person: AssignedPerson) => {
+    if (person.fullName) {
+      return person.fullName
     }
-    return user.username || "Usuario"
+    if (person.firstName && person.lastName) {
+      return `${person.firstName} ${person.lastName}`
+    }
+    if (person.user?.username) {
+      return person.user.username
+    }
+    return "Persona"
   }
 
-  const toggleUserSelection = (userId: string) => {
-    const newSelection = new Set(selectedUsersToAssign)
-    if (newSelection.has(userId)) {
-      newSelection.delete(userId)
+  const togglePersonSelection = (personId: string) => {
+    const newSelection = new Set(selectedPersonsToAssign)
+    if (newSelection.has(personId)) {
+      newSelection.delete(personId)
     } else {
-      newSelection.add(userId)
+      newSelection.add(personId)
     }
-    setSelectedUsersToAssign(newSelection)
+    setSelectedPersonsToAssign(newSelection)
   }
 
   if (loading) {
@@ -534,7 +557,7 @@ export default function ExpenseDetailPage() {
                     isDarkMode ? "text-white" : "text-gray-900"
                   }`}
                 >
-                  {assignedUsers.length}
+                  {assignedPersons.length}
                 </p>
               </div>
 
@@ -553,7 +576,7 @@ export default function ExpenseDetailPage() {
                 >
                   ${(
                     (Number(expense.annualCost) || 0) /
-                    (assignedUsers.length || 1)
+                    (assignedPersons.length || 1)
                   ).toFixed(2)}
                 </p>
               </div>
@@ -748,7 +771,7 @@ export default function ExpenseDetailPage() {
                 <input
                   type="text"
                   readOnly
-                  value={assignedUsers.length.toString()}
+                  value={assignedPersons.length.toString()}
                   className={`w-full mt-1 rounded p-2 border transition-colors ${
                     isDarkMode
                       ? "bg-gray-600 border-gray-500 text-gray-300"
@@ -760,7 +783,7 @@ export default function ExpenseDetailPage() {
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  Se actualiza automáticamente según usuarios asignados
+                  Se actualiza automáticamente según personas asignadas
                 </p>
               </div>
 
@@ -777,7 +800,7 @@ export default function ExpenseDetailPage() {
                   readOnly
                   value={`$ ${(
                     (editExpense?.annualCost || 0) /
-                    (assignedUsers.length || 1)
+                    (assignedPersons.length || 1)
                   ).toFixed(2)}`}
                   className={`w-full mt-1 rounded p-2 border transition-colors ${
                     isDarkMode
@@ -865,16 +888,16 @@ export default function ExpenseDetailPage() {
         )}
       </div>
 
-      {/* USUARIOS ASIGNADOS */}
+      {/* PERSONAS ASIGNADAS */}
       <div
         className={`rounded-xl p-6 transition-colors ${
           isDarkMode ? "bg-gray-800" : "bg-white border border-gray-200"
         }`}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Usuarios Asignados</h3>
+          <h3 className="text-lg font-semibold">Personas Asignadas</h3>
           <button
-            onClick={() => setShowAssignUserModal(true)}
+            onClick={() => setShowAssignPersonModal(true)}
             className={`px-4 py-2 rounded-lg text-sm transition-colors ${
               isDarkMode
                 ? "bg-blue-600 hover:bg-blue-700 text-white"
@@ -882,17 +905,17 @@ export default function ExpenseDetailPage() {
             }`}
           >
             <UserPlus size={16} className="inline-block mr-2" />
-            Asignar Usuarios
+            Asignar Personas
           </button>
         </div>
 
-        {assignedUsers.length === 0 ? (
+        {assignedPersons.length === 0 ? (
           <p
             className={`text-sm ${
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            No hay usuarios asignados.
+            No hay personas asignadas.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -906,14 +929,15 @@ export default function ExpenseDetailPage() {
                   }`}
                 >
                   <th className="text-left py-3 px-2">Nombre</th>
+                  <th className="text-left py-3 px-2">Departamento</th>
                   <th className="text-left py-3 px-2">Email</th>
                   <th className="text-right py-3 px-2">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {assignedUsers.map((u) => (
+                {assignedPersons.map((person) => (
                   <tr
-                    key={u.id}
+                    key={person.id}
                     className={`border-b transition-colors ${
                       isDarkMode
                         ? "border-gray-700 hover:bg-gray-700/50"
@@ -925,18 +949,25 @@ export default function ExpenseDetailPage() {
                         isDarkMode ? "" : "text-gray-900"
                       }`}
                     >
-                      {getDisplayName(u)}
+                      {getDisplayName(person)}
                     </td>
                     <td
                       className={`py-3 px-2 ${
                         isDarkMode ? "" : "text-gray-900"
                       }`}
                     >
-                      {u.email || "-"}
+                      {person.department?.name || "-"}
+                    </td>
+                    <td
+                      className={`py-3 px-2 ${
+                        isDarkMode ? "" : "text-gray-900"
+                      }`}
+                    >
+                      {person.contactEmail || person.user?.email || "-"}
                     </td>
                     <td className="text-right py-3 px-2">
                       <button
-                        onClick={() => removeUser(u.id)}
+                        onClick={() => removePerson(person.id)}
                         className={`transition-colors ${
                           isDarkMode
                             ? "text-red-400 hover:text-red-300"
@@ -954,8 +985,8 @@ export default function ExpenseDetailPage() {
         )}
       </div>
 
-      {/* MODAL ASIGNAR USUARIOS CON TABLA DE CHECKBOXES */}
-      {showAssignUserModal && (
+      {/* MODAL ASIGNAR PERSONAS CON TABLA DE CHECKBOXES */}
+      {showAssignPersonModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div
             className={`rounded-xl w-full max-w-4xl p-6 space-y-4 transition-colors max-h-[90vh] overflow-y-auto ${
@@ -967,7 +998,7 @@ export default function ExpenseDetailPage() {
                 isDarkMode ? "text-white" : "text-gray-900"
               }`}
             >
-              Asignar Usuarios
+              Asignar Personas
             </h2>
 
             <div
@@ -989,14 +1020,14 @@ export default function ExpenseDetailPage() {
                     <th className="text-left py-3 px-4">
                       <input
                         type="checkbox"
-                        checked={selectedUsersToAssign.size === availableUsers.length && availableUsers.length > 0}
+                        checked={selectedPersonsToAssign.size === availablePersons.length && availablePersons.length > 0}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedUsersToAssign(
-                              new Set(availableUsers.map((u) => u.id))
+                            setSelectedPersonsToAssign(
+                              new Set(availablePersons.map((p) => p.id))
                             )
                           } else {
-                            setSelectedUsersToAssign(new Set())
+                            setSelectedPersonsToAssign(new Set())
                           }
                         }}
                         className="w-4 h-4 cursor-pointer"
@@ -1026,9 +1057,9 @@ export default function ExpenseDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {availableUsers.map((user, idx) => (
+                  {availablePersons.map((person, idx) => (
                     <tr
-                      key={user.id}
+                      key={person.id}
                       className={`border-b transition-colors ${
                         isDarkMode
                           ? `border-gray-700 ${
@@ -1046,8 +1077,8 @@ export default function ExpenseDetailPage() {
                       <td className="text-left py-3 px-4">
                         <input
                           type="checkbox"
-                          checked={selectedUsersToAssign.has(user.id)}
-                          onChange={() => toggleUserSelection(user.id)}
+                          checked={selectedPersonsToAssign.has(person.id)}
+                          onChange={() => togglePersonSelection(person.id)}
                           className="w-4 h-4 cursor-pointer"
                         />
                       </td>
@@ -1056,23 +1087,24 @@ export default function ExpenseDetailPage() {
                           isDarkMode ? "text-gray-300" : "text-gray-900"
                         }`}
                       >
-                        {user.name && user.lastName
-                          ? `${user.name} ${user.lastName}`
-                          : user.username}
+                        {person.fullName || 
+                         (person.firstName && person.lastName
+                           ? `${person.firstName} ${person.lastName}`
+                           : person.user?.username || "Sin nombre")}
                       </td>
                       <td
                         className={`py-3 px-4 ${
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {user.email || "-"}
+                        {person.contactEmail || person.user?.email || "-"}
                       </td>
                       <td
                         className={`py-3 px-4 ${
                           isDarkMode ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {user.department || "-"}
+                        {person.department?.name || "-"}
                       </td>
                     </tr>
                   ))}
@@ -1082,7 +1114,7 @@ export default function ExpenseDetailPage() {
 
             <div className="flex justify-end gap-3 pt-4">
               <button
-                onClick={() => setShowAssignUserModal(false)}
+                onClick={() => setShowAssignPersonModal(false)}
                 className={`px-4 py-2 border rounded-lg transition-colors ${
                   isDarkMode
                     ? "border-gray-700 text-white hover:bg-gray-800"
@@ -1092,15 +1124,15 @@ export default function ExpenseDetailPage() {
                 Cancelar
               </button>
               <button
-                onClick={assignSelectedUsers}
-                disabled={isAssigningUsers || selectedUsersToAssign.size === 0}
+                onClick={assignSelectedPersons}
+                disabled={isAssigningPersons || selectedPersonsToAssign.size === 0}
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   isDarkMode
                     ? "bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
                     : "bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
                 }`}
               >
-                {isAssigningUsers ? "Asignando..." : "Asignar Seleccionados"}
+                {isAssigningPersons ? "Asignando..." : "Asignar Seleccionados"}
               </button>
             </div>
           </div>

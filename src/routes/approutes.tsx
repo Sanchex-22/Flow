@@ -46,6 +46,9 @@ import UpdateCompany from "../pages/account/settings/components/updateCompany";
 import SettingsPage from "../pages/account/settings/page";
 import AllSettingsPage from "../pages/account/settings/components/allSettingsPage";
 import { UpdateDepartment } from "../pages/account/settings/components/updateDepartment";
+import PersonPage from "../pages/account/person/page";
+import { AllPersons } from "../pages/account/person/components/AllPersons";
+import CreatePersonPage from "../pages/account/person/components/UpdatePerson";
 
 // Tipado de usuario
 export interface User {
@@ -359,6 +362,42 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         <Route path="all" element={<AllUsers />} />
         <Route path="create" element={<CreateUserPage />} />
         <Route path="edit/:id" element={<CreateUserPage />} />
+      </Route>
+
+      <Route
+        path={`/:${code}/persons/*`}
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="persons"
+              description="persons"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+            >
+              <PersonPage
+                subroutes={
+                  routesConfig.find((route) => route.name === "Persons")
+                    ?.subroutes || []
+                }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<AllPersons />} />
+        <Route path="create" element={<CreatePersonPage />} />
+        <Route path="edit/:id" element={<CreatePersonPage />} />
       </Route>
 
       <Route
