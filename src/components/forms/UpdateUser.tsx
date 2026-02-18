@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import Select from "react-select";
 import { Company } from "../../context/routerContext";
+import { useTheme } from "../../context/themeContext";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -60,24 +61,22 @@ interface UpdateUserProps {
 }
 
 const fetcher = async (url: string) => {
-  const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const res = await fetch(url, {
-    method: "GET",
-    headers,
-    credentials: "include",
-  });
+  const token =
+    localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(url, { method: "GET", headers, credentials: "include" });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 };
 
-export default function UpdateUser({ userID, departments, selectedCompany }: UpdateUserProps) {
+export default function UpdateUser({
+  userID,
+  departments,
+  selectedCompany,
+}: UpdateUserProps) {
   const navigate = useNavigate();
+  const { isDarkMode } = useTheme();
   const isEditMode = Boolean(userID);
 
   const { data: userData, error: userError } = useSWR<UserData>(
@@ -89,6 +88,8 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
     `${VITE_API_URL}/api/companies/all`,
     fetcher
   );
+
+  const [fillPersonData, setFillPersonData] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -104,7 +105,7 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
     position: "",
     status: "Activo",
     isActive: true,
-    userCode: "", // ✅ Agregar userCode
+    userCode: "",
   });
 
   const [selectedCompanies, setSelectedCompanies] = useState<CompanyOption[]>([]);
@@ -128,15 +129,18 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
         position: userData.person?.position || "",
         status: userData.person?.status || "Activo",
         isActive: userData.isActive,
-        userCode: userData.person?.userCode || "", // ✅ Incluir userCode
+        userCode: userData.person?.userCode || "",
       });
 
-      const userCompanyOptions = userData.companies.map((uc) => ({
-        value: uc.company.id,
-        label: uc.company.name,
-        code: uc.company.code,
-      }));
-      setSelectedCompanies(userCompanyOptions);
+      if (userData.person) setFillPersonData(true);
+
+      setSelectedCompanies(
+        userData.companies.map((uc) => ({
+          value: uc.company.id,
+          label: uc.company.name,
+          code: uc.company.code,
+        }))
+      );
     } else if (!isEditMode && selectedCompany) {
       setSelectedCompanies([
         {
@@ -149,11 +153,7 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
   }, [userData, isEditMode, allCompanies, selectedCompany]);
 
   const companyOptions: CompanyOption[] =
-    allCompanies?.map((company) => ({
-      value: company.id,
-      label: company.name,
-      code: company.code,
-    })) || [];
+    allCompanies?.map((c) => ({ value: c.id, label: c.name, code: c.code })) || [];
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -168,12 +168,14 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
         newErrors.password = "La contraseña debe tener al menos 8 caracteres";
     }
 
-    if (formData.password && formData.password !== formData.confirmPassword) {
+    if (formData.password && formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Las contraseñas no coinciden";
+
+    if (fillPersonData) {
+      if (!formData.firstName.trim()) newErrors.firstName = "El nombre es requerido";
+      if (!formData.lastName.trim()) newErrors.lastName = "El apellido es requerido";
     }
 
-    if (!formData.firstName.trim()) newErrors.firstName = "El nombre es requerido";
-    if (!formData.lastName.trim()) newErrors.lastName = "El apellido es requerido";
     if (selectedCompanies.length === 0)
       newErrors.companies = "Debe seleccionar al menos una compañía";
 
@@ -183,69 +185,60 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsSubmitting(true);
     setSubmitError("");
 
     try {
-      const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+      const token =
+        localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
 
-      // ✅ Preparar payload con companyIds como array
       const payload: any = {
         username: formData.username,
         email: formData.email,
         role: formData.role,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        contactEmail: formData.contactEmail || formData.email,
-        phoneNumber: formData.phoneNumber,
-        departmentId: formData.departmentId || null,
-        position: formData.position,
-        status: formData.status,
         isActive: formData.isActive,
-        companyIds: selectedCompanies.map(c => c.value), // ✅ Array de IDs
-        userCode: formData.userCode || undefined, // ✅ Incluir userCode
+        companyIds: selectedCompanies.map((c) => c.value),
       };
 
-      if (formData.password) {
-        payload.password = formData.password;
-      }
+      if (formData.password) payload.password = formData.password;
 
-      if (isEditMode) {
-        // ✅ MODO EDICIÓN: Una sola llamada PUT con companyIds
-        const response = await fetch(`${VITE_API_URL}/api/users/edit/${userID}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Error al actualizar el usuario");
-        }
+      if (fillPersonData) {
+        payload.createPerson = true;
+        payload.updatePerson = true;
+        payload.firstName = formData.firstName;
+        payload.lastName = formData.lastName;
+        payload.contactEmail = formData.contactEmail || formData.email;
+        payload.phoneNumber = formData.phoneNumber;
+        payload.departmentId = formData.departmentId || null;
+        payload.position = formData.position;
+        payload.status = formData.status;
+        if (formData.userCode) payload.userCode = formData.userCode;
       } else {
-        // ✅ MODO CREACIÓN: Una sola llamada POST con companyIds
-        const response = await fetch(`${VITE_API_URL}/api/users/create`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Error al crear el usuario");
-        }
+        payload.createPerson = false;
+        payload.updatePerson = false;
       }
+
+      const url = isEditMode
+        ? `${VITE_API_URL}/api/users/edit/${userID}`
+        : `${VITE_API_URL}/api/users/create`;
+
+      const response = await fetch(url, {
+        method: isEditMode ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(
+          data.error || `Error al ${isEditMode ? "actualizar" : "crear"} el usuario`
+        );
 
       navigate(`/${selectedCompany?.code}/users/all`);
     } catch (error: any) {
@@ -258,67 +251,79 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // ── Clases reutilizables según el tema ──────────────────────────────────────
+  const card = isDarkMode
+    ? "bg-gray-800 border-gray-700"
+    : "bg-white border-gray-200 shadow-sm";
+
+  const cardTitle   = isDarkMode ? "text-white"      : "text-gray-900";
+  const cardSubtitle = isDarkMode ? "text-gray-400"   : "text-gray-500";
+  const divider     = isDarkMode ? "border-gray-700" : "border-gray-200";
+
+  const inputBase = isDarkMode
+    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+    : "bg-gray-50  border-gray-300 text-gray-900 placeholder-gray-400";
+
+  const selectBase = isDarkMode
+    ? "bg-gray-700 border-gray-600 text-white"
+    : "bg-gray-50  border-gray-300 text-gray-900";
+
+  const disabledInput = isDarkMode
+    ? "bg-gray-600 border-gray-500 text-gray-400"
+    : "bg-gray-100 border-gray-300 text-gray-400";
+
+  const cancelBtn = isDarkMode
+    ? "bg-gray-700 hover:bg-gray-600 text-white"
+    : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300";
+
+  // React-Select dinámico
   const customStyles = {
     control: (base: any) => ({
       ...base,
-      backgroundColor: "#374151",
-      borderColor: errors.companies ? "#ef4444" : "#4b5563",
+      backgroundColor: isDarkMode ? "#374151" : "#f9fafb",
+      borderColor: errors.companies ? "#ef4444" : isDarkMode ? "#4b5563" : "#d1d5db",
       minHeight: "42px",
-      "&:hover": {
-        borderColor: "#6b7280",
-      },
+      boxShadow: "none",
+      "&:hover": { borderColor: isDarkMode ? "#6b7280" : "#9ca3af" },
     }),
     menu: (base: any) => ({
       ...base,
-      backgroundColor: "#374151",
+      backgroundColor: isDarkMode ? "#374151" : "#ffffff",
+      border: `1px solid ${isDarkMode ? "#4b5563" : "#d1d5db"}`,
     }),
     option: (base: any, state: any) => ({
       ...base,
-      backgroundColor: state.isFocused ? "#4b5563" : "#374151",
-      color: "#ffffff",
-      "&:hover": {
-        backgroundColor: "#4b5563",
-      },
+      backgroundColor: state.isFocused
+        ? isDarkMode ? "#4b5563" : "#f3f4f6"
+        : isDarkMode ? "#374151" : "#ffffff",
+      color: isDarkMode ? "#ffffff" : "#111827",
     }),
     multiValue: (base: any) => ({
       ...base,
-      backgroundColor: "#3b82f6",
+      backgroundColor: isDarkMode ? "#3b82f6" : "#dbeafe",
     }),
     multiValueLabel: (base: any) => ({
       ...base,
-      color: "#ffffff",
+      color: isDarkMode ? "#ffffff" : "#1d4ed8",
     }),
     multiValueRemove: (base: any) => ({
       ...base,
-      color: "#ffffff",
+      color: isDarkMode ? "#ffffff" : "#1d4ed8",
       "&:hover": {
-        backgroundColor: "#2563eb",
-        color: "#ffffff",
+        backgroundColor: isDarkMode ? "#2563eb" : "#bfdbfe",
+        color: isDarkMode ? "#ffffff" : "#1e40af",
       },
     }),
-    input: (base: any) => ({
-      ...base,
-      color: "#ffffff",
-    }),
-    placeholder: (base: any) => ({
-      ...base,
-      color: "#9ca3af",
-    }),
-    singleValue: (base: any) => ({
-      ...base,
-      color: "#ffffff",
-    }),
+    input: (base: any) => ({ ...base, color: isDarkMode ? "#ffffff" : "#111827" }),
+    placeholder: (base: any) => ({ ...base, color: "#9ca3af" }),
+    singleValue: (base: any) => ({ ...base, color: isDarkMode ? "#ffffff" : "#111827" }),
   };
 
   if (userError) {
@@ -337,13 +342,13 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
         </div>
       )}
 
-      {/* Información de Cuenta */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-6 text-white">Información de Cuenta</h2>
+      {/* ── Información de Cuenta ── */}
+      <div className={`rounded-lg p-6 border transition-colors duration-200 ${card}`}>
+        <h2 className={`text-xl font-bold mb-6 ${cardTitle}`}>Información de Cuenta</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>
               Nombre de Usuario *
             </label>
             <input
@@ -351,31 +356,27 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className={`w-full bg-gray-700 border ${
-                errors.username ? "border-red-500" : "border-gray-600"
-              } rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase} ${errors.username ? "border-red-500" : ""}`}
               placeholder="usuario123"
             />
             {errors.username && <p className="text-red-400 text-sm mt-1">{errors.username}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email *</label>
+            <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Email *</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full bg-gray-700 border ${
-                errors.email ? "border-red-500" : "border-gray-600"
-              } rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase} ${errors.email ? "border-red-500" : ""}`}
               placeholder="usuario@ejemplo.com"
             />
             {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>
               Contraseña {!isEditMode && "*"}
             </label>
             <input
@@ -383,16 +384,14 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={`w-full bg-gray-700 border ${
-                errors.password ? "border-red-500" : "border-gray-600"
-              } rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase} ${errors.password ? "border-red-500" : ""}`}
               placeholder={isEditMode ? "Dejar vacío para mantener la actual" : "••••••••"}
             />
             {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>
               Confirmar Contraseña {!isEditMode && "*"}
             </label>
             <input
@@ -400,9 +399,7 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`w-full bg-gray-700 border ${
-                errors.confirmPassword ? "border-red-500" : "border-gray-600"
-              } rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase} ${errors.confirmPassword ? "border-red-500" : ""}`}
               placeholder="••••••••"
             />
             {errors.confirmPassword && (
@@ -411,12 +408,12 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Rol *</label>
+            <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Rol *</label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${selectBase}`}
             >
               <option value="USER">Usuario</option>
               <option value="ADMIN">Administrador</option>
@@ -431,141 +428,174 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
               name="isActive"
               checked={formData.isActive}
               onChange={handleChange}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
             />
-            <label className="ml-2 text-sm text-gray-300">Cuenta Activa</label>
+            <label className={`ml-2 text-sm ${cardSubtitle}`}>Cuenta Activa</label>
           </div>
         </div>
       </div>
 
-      {/* Información Personal */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-6 text-white">Información Personal</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* ── Toggle Información Personal ── */}
+      <div className={`rounded-lg p-6 border transition-colors duration-200 ${card}`}>
+        <div className="flex items-center justify-between">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Nombre *</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className={`w-full bg-gray-700 border ${
-                errors.firstName ? "border-red-500" : "border-gray-600"
-              } rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              placeholder="Juan"
+            <h2 className={`text-xl font-bold ${cardTitle}`}>Información Personal</h2>
+            <p className={`text-sm mt-1 ${cardSubtitle}`}>
+              {fillPersonData
+                ? "Los datos personales serán guardados junto al usuario."
+                : "Opcional — puedes completar estos datos ahora o más adelante."}
+            </p>
+          </div>
+
+          {/* Toggle switch */}
+          <button
+            type="button"
+            onClick={() => {
+              setFillPersonData((prev) => !prev);
+              if (fillPersonData) {
+                setErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.firstName;
+                  delete next.lastName;
+                  return next;
+                });
+              }
+            }}
+            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              isDarkMode ? "focus:ring-offset-gray-800" : "focus:ring-offset-white"
+            } ${fillPersonData ? "bg-blue-600" : isDarkMode ? "bg-gray-600" : "bg-gray-300"}`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${
+                fillPersonData ? "translate-x-8" : "translate-x-1"
+              }`}
             />
-            {errors.firstName && <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>}
-          </div>
+          </button>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Apellido *</label>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              className={`w-full bg-gray-700 border ${
-                errors.lastName ? "border-red-500" : "border-gray-600"
-              } rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              placeholder="Pérez"
-            />
-            {errors.lastName && <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Email de Contacto
-            </label>
-            <input
-              type="email"
-              name="contactEmail"
-              value={formData.contactEmail}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="contacto@ejemplo.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="+507 1234-5678"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Posición</label>
-            <input
-              type="text"
-              name="position"
-              value={formData.position}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Desarrollador"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Departamento</label>
-            <select
-              name="departmentId"
-              value={formData.departmentId}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Seleccionar departamento</option>
-              {departments?.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Estado</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Activo">Activo</option>
-              <option value="Inactivo">Inactivo</option>
-            </select>
-          </div>
-
-          {/* ✅ Mostrar userCode solo en modo edición (solo lectura) */}
-          {isEditMode && formData.userCode && (
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Código de Usuario
-              </label>
+        {fillPersonData && (
+          <div className={`mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6 ${divider}`}>
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Nombre *</label>
               <input
                 type="text"
-                name="userCode"
-                value={formData.userCode}
-                disabled
-                className="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-2 text-gray-400 cursor-not-allowed"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase} ${errors.firstName ? "border-red-500" : ""}`}
+                placeholder="Juan"
               />
-              <p className="text-xs text-gray-400 mt-1">
-                El código de usuario se asigna automáticamente y no puede ser modificado
-              </p>
+              {errors.firstName && <p className="text-red-400 text-sm mt-1">{errors.firstName}</p>}
             </div>
-          )}
-        </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Apellido *</label>
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase} ${errors.lastName ? "border-red-500" : ""}`}
+                placeholder="Pérez"
+              />
+              {errors.lastName && <p className="text-red-400 text-sm mt-1">{errors.lastName}</p>}
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>
+                Email de Contacto
+              </label>
+              <input
+                type="email"
+                name="contactEmail"
+                value={formData.contactEmail}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase}`}
+                placeholder="contacto@ejemplo.com"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Teléfono</label>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase}`}
+                placeholder="+507 1234-5678"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Posición</label>
+              <input
+                type="text"
+                name="position"
+                value={formData.position}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputBase}`}
+                placeholder="Desarrollador"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>
+                Departamento
+              </label>
+              <select
+                name="departmentId"
+                value={formData.departmentId}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${selectBase}`}
+              >
+                <option value="">Seleccionar departamento</option>
+                {departments?.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>Estado</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${selectBase}`}
+              >
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            {isEditMode && formData.userCode && (
+              <div className="md:col-span-2">
+                <label className={`block text-sm font-medium mb-2 ${cardSubtitle}`}>
+                  Código de Usuario
+                </label>
+                <input
+                  type="text"
+                  name="userCode"
+                  value={formData.userCode}
+                  disabled
+                  className={`w-full border rounded-lg px-4 py-2 cursor-not-allowed transition-colors ${disabledInput}`}
+                />
+                <p className={`text-xs mt-1 ${cardSubtitle}`}>
+                  El código de usuario se asigna automáticamente y no puede ser modificado
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Compañías Asignadas */}
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h2 className="text-xl font-bold mb-4 text-white">Compañías Asignadas *</h2>
-        <p className="text-gray-400 text-sm mb-4">
+      {/* ── Compañías Asignadas ── */}
+      <div className={`rounded-lg p-6 border transition-colors duration-200 ${card}`}>
+        <h2 className={`text-xl font-bold mb-4 ${cardTitle}`}>Compañías Asignadas *</h2>
+        <p className={`text-sm mb-4 ${cardSubtitle}`}>
           Seleccione una o más compañías a las que pertenecerá este usuario
         </p>
         <Select
@@ -574,38 +604,35 @@ export default function UpdateUser({ userID, departments, selectedCompany }: Upd
           value={selectedCompanies}
           onChange={(selected) => {
             setSelectedCompanies(selected as CompanyOption[]);
-            if (errors.companies) {
-              setErrors((prev) => ({ ...prev, companies: "" }));
-            }
+            if (errors.companies) setErrors((prev) => ({ ...prev, companies: "" }));
           }}
           styles={customStyles}
           placeholder="Seleccionar compañías..."
           noOptionsMessage={() => "No hay compañías disponibles"}
         />
-        {errors.companies && <p className="text-red-400 text-sm mt-1">{errors.companies}</p>}
-
+        {errors.companies && (
+          <p className="text-red-400 text-sm mt-1">{errors.companies}</p>
+        )}
         {selectedCompanies.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm text-gray-400 mb-2">
-              {selectedCompanies.length} compañía(s) seleccionada(s)
-            </p>
-          </div>
+          <p className={`text-sm mt-4 ${cardSubtitle}`}>
+            {selectedCompanies.length} compañía(s) seleccionada(s)
+          </p>
         )}
       </div>
 
-      {/* Buttons */}
+      {/* ── Botones ── */}
       <div className="flex justify-end space-x-4">
         <button
           type="button"
           onClick={() => navigate(`/${selectedCompany?.code}/users/all`)}
-          className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          className={`px-6 py-2 rounded-lg transition-colors ${cancelBtn}`}
           disabled={isSubmitting}
         >
           Cancelar
         </button>
         <button
           type="submit"
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-60"
           disabled={isSubmitting}
         >
           {isSubmitting ? (

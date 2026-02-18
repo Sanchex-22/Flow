@@ -120,7 +120,7 @@ export const AllUsers: React.FC = () => {
             }
 
             mutate(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`)
-            showNotification("success", `Usuario ${deleteConfirmation.user.person.fullName} eliminado exitosamente`)
+            showNotification("success", `Usuario ${deleteConfirmation?.user?.username} eliminado exitosamente`)
             closeDeleteConfirmation()
         } catch (error: any) {
             console.error("Error al eliminar usuario:", error)
@@ -152,13 +152,13 @@ export const AllUsers: React.FC = () => {
     }, [data, search, statusFilter])
 
     const columnConfig = {
-        "Nombre Completo": (item: UsuarioFull) => (
+        "Usuario": (item: UsuarioFull) => (
             <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(item?.person?.fullName)}`}>
-                    {item?.person?.fullName?.charAt(0)?.toUpperCase()}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(item?.username)}`}>
+                    {item?.username?.charAt(0)?.toUpperCase()}
                 </div>
                 <div>
-                    <div className="font-medium text-sm">{item?.person?.fullName}</div>
+                    <div className="font-medium text-sm">{item?.username}</div>
                     <div className="text-xs text-gray-400">{item?.id}</div>
                 </div>
             </div>
@@ -293,11 +293,11 @@ export const AllUsers: React.FC = () => {
                             <p className="text-gray-300 mb-2">¿Estás seguro de que deseas eliminar al usuario:</p>
                             <div className="bg-gray-700 rounded-lg p-3 border border-gray-600">
                                 <div className="flex items-center space-x-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(deleteConfirmation.user?.person.fullName || "")}`}>
-                                        {deleteConfirmation.user?.person.fullName?.charAt(0).toUpperCase()}
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(deleteConfirmation.user?.username || "")}`}>
+                                        {deleteConfirmation.user?.username?.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <div className="font-medium text-sm text-white">{deleteConfirmation.user?.person.fullName}</div>
+                                        <div className="font-medium text-sm text-white">{deleteConfirmation.user?.username}</div>
                                         <div className="text-xs text-gray-400">{deleteConfirmation.user?.email}</div>
                                     </div>
                                 </div>
