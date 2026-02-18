@@ -83,7 +83,6 @@ export default function AllExpensePage() {
       .then((r) => r.json())
       .then((data: AnnualSoftwareExpense[]) => {
         setExpenses(data)
-        console.log("📊 Gastos cargados:", data)
 
         const personsMap = new Map<string, AssignedPerson>()
         data.forEach((expense) => {
@@ -105,7 +104,6 @@ export default function AllExpensePage() {
           return 0
         })
 
-        console.log("👥 Personas únicas extraídas:", uniquePersons)
         setAllUniquePersons(uniquePersons)
       })
       .catch((error) => {
@@ -569,9 +567,6 @@ export default function AllExpensePage() {
       <Loader/>
     )
   }
-
-  console.log("📋 Tabla data:", tableData)
-  console.log("👥 Personas a mostrar:", tableData.persons)
 
   return (
     <div
