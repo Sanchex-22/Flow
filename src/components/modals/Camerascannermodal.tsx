@@ -6,7 +6,7 @@ interface CameraScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onScanSuccess: (serial: string) => void;
-  deviceBrand?: string; // Para aplicar validaciones específicas por marca
+  deviceBrand?: string;
 }
 
 const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
@@ -20,9 +20,9 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
   const [scannedData, setScannedData] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [isCameraAvailable, setIsCameraAvailable] = useState(true);
-  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [isCheckingCamera, setIsCheckingCamera] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const readerIdRef = useRef(`qr-reader-${Date.now()}`);
 
   // Detectar si es dispositivo móvil
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -45,7 +45,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     let cleaned = raw.trim();
 
     // Eliminar prefijos comunes
-    const prefixes = ['S/N:', 'SN:', 'SERIAL:', 'Serial Number:', 'S/N '];
+    const prefixes = ['S/N:', 'SN:', 'SERIAL:', 'Serial Number:', 'S/N ', 'Serial:'];
     for (const prefix of prefixes) {
       if (cleaned.toUpperCase().startsWith(prefix.toUpperCase())) {
         cleaned = cleaned.substring(prefix.length).trim();
@@ -56,11 +56,8 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     cleaned = cleaned.replace(/\s+/g, '');
 
     // Correcciones comunes de OCR
-    // Solo aplicar si parece que el serial tiene números al final
     if (/\d/.test(cleaned)) {
-      // Reemplazar O por 0 al final
       cleaned = cleaned.replace(/O$/gi, '0');
-      // Reemplazar I por 1 en contextos numéricos
       cleaned = cleaned.replace(/I(?=\d)/gi, '1');
       cleaned = cleaned.replace(/(?<=\d)I/gi, '1');
     }
@@ -74,21 +71,73 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
 
     const brandUpper = brand.toUpperCase();
 
-    // Validaciones específicas por marca
     const validations: Record<string, RegExp> = {
-      DELL: /^[A-Z0-9]{7}$/, // Service Tag de 7 caracteres
-      HP: /^[A-Z0-9]{10}$/, // Serial de 10 caracteres típicamente
-      LENOVO: /^[A-Z0-9]{8,10}$/, // 8-10 caracteres
-      APPLE: /^[A-Z0-9]{12}$/, // 12 caracteres
-      CISCO: /^[A-Z]{3}\d{8}[A-Z0-9]{2}$/, // Formato específico de Cisco
+      DELL: /^[A-Z0-9]{7}$/,
+      HP: /^[A-Z0-9]{10}$/,
+      LENOVO: /^[A-Z0-9]{8,10}$/,
+      APPLE: /^[A-Z0-9]{12}$/,
+      CISCO: /^[A-Z]{3}\d{8}[A-Z0-9]{2}$/,
     };
 
     if (validations[brandUpper]) {
       return validations[brandUpper].test(serial);
     }
 
-    // Validación genérica: entre 5 y 20 caracteres alfanuméricos
     return /^[A-Z0-9]{5,20}$/i.test(serial);
+  };
+
+  // Verificar permisos de cámara
+  const checkCameraPermissions = async (): Promise<boolean> => {
+    setIsCheckingCamera(true);
+    try {
+      // Primero intentar obtener dispositivos
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length === 0) {
+        setError('No se encontró ninguna cámara en este dispositivo.');
+        setIsCameraAvailable(false);
+        setIsCheckingCamera(false);
+        return false;
+      }
+
+      // Intentar solicitar permiso explícitamente
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'environment' } 
+        });
+        
+        // Detener el stream inmediatamente
+        stream.getTracks().forEach(track => track.stop());
+        
+        setIsCameraAvailable(true);
+        setError('');
+        setIsCheckingCamera(false);
+        return true;
+      } catch (permissionError: any) {
+        console.error('Permission error:', permissionError);
+        
+        if (permissionError.name === 'NotAllowedError') {
+          setError('⚠️ Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.');
+        } else if (permissionError.name === 'NotFoundError') {
+          setError('No se encontró ninguna cámara disponible.');
+        } else if (permissionError.name === 'NotReadableError') {
+          setError('La cámara está siendo usada por otra aplicación. Por favor, cierra otras apps que usen la cámara.');
+        } else {
+          setError(`Error al acceder a la cámara: ${permissionError.message}`);
+        }
+        
+        setIsCameraAvailable(false);
+        setIsCheckingCamera(false);
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Error checking camera:', error);
+      setError('Error al verificar dispositivos de cámara.');
+      setIsCameraAvailable(false);
+      setIsCheckingCamera(false);
+      return false;
+    }
   };
 
   // Iniciar escáner
@@ -97,7 +146,14 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
       setError('');
       setIsScanning(true);
 
-      const scanner = new Html5Qrcode('qr-reader');
+      // Verificar permisos primero
+      const hasPermission = await checkCameraPermissions();
+      if (!hasPermission) {
+        setIsScanning(false);
+        return;
+      }
+
+      const scanner = new Html5Qrcode(readerIdRef.current);
       scannerRef.current = scanner;
 
       const config = {
@@ -107,22 +163,30 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
       };
 
       await scanner.start(
-        { facingMode: 'environment' }, // Cámara trasera
+        { facingMode: 'environment' },
         config,
         (decodedText) => {
-          // Éxito al escanear código de barras/QR
           const cleaned = cleanSerialNumber(decodedText);
           setScannedData(cleaned);
           stopScanner();
         },
         (errorMessage) => {
-            // Error de escaneo (no crítico, solo para debug)
-            console.warn('Error de escaneo:', errorMessage);
+            console.warn('Scan error:', errorMessage);
         }
       );
     } catch (err: any) {
       console.error('Error starting scanner:', err);
-      setError('No se pudo acceder a la cámara. Verifica los permisos.');
+      
+      if (err.name === 'NotAllowedError') {
+        setError('⚠️ Permisos de cámara denegados. Ve a la configuración de tu navegador y permite el acceso a la cámara.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No se encontró ninguna cámara. Asegúrate de que tu dispositivo tenga cámara.');
+      } else if (err.name === 'NotReadableError') {
+        setError('La cámara está siendo usada por otra aplicación. Cierra otras apps y vuelve a intentarlo.');
+      } else {
+        setError('No se pudo iniciar la cámara. Verifica los permisos en la configuración de tu navegador.');
+      }
+      
       setIsCameraAvailable(false);
       setIsScanning(false);
     }
@@ -142,26 +206,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     setIsScanning(false);
   };
 
-  // Toggle Flash (si está disponible)
-  const toggleFlash = async () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as any;
-
-      if (capabilities.torch) {
-        try {
-          await track.applyConstraints({
-            advanced: [{ torch: !flashEnabled } as any],
-          });
-          setFlashEnabled(!flashEnabled);
-        } catch (err) {
-          console.error('Flash no disponible:', err);
-        }
-      }
-    }
-  };
-
   // Confirmar y enviar serial
   const handleConfirm = () => {
     if (!scannedData.trim()) {
@@ -175,7 +219,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
       setError(
         `El formato no coincide con un serial típico de ${deviceBrand}. ¿Deseas continuar de todas formas?`
       );
-      // Permitir continuar de todas formas después de advertencia
     }
 
     onScanSuccess(scannedData);
@@ -187,7 +230,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     stopScanner();
     setScannedData('');
     setError('');
-    setFlashEnabled(false);
     onClose();
   };
 
@@ -198,21 +240,31 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     };
   }, []);
 
+  // Reset estado cuando el modal se abre/cierra
+  useEffect(() => {
+    if (!isOpen) {
+      stopScanner();
+      setScannedData('');
+      setError('');
+      setIsCameraAvailable(true);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2 sm:p-4">
       <div
-        className={`${modalBg} rounded-xl w-full md:max-w-2xl max-h-[90vh] overflow-y-auto transition-colors`}
+        className={`${modalBg} rounded-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto transition-colors`}
       >
         {/* Header */}
-        <div className="border-b border-gray-700">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className={`text-2xl font-bold ${textClass}`}>
+        <div className="p-4 sm:p-6 border-b border-gray-700 sticky top-0 z-10 bg-inherit">
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <h2 className={`text-xl sm:text-2xl font-bold ${textClass} truncate`}>
                 Escanear Número Serial
               </h2>
-              <p className={`text-sm mt-1 ${subTextClass}`}>
+              <p className={`text-xs sm:text-sm mt-1 ${subTextClass}`}>
                 {isMobileDevice
                   ? 'Enfoca el código de barras o la etiqueta del equipo'
                   : 'Esta función está optimizada para dispositivos móviles'}
@@ -220,7 +272,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
             </div>
             <button
               onClick={handleClose}
-              className={`${buttonClass} !p-2`}
+              className={`${buttonClass} !p-2 flex-shrink-0`}
               aria-label="Cerrar"
             >
               <svg
@@ -241,17 +293,17 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Instrucciones */}
           {!isScanning && !scannedData && (
             <div
-              className={`rounded-lg p-4 border ${
+              className={`rounded-lg p-3 sm:p-4 border text-sm ${
                 isDarkMode
                   ? 'bg-blue-900/30 border-blue-700 text-blue-200'
                   : 'bg-blue-50 border-blue-300 text-blue-800'
               }`}
             >
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <svg
                   className="w-5 h-5 flex-shrink-0 mt-0.5"
                   fill="currentColor"
@@ -263,13 +315,13 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
                     clipRule="evenodd"
                   />
                 </svg>
-                <div className="flex-1 text-sm">
+                <div className="flex-1 text-xs sm:text-sm">
                   <p className="font-semibold mb-2">💡 Consejos para un escaneo exitoso:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>Busca el código de barras en la etiqueta del equipo</li>
-                    <li>Asegúrate de tener buena iluminación (usa el flash si es necesario)</li>
+                    <li>Asegúrate de tener buena iluminación</li>
                     <li>Mantén la cámara estable y enfocada</li>
-                    <li>Si no hay código de barras, puedes escribir el serial manualmente</li>
+                    <li>Si no funciona, puedes escribir el serial manualmente</li>
                   </ul>
                 </div>
               </div>
@@ -279,13 +331,13 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
           {/* Error */}
           {error && (
             <div
-              className={`rounded-lg p-4 border ${
+              className={`rounded-lg p-3 sm:p-4 border text-sm ${
                 isDarkMode
                   ? 'bg-red-900/30 border-red-700 text-red-200'
                   : 'bg-red-50 border-red-300 text-red-800'
               }`}
             >
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <svg
                   className="w-5 h-5 flex-shrink-0"
                   fill="currentColor"
@@ -297,7 +349,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
                     clipRule="evenodd"
                   />
                 </svg>
-                <p className="text-sm flex-1">{error}</p>
+                <p className="text-xs sm:text-sm flex-1">{error}</p>
               </div>
             </div>
           )}
@@ -309,51 +361,21 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
               {!isScanning && !scannedData && (
                 <button
                   onClick={startScanner}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                  disabled={isCheckingCamera}
+                  className="w-full py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  Abrir Cámara
-                </button>
-              )}
-
-              {/* Visor de cámara */}
-              {isScanning && (
-                <div className="relative">
-                  <div
-                    id="qr-reader"
-                    className="rounded-lg overflow-hidden"
-                    style={{ width: '100%' }}
-                  />
-
-                  {/* Controles de cámara */}
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
-                    <button
-                      onClick={toggleFlash}
-                      className={`p-3 rounded-full ${
-                        flashEnabled ? 'bg-yellow-500' : 'bg-gray-800/80'
-                      } text-white backdrop-blur-sm`}
-                      aria-label="Toggle flash"
-                    >
+                  {isCheckingCamera ? (
+                    <>
+                      <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      <span>Verificando permisos...</span>
+                    </>
+                  ) : (
+                    <>
                       <svg
-                        className="w-6 h-6"
+                        className="w-5 h-5 sm:w-6 sm:h-6"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -362,14 +384,35 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                         />
                       </svg>
-                    </button>
+                      Abrir Cámara
+                    </>
+                  )}
+                </button>
+              )}
 
+              {/* Visor de cámara */}
+              {isScanning && (
+                <div className="relative">
+                  <div
+                    id={readerIdRef.current}
+                    className="rounded-lg overflow-hidden w-full"
+                    style={{ minHeight: '250px' }}
+                  />
+
+                  {/* Controles de cámara */}
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
                     <button
                       onClick={stopScanner}
-                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full backdrop-blur-sm font-semibold"
+                      className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-full backdrop-blur-sm font-semibold text-sm sm:text-base shadow-lg"
                     >
                       Cancelar
                     </button>
@@ -379,14 +422,14 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
             </div>
           ) : (
             <div
-              className={`rounded-lg p-6 border text-center ${
+              className={`rounded-lg p-4 sm:p-6 border text-center ${
                 isDarkMode
                   ? 'bg-gray-800 border-gray-700'
                   : 'bg-gray-50 border-gray-300'
               }`}
             >
               <svg
-                className={`w-16 h-16 mx-auto mb-4 ${subTextClass}`}
+                className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${subTextClass}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -398,8 +441,10 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
                   d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
                 />
               </svg>
-              <p className={`text-sm ${subTextClass}`}>
-                La función de escaneo de cámara está optimizada para dispositivos móviles.
+              <p className={`text-xs sm:text-sm ${subTextClass}`}>
+                {!isMobileDevice
+                  ? 'La función de escaneo está optimizada para dispositivos móviles.'
+                  : 'No se pudo acceder a la cámara. Verifica los permisos.'}
                 <br />
                 Ingresa el número serial manualmente.
               </p>
@@ -457,17 +502,20 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
 
         {/* Footer */}
         <div
-          className={`p-6 border-t ${
+          className={`p-4 sm:p-6 border-t ${
             isDarkMode ? 'border-gray-700' : 'border-gray-200'
-          } flex justify-end gap-3`}
+          } flex flex-col sm:flex-row justify-end gap-3 sticky bottom-0 bg-inherit`}
         >
-          <button onClick={handleClose} className={buttonClass}>
+          <button 
+            onClick={handleClose} 
+            className={`${buttonClass} w-full sm:w-auto order-2 sm:order-1`}
+          >
             Cancelar
           </button>
           <button
             onClick={handleConfirm}
             disabled={!scannedData.trim()}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors font-semibold"
+            className="w-full sm:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold order-1 sm:order-2"
           >
             Confirmar Serial
           </button>
