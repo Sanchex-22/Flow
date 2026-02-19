@@ -2,7 +2,7 @@
 "use client"
 
 import useSWR from "swr";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Company, useCompany } from "../../../../context/routerContext";
 import UpdatePersonForm from "../../../../components/forms/UpdatePersonForm";
 import { useTheme } from "../../../../context/themeContext";
@@ -47,7 +47,6 @@ export interface Department {
 
 const CreatePersonPage: React.FC = () => {
     const { id: personID } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const { isDarkMode } = useTheme();
     const renderPage = personID ? "Editar Persona" : "Crear Persona";
     document.title = renderPage;
