@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Company } from "../../context/routerContext"
 import { useTheme } from "../../context/themeContext"
 import { useNavigate } from "react-router-dom"
+import CameraScannerModal from "../modals/Camerascannermodal"
+
 
 interface Departments {
     id: string
@@ -99,6 +101,9 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
     const isEditMode = !!deviceID;
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
+
+    // --- Estados del scanner ---
+    const [showScanner, setShowScanner] = useState(false);
 
     // --- Clases dinámicas reutilizables ---
     const pageBg = isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900";
@@ -249,6 +254,15 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
         }
     };
 
+    // ✅ Handler para recibir serial escaneado
+    const handleScanSuccess = (scannedSerial: string) => {
+        setFormData((prev) => ({ ...prev, serialNumber: scannedSerial }));
+        if (errors.serialNumber) {
+            setErrors((prev) => ({ ...prev, serialNumber: undefined }));
+        }
+        showNotification("success", `Serial escaneado: ${scannedSerial}`);
+    };
+
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
         if (!formData.type.trim()) newErrors.type = "El tipo de equipo es requerido";
@@ -321,9 +335,9 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
             <form onSubmit={handleSubmit} className="space-y-8">
 
                 {/* Sección Básica */}
-                <div className={`rounded-lg p-6 border transition-colors ${cardBg}`}>
+                <div className={`rounded-lg p-4 md:p-6 border transition-colors ${cardBg}`}>
                     <div className="mb-6">
-                        <h2 className="text-xl font-bold">{isEditMode ? 'Actualizar Equipo' : 'Información del Nuevo Equipo'}</h2>
+                        <h2 className="md:text-xl font-bold">{isEditMode ? 'Actualizar Equipo' : 'Información del Nuevo Equipo'}</h2>
                         <p className={`text-sm ${subTextClass}`}>
                             {isEditMode ? `Editando el dispositivo ID: ${deviceID}` : 'Datos básicos del equipo tecnológico'}
                         </p>
@@ -395,14 +409,50 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                             <label className={`block text-sm font-medium mb-2 ${labelClass}`}>
                                 Número de Serie <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="text"
-                                value={formData.serialNumber}
-                                onChange={(e) => handleInputChange("serialNumber", e.target.value)}
-                                className={errors.serialNumber ? inputErrorClass : inputClass}
-                                placeholder="ABC123456789"
-                            />
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={formData.serialNumber}
+                                    onChange={(e) => handleInputChange("serialNumber", e.target.value.toUpperCase())}
+                                    className={errors.serialNumber ? inputErrorClass : inputClass}
+                                    placeholder="ABC123456789"
+                                />
+                                {/* ✅ Botón de escáner */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowScanner(true)}
+                                    className={`px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
+                                        isDarkMode
+                                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                            : "bg-blue-500 hover:bg-blue-600 text-white"
+                                    }`}
+                                    title="Escanear código de barras"
+                                >
+                                    <svg
+                                        className="w-5 h-5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                                        />
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
                             {errors.serialNumber && <p className="text-red-500 text-xs mt-1">{errors.serialNumber}</p>}
+                            <p className={`text-xs mt-1 ${subTextClass}`}>
+                                📷 Usa el botón de cámara para escanear el código de barras
+                            </p>
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Número de Placa</label>
@@ -573,10 +623,10 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                 </div>
 
                 {/* Botones */}
-                <div className="flex justify-end space-x-4">
+                <div className="flex w-full justify-between md:justify-end space-x-4">
                     <button
                         type="button"
-                        className={cancelBtnClass}
+                        className={`${cancelBtnClass}`}
                         onClick={() => navigate(`/${selectedCompany?.code}/devices/all`)}
                     >
                         Cancelar
@@ -600,6 +650,14 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                     </button>
                 </div>
             </form>
+
+            {/* ✅ Modal del scanner */}
+            <CameraScannerModal
+                isOpen={showScanner}
+                onClose={() => setShowScanner(false)}
+                onScanSuccess={handleScanSuccess}
+                deviceBrand={formData.brand}
+            />
 
             {/* Notificación */}
             {notification.show && (

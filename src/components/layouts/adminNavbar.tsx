@@ -119,7 +119,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           : "bg-white border-b border-gray-200"
       }`}
     >
-      <div className="w-full px-6 md:px-6 lg:px-8 py-3 md:py-0">
+      <div className="w-full px-4 md:px-6 lg:px-8 py-3 md:py-0">
         {/* Desktop Layout */}
         <div className="hidden md:flex justify-between items-center h-16">
           {/* Left Section */}

@@ -69,12 +69,9 @@ const UpdateDevicesPage: React.FC = () => {
     );
 
     return (
-        <div className={`relative p-6 min-h-screen font-inter transition-colors ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+        <div className={`relative min-h-screen font-inter transition-colors ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-center mb-2">{renderPage}</h1>
-                <p className={`text-center mb-10 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
-                    Ingresa los detalles del equipo para registrarlo en el sistema.
-                </p>
+                <h1 className="text-lg md:text-3xl font-bold text-center mb-2">{renderPage}</h1>
                 <UpdateDevices
                     persons={persons}
                     deviceID={deviceID}
