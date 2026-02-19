@@ -6,7 +6,6 @@ import { useTheme } from "../../context/themeContext"
 import { useNavigate } from "react-router-dom"
 import CameraScannerModal from "../modals/Camerascannermodal"
 
-
 interface Departments {
     id: string
     name: string
@@ -322,6 +321,16 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                     assignedToPersonId: "", endUser: "", operatingSystem: "",
                 });
                 setInvoicePreview(null);
+                
+                // ✅ Redirigir a la página anterior después de 1.5 segundos
+                setTimeout(() => {
+                    navigate(-1);
+                }, 1500);
+            } else {
+                // Si es edición, redirigir después de 2 segundos
+                setTimeout(() => {
+                    navigate(`/${selectedCompany?.code}/devices/all`);
+                }, 2000);
             }
         } catch (error: any) {
             showNotification("error", error.message || `Error inesperado al ${isEditMode ? 'actualizar' : 'crear'} el equipo`);
@@ -335,9 +344,9 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
             <form onSubmit={handleSubmit} className="space-y-8">
 
                 {/* Sección Básica */}
-                <div className={`rounded-lg p-4 md:p-6 border transition-colors ${cardBg}`}>
+                <div className={`rounded-lg p-6 border transition-colors ${cardBg}`}>
                     <div className="mb-6">
-                        <h2 className="md:text-xl font-bold">{isEditMode ? 'Actualizar Equipo' : 'Información del Nuevo Equipo'}</h2>
+                        <h2 className="text-xl font-bold">{isEditMode ? 'Actualizar Equipo' : 'Información del Nuevo Equipo'}</h2>
                         <p className={`text-sm ${subTextClass}`}>
                             {isEditMode ? `Editando el dispositivo ID: ${deviceID}` : 'Datos básicos del equipo tecnológico'}
                         </p>
@@ -623,10 +632,10 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                 </div>
 
                 {/* Botones */}
-                <div className="flex w-full justify-between md:justify-end space-x-4">
+                <div className="flex justify-end space-x-4">
                     <button
                         type="button"
-                        className={`${cancelBtnClass}`}
+                        className={cancelBtnClass}
                         onClick={() => navigate(`/${selectedCompany?.code}/devices/all`)}
                     >
                         Cancelar

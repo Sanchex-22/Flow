@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import Tesseract from 'tesseract.js';
 import { useTheme } from '../../context/themeContext';
 
 interface CameraScannerModalProps {
@@ -21,10 +22,14 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
   const [error, setError] = useState<string>('');
   const [isCameraAvailable, setIsCameraAvailable] = useState(true);
   const [isCheckingCamera, setIsCheckingCamera] = useState(false);
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+  const [scanMode, setScanMode] = useState<'barcode' | 'ocr'>('barcode');
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const readerIdRef = useRef(`qr-reader-${Date.now()}`);
 
-  // Detectar si es dispositivo móvil
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
@@ -45,21 +50,30 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     let cleaned = raw.trim();
 
     // Eliminar prefijos comunes
-    const prefixes = ['S/N:', 'SN:', 'SERIAL:', 'Serial Number:', 'S/N ', 'Serial:'];
+    const prefixes = ['S/N:', 'SN:', 'SERIAL:', 'Serial Number:', 'S/N ', 'Serial:', 'P/N:'];
     for (const prefix of prefixes) {
       if (cleaned.toUpperCase().startsWith(prefix.toUpperCase())) {
         cleaned = cleaned.substring(prefix.length).trim();
       }
     }
 
-    // Eliminar espacios internos
-    cleaned = cleaned.replace(/\s+/g, '');
+    // Eliminar espacios y caracteres no alfanuméricos
+    cleaned = cleaned.replace(/[^A-Z0-9]/gi, '');
 
     // Correcciones comunes de OCR
     if (/\d/.test(cleaned)) {
-      cleaned = cleaned.replace(/O$/gi, '0');
+      // Corregir O por 0
+      cleaned = cleaned.replace(/O(?=\d)/gi, '0');
+      cleaned = cleaned.replace(/(?<=\d)O/gi, '0');
+      // Corregir I por 1
       cleaned = cleaned.replace(/I(?=\d)/gi, '1');
       cleaned = cleaned.replace(/(?<=\d)I/gi, '1');
+      // Corregir Z por 2
+      cleaned = cleaned.replace(/Z(?=\d)/gi, '2');
+      // Corregir S por 5
+      cleaned = cleaned.replace(/S(?=\d)/gi, '5');
+      // Corregir B por 8
+      cleaned = cleaned.replace(/B(?=\d)/gi, '8');
     }
 
     return cleaned;
@@ -70,7 +84,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     if (!serial || serial.length < 5) return false;
 
     const brandUpper = brand.toUpperCase();
-
     const validations: Record<string, RegExp> = {
       DELL: /^[A-Z0-9]{7}$/,
       HP: /^[A-Z0-9]{10}$/,
@@ -90,7 +103,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
   const checkCameraPermissions = async (): Promise<boolean> => {
     setIsCheckingCamera(true);
     try {
-      // Primero intentar obtener dispositivos
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === 'videoinput');
       
@@ -101,13 +113,11 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         return false;
       }
 
-      // Intentar solicitar permiso explícitamente
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { facingMode: 'environment' } 
         });
         
-        // Detener el stream inmediatamente
         stream.getTracks().forEach(track => track.stop());
         
         setIsCameraAvailable(true);
@@ -115,8 +125,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         setIsCheckingCamera(false);
         return true;
       } catch (permissionError: any) {
-        console.error('Permission error:', permissionError);
-        
         if (permissionError.name === 'NotAllowedError') {
           setError('⚠️ Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.');
         } else if (permissionError.name === 'NotFoundError') {
@@ -132,7 +140,6 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         return false;
       }
     } catch (error: any) {
-      console.error('Error checking camera:', error);
       setError('Error al verificar dispositivos de cámara.');
       setIsCameraAvailable(false);
       setIsCheckingCamera(false);
@@ -140,13 +147,72 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     }
   };
 
-  // Iniciar escáner
-  const startScanner = async () => {
+  // Capturar imagen del video para OCR
+  const captureImageForOCR = (): string | null => {
+    if (!videoRef.current || !canvasRef.current) return null;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context) return null;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    return canvas.toDataURL('image/png');
+  };
+
+  // Procesar OCR
+  const processOCR = async () => {
+    setIsProcessingOCR(true);
+    setError('');
+
+    try {
+      const imageData = captureImageForOCR();
+      if (!imageData) {
+        setError('No se pudo capturar la imagen');
+        setIsProcessingOCR(false);
+        return;
+      }
+
+      const result = await Tesseract.recognize(
+        imageData,
+        'eng',
+        {
+          logger: (m) => {
+            if (m.status === 'recognizing text') {
+              // Opcional: mostrar progreso
+              console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+            }
+          }
+        }
+      );
+
+      const rawText = result.data.text;
+      const cleaned = cleanSerialNumber(rawText);
+
+      if (cleaned.length >= 5) {
+        setScannedData(cleaned);
+        stopScanner();
+      } else {
+        setError('No se pudo leer el texto. Intenta de nuevo con mejor iluminación o ingresa manualmente.');
+      }
+    } catch (err: any) {
+      console.error('OCR Error:', err);
+      setError('Error al procesar la imagen. Intenta de nuevo o ingresa el serial manualmente.');
+    } finally {
+      setIsProcessingOCR(false);
+    }
+  };
+
+  // Iniciar escáner de código de barras
+  const startBarcodeScanner = async () => {
     try {
       setError('');
       setIsScanning(true);
 
-      // Verificar permisos primero
       const hasPermission = await checkCameraPermissions();
       if (!hasPermission) {
         setIsScanning(false);
@@ -171,20 +237,17 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
           stopScanner();
         },
         (errorMessage) => {
+            // Opcional: manejar errores de escaneo
             console.warn('Scan error:', errorMessage);
         }
       );
     } catch (err: any) {
-      console.error('Error starting scanner:', err);
+      console.error('Error starting barcode scanner:', err);
       
       if (err.name === 'NotAllowedError') {
         setError('⚠️ Permisos de cámara denegados. Ve a la configuración de tu navegador y permite el acceso a la cámara.');
-      } else if (err.name === 'NotFoundError') {
-        setError('No se encontró ninguna cámara. Asegúrate de que tu dispositivo tenga cámara.');
-      } else if (err.name === 'NotReadableError') {
-        setError('La cámara está siendo usada por otra aplicación. Cierra otras apps y vuelve a intentarlo.');
       } else {
-        setError('No se pudo iniciar la cámara. Verifica los permisos en la configuración de tu navegador.');
+        setError('No se pudo iniciar el escáner de códigos de barras. Intenta el modo OCR.');
       }
       
       setIsCameraAvailable(false);
@@ -192,8 +255,38 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     }
   };
 
+  // Iniciar modo OCR
+  const startOCRMode = async () => {
+    try {
+      setError('');
+      setIsScanning(true);
+
+      const hasPermission = await checkCameraPermissions();
+      if (!hasPermission) {
+        setIsScanning(false);
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (err: any) {
+      console.error('Error starting OCR mode:', err);
+      setError('No se pudo iniciar la cámara para OCR.');
+      setIsScanning(false);
+    }
+  };
+
   // Detener escáner
   const stopScanner = async () => {
+    // Detener html5-qrcode
     if (scannerRef.current) {
       try {
         await scannerRef.current.stop();
@@ -203,6 +296,13 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         console.error('Error stopping scanner:', err);
       }
     }
+
+    // Detener stream de video
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
     setIsScanning(false);
   };
 
@@ -230,6 +330,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
     stopScanner();
     setScannedData('');
     setError('');
+    setScanMode('barcode');
     onClose();
   };
 
@@ -247,6 +348,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
       setScannedData('');
       setError('');
       setIsCameraAvailable(true);
+      setScanMode('barcode');
     }
   }, [isOpen]);
 
@@ -275,18 +377,8 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
               className={`${buttonClass} !p-2 flex-shrink-0`}
               aria-label="Cerrar"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -294,6 +386,36 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
 
         {/* Body */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Selector de modo */}
+          {!isScanning && !scannedData && isMobileDevice && isCameraAvailable && (
+            <div className="flex gap-2 p-1 bg-gray-700/30 rounded-lg">
+              <button
+                onClick={() => setScanMode('barcode')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  scanMode === 'barcode'
+                    ? 'bg-blue-600 text-white'
+                    : isDarkMode
+                    ? 'text-gray-400 hover:text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                📊 Código de Barras
+              </button>
+              <button
+                onClick={() => setScanMode('ocr')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  scanMode === 'ocr'
+                    ? 'bg-blue-600 text-white'
+                    : isDarkMode
+                    ? 'text-gray-400 hover:text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                🔤 Leer Texto (OCR)
+              </button>
+            </div>
+          )}
+
           {/* Instrucciones */}
           {!isScanning && !scannedData && (
             <div
@@ -304,24 +426,28 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
               }`}
             >
               <div className="flex gap-2 sm:gap-3">
-                <svg
-                  className="w-5 h-5 flex-shrink-0 mt-0.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
+                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <div className="flex-1 text-xs sm:text-sm">
-                  <p className="font-semibold mb-2">💡 Consejos para un escaneo exitoso:</p>
+                  <p className="font-semibold mb-2">
+                    💡 {scanMode === 'barcode' ? 'Modo Código de Barras:' : 'Modo Lectura de Texto (OCR):'}
+                  </p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li>Busca el código de barras en la etiqueta del equipo</li>
-                    <li>Asegúrate de tener buena iluminación</li>
-                    <li>Mantén la cámara estable y enfocada</li>
-                    <li>Si no funciona, puedes escribir el serial manualmente</li>
+                    {scanMode === 'barcode' ? (
+                      <>
+                        <li>Busca el código de barras en la etiqueta</li>
+                        <li>Enfócalo dentro del recuadro</li>
+                        <li>Se detectará automáticamente</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Enfoca el texto del número serial</li>
+                        <li>Asegúrate de tener buena iluminación</li>
+                        <li>Click en "Capturar" cuando esté enfocado</li>
+                        <li>Podrás corregir el texto detectado</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -338,29 +464,21 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
               }`}
             >
               <div className="flex gap-2 sm:gap-3">
-                <svg
-                  className="w-5 h-5 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
+                <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 <p className="text-xs sm:text-sm flex-1">{error}</p>
               </div>
             </div>
           )}
 
-          {/* Scanner / Input Area */}
+          {/* Scanner Area */}
           {isMobileDevice && isCameraAvailable ? (
             <div className="space-y-4">
-              {/* Botón para iniciar escaneo */}
+              {/* Botón para iniciar */}
               {!isScanning && !scannedData && (
                 <button
-                  onClick={startScanner}
+                  onClick={scanMode === 'barcode' ? startBarcodeScanner : startOCRMode}
                   disabled={isCheckingCamera}
                   className="w-full py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                 >
@@ -374,41 +492,24 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
                     </>
                   ) : (
                     <>
-                      <svg
-                        className="w-5 h-5 sm:w-6 sm:h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      Abrir Cámara
+                      {scanMode === 'barcode' ? 'Abrir Escáner de Barras' : 'Abrir Cámara OCR'}
                     </>
                   )}
                 </button>
               )}
 
-              {/* Visor de cámara */}
-              {isScanning && (
+              {/* Visor para código de barras */}
+              {isScanning && scanMode === 'barcode' && (
                 <div className="relative">
                   <div
                     id={readerIdRef.current}
                     className="rounded-lg overflow-hidden w-full"
                     style={{ minHeight: '250px' }}
                   />
-
-                  {/* Controles de cámara */}
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
                     <button
                       onClick={stopScanner}
@@ -419,27 +520,60 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Visor para OCR */}
+              {isScanning && scanMode === 'ocr' && (
+                <div className="relative">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full rounded-lg"
+                    style={{ maxHeight: '400px' }}
+                  />
+                  <canvas ref={canvasRef} className="hidden" />
+                  
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
+                    <button
+                      onClick={stopScanner}
+                      className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-full backdrop-blur-sm font-semibold text-sm sm:text-base shadow-lg"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={processOCR}
+                      disabled={isProcessingOCR}
+                      className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-full backdrop-blur-sm font-semibold text-sm sm:text-base shadow-lg flex items-center gap-2"
+                    >
+                      {isProcessingOCR ? (
+                        <>
+                          <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Procesando...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          </svg>
+                          Capturar y Leer
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div
               className={`rounded-lg p-4 sm:p-6 border text-center ${
-                isDarkMode
-                  ? 'bg-gray-800 border-gray-700'
-                  : 'bg-gray-50 border-gray-300'
+                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
               }`}
             >
-              <svg
-                className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${subTextClass}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
+              <svg className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${subTextClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
               <p className={`text-xs sm:text-sm ${subTextClass}`}>
                 {!isMobileDevice
@@ -475,9 +609,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
           {deviceBrand && (
             <div
               className={`rounded-lg p-3 text-xs ${
-                isDarkMode
-                  ? 'bg-gray-800 text-gray-400'
-                  : 'bg-gray-100 text-gray-600'
+                isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'
               }`}
             >
               <p className="font-semibold mb-1">Formato esperado para {deviceBrand}:</p>
