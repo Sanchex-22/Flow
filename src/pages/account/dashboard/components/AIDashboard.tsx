@@ -9,11 +9,13 @@ import ReportPreviewModal from "../../../../components/modals/ReportPreviewModal
 import PagesHeader from "../../../../components/headers/pagesHeader";
 import { CurrentPathname } from "../../../../components/layouts/main";
 import { usePageName } from "../../../../hook/usePageName";
-import { DashboardData } from "./allDashboard";
+import { DashboardData } from "./types";
+import ActivityIcon from "./ActivityIcon";
 import AIInsightsPanel from "./AIInsightsPanel";
 import AiChatAssistant from "./AiChatAssistant";
+import SoftwareExpensesPanel from "./SoftwareExpensesPanel";
+import PersonsPanel from "./PersonsPanel";
 import { formatDate } from "./utils";
-import ActivityIcon from "./ActivityIcon";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -37,11 +39,10 @@ const AIDashboard: React.FC<DashboardProps> = () => {
         selectedCompany ? `${VITE_API_URL}/api/dashboard/${selectedCompany.id}` : null,
         fetcher,
         {
-            // ✅ FIXES el problema de recarga constante
-            revalidateOnFocus: false,       // No recargar al volver a la pestaña
-            revalidateOnReconnect: false,   // No recargar al reconectar red
-            dedupingInterval: 5 * 60 * 1000, // Cache de 5 minutos
-            shouldRetryOnError: false,      // No reintentar si falla
+            revalidateOnFocus: false,
+            revalidateOnReconnect: false,
+            dedupingInterval: 5 * 60 * 1000,
+            shouldRetryOnError: false,
         }
     );
 
@@ -90,24 +91,34 @@ const AIDashboard: React.FC<DashboardProps> = () => {
                     <AIInsightsPanel companyId={selectedCompany.id} isDarkMode={isDarkMode} />
                 )}
 
-                {/* Inventario + Actividad */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <div className={`rounded-lg p-6 border transition-colors ${cardBg}`}>
-                        <h2 className={`text-xl font-bold mb-1 ${textMain}`}>Inventario por Categoría</h2>
-                        <p className={`text-sm mb-6 ${textSub}`}>Distribución de equipos por tipo</p>
-                        <div className="space-y-4">
+                {/* Gastos de Software */}
+                {dashboardData.softwareExpenses && (
+                    <SoftwareExpensesPanel
+                        data={dashboardData.softwareExpenses}
+                        isDarkMode={isDarkMode}
+                    />
+                )}
+
+                {/* Inventario + Personas + Actividad */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+                    {/* Inventario por Categoría */}
+                    <div className={`rounded-xl p-6 border transition-colors ${cardBg}`}>
+                        <h2 className={`text-lg font-bold mb-1 ${textMain}`}>Inventario por Tipo</h2>
+                        <p className={`text-sm mb-5 ${textSub}`}>Distribución de equipos</p>
+                        <div className="space-y-3">
                             {dashboardData.inventoryByCategory.map((cat, idx) => (
                                 <div key={idx}>
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-3">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                                            <span className={textSub}>{cat.name}</span>
+                                            <span className={`text-sm ${textSub}`}>{cat.name}</span>
                                         </div>
-                                        <span className={textSub}>{cat.count}</span>
+                                        <span className={`text-sm font-medium ${textMain}`}>{cat.count}</span>
                                     </div>
-                                    <div className={`w-full rounded-full h-2 mt-1 ${barBg}`}>
+                                    <div className={`w-full rounded-full h-1.5 ${barBg}`}>
                                         <div
-                                            className="bg-blue-500 h-2 rounded-full transition-all"
+                                            className="bg-blue-500 h-1.5 rounded-full transition-all"
                                             style={{ width: `${(cat.count / totalInventoryCount) * 100}%` }}
                                         />
                                     </div>
@@ -116,17 +127,27 @@ const AIDashboard: React.FC<DashboardProps> = () => {
                         </div>
                     </div>
 
-                    <div className={`rounded-lg p-6 border transition-colors ${cardBg}`}>
-                        <h2 className={`text-xl font-bold mb-1 ${textMain}`}>Actividad Reciente</h2>
-                        <p className={`text-sm mb-6 ${textSub}`}>Últimas acciones registradas</p>
+                    {/* Personas */}
+                    {dashboardData.persons && (
+                        <PersonsPanel data={dashboardData.persons} isDarkMode={isDarkMode} />
+                    )}
+
+                    {/* Actividad Reciente */}
+                    <div className={`rounded-xl p-6 border transition-colors ${cardBg}`}>
+                        <h2 className={`text-lg font-bold mb-1 ${textMain}`}>Actividad Reciente</h2>
+                        <p className={`text-sm mb-5 ${textSub}`}>Últimas acciones registradas</p>
                         <div className="space-y-4">
                             {dashboardData.recentActivity.map((activity, idx) => (
                                 <div key={idx} className="flex items-start space-x-3">
                                     <ActivityIcon icon={activity.icon} />
-                                    <div className="flex-1">
-                                        <p className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{activity.type}</p>
-                                        <p className={`text-sm ${textSub}`}>{activity.description}</p>
-                                        <p className={`text-xs mt-1 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>{formatDate(activity.date)}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-medium truncate ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                                            {activity.type}
+                                        </p>
+                                        <p className={`text-xs truncate ${textSub}`}>{activity.description}</p>
+                                        <p className={`text-xs mt-0.5 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>
+                                            {formatDate(activity.date)}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
@@ -135,14 +156,12 @@ const AIDashboard: React.FC<DashboardProps> = () => {
                 </div>
             </div>
 
-            {/* Chat flotante */}
             <AiChatAssistant
                 dashboardData={dashboardData}
                 companyName={selectedCompany?.name || "la empresa"}
                 isDarkMode={isDarkMode}
             />
 
-            {/* Modal Reporte */}
             {dashboardData && (
                 <ReportPreviewModal
                     isOpen={showReportModal}
