@@ -35,8 +35,8 @@ import ExpensePage from "../pages/account/expense/page";
 import AllExpensePage from "../pages/account/expense/components/allExpense";
 import ReportsPage from "../pages/account/reports/page";
 import AllReportsPage from "../pages/account/reports/components/allReportPage";
-import DashboardPage from "../pages/account/dashboard/page";
-import AllDashboard from "../pages/account/dashboard/components/allDashboard";
+// import DashboardPage from "../pages/account/dashboard/page";
+// import AllDashboard from "../pages/account/dashboard/components/allDashboard";
 import InventoryPage from "../pages/account/inventory/page";
 import AllInventory from "../pages/account/inventory/components/allInventory";
 import UpdateExpensePage from "../pages/account/expense/components/updateExpense";
@@ -49,6 +49,7 @@ import { UpdateDepartment } from "../pages/account/settings/components/updateDep
 import PersonPage from "../pages/account/person/page";
 import { AllPersons } from "../pages/account/person/components/AllPersons";
 import CreatePersonPage from "../pages/account/person/components/UpdatePerson";
+import AIDashboard from "../pages/account/dashboard/components/AIDashboard";
 
 // Tipado de usuario
 export interface User {
@@ -162,18 +163,18 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               publicRoute={false}
               companies={companies}
             >
-              <DashboardPage
+              <AIDashboard
                 currentPathname={pathnameLocation}
-                subroutes={
-                  routesConfig.find((route) => route.name === "Dashboard")
-                    ?.subroutes || []
-                }
+                // subroutes={
+                //   routesConfig.find((route) => route.name === "Dashboard")
+                //     ?.subroutes || []
+                // }
               />
             </EnvolveLayout>
           </ProtectedRoute>
         }
       >
-        <Route path="all" element={<AllDashboard/>} />
+        <Route path="all" element={<AIDashboard/>} />
       </Route>
 
       <Route
