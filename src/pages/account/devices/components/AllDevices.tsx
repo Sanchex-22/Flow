@@ -32,8 +32,8 @@ export interface CreateEquipmentData {
     company: {
         name: string;
     }
-    assignedToPersonId?: string; // ✅ Cambiado
-    assignedToPerson?: {         // ✅ Cambiado
+    assignedToPersonId?: string;
+    assignedToPerson?: {
         fullName: string | null;
         firstName: string | null;
         lastName: string | null;
@@ -43,6 +43,11 @@ export interface CreateEquipmentData {
         maintenances?: number;
         documents?: number;
     }
+}
+
+interface Department {
+    id: string;
+    name: string;
 }
 
 type NotificationType = "success" | "error"
@@ -80,6 +85,25 @@ export default function AllDevices() {
         equipo: null,
         isDeleting: false,
     })
+    const [departments, setDepartments] = useState<Department[]>([])
+    const [selectedDepartment, setSelectedDepartment] = useState<string>("todos")
+
+    // ✅ Cargar departamentos
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            if (!selectedCompany?.code) return;
+            try {
+                const res = await fetch(`${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setDepartments(Array.isArray(data) ? data : []);
+                }
+            } catch (error) {
+                console.error("Error cargando departamentos:", error);
+            }
+        };
+        fetchDepartments();
+    }, [selectedCompany?.code]);
 
     useEffect(() => {
         if (notification.show) {
@@ -92,24 +116,24 @@ export default function AllDevices() {
 
     const exportToExcel = () => {
         const excelData = filteredEquipos.map((equipo) => ({
-            'Modelo': equipo?.model || 'N/A',
             'Marca': equipo?.brand || 'N/A',
+            'Modelo': equipo?.model || 'N/A',
+            'Tipo': equipo?.type || 'N/A',
             'Número de Placa': equipo?.plateNumber || 'N/A',
             'Número de Serie': equipo?.serialNumber || 'N/A',
-            // ✅ Cambiado: assignedToPerson en lugar de assignedToUser.person
             'Persona Asignada': equipo?.assignedToPerson?.fullName || 'Sin asignar',
-            'Empresa': equipo?.company?.name || 'N/A',
-            'Ubicación': equipo?.location || 'N/A',
+            'Posición': equipo?.assignedToPerson?.position || 'N/A',
+            'Departamento': getDepartmentName(equipo?.location) || 'N/A',
             'Estado': equipo?.status || 'Activo',
             'Garantía': equipo?.warrantyDetails || 'N/A',
             'Costo': equipo?.cost || 'N/A',
-            'Tipo': equipo?.type || 'N/A',
+            'Empresa': equipo?.company?.name || 'N/A',
             'Fecha de Adquisición': equipo?.acquisitionDate || 'N/A'
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Equipos');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Dispositivos');
 
         const maxWidth = 50;
         const columnWidths = Object.keys(excelData[0] || {}).map(key => {
@@ -122,8 +146,15 @@ export default function AllDevices() {
         worksheet['!cols'] = columnWidths;
 
         const timestamp = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(workbook, `equipos_${timestamp}.xlsx`);
-        showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} equipos.`);
+        XLSX.writeFile(workbook, `dispositivos_${timestamp}.xlsx`);
+        showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} dispositivos.`);
+    };
+
+    // ✅ Función para obtener nombre del departamento
+    const getDepartmentName = (departmentId: string | null | undefined): string => {
+        if (!departmentId) return "-";
+        const dept = departments.find(d => d.id === departmentId);
+        return dept ? dept.name : departmentId;
     };
 
     if (isLoading) return <Loader />
@@ -145,18 +176,20 @@ export default function AllDevices() {
         const matchesSearch =
             equipo?.model?.toLowerCase()?.includes(searchTermLower) ||
             equipo?.brand?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.type?.toLowerCase()?.includes(searchTermLower) ||
             equipo?.serialNumber?.toLowerCase()?.includes(searchTermLower) ||
-            // ✅ Cambiado: assignedToPerson en lugar de assignedToUser.person
             equipo?.assignedToPerson?.fullName?.toLowerCase()?.includes(searchTermLower) ||
             equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
 
         const matchesType = selectedType === "Todos los..." || equipo?.type === selectedType
 
-        return matchesSearch && matchesType
+        // ✅ Filtro por departamento
+        const matchesDepartment = selectedDepartment === "todos" || equipo?.location === selectedDepartment
+
+        return matchesSearch && matchesType && matchesDepartment
     })
 
     const totalEquipos = filteredEquipos.length
-    // ✅ Cambiado: assignedToPersonId en lugar de assignedToUserId
     const enUso = filteredEquipos.filter(e => e.assignedToPersonId != null).length
     const disponibles = filteredEquipos.filter(e => !e.assignedToPersonId).length
 
@@ -227,46 +260,46 @@ export default function AllDevices() {
         }
     }
 
+    // ✅ TABLA MEJORADA
     const columnConfig = {
-        "Equipo": (item: CreateEquipmentData) => (
+        "Marca/Modelo": (item: CreateEquipmentData) => (
             <div>
-                <div className="font-medium">{item?.model || "N/A"}</div>
+                <div className="font-medium">{item?.brand || "N/A"}</div>
                 <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {item?.brand || "N/A"}
-                </div>
-                <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                    {item?.plateNumber || "N/A"} | {item?.serialNumber || "N/A"}
+                    {item?.model || "N/A"}
                 </div>
             </div>
         ),
-        "Persona/Ubicación": (item: CreateEquipmentData) => ( // ✅ Label actualizado
-            <div className="flex items-start space-x-2">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-4 h-4 mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
-                </svg>
-                <div>
-                    {/* ✅ Cambiado: assignedToPerson en lugar de assignedToUser.person */}
-                    <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {item?.assignedToPerson?.fullName || "Sin asignar"}
-                    </div>
-                    {item?.assignedToPerson?.position && (
-                        <div className={`text-xs mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {item.assignedToPerson.position}
-                        </div>
-                    )}
-                    <div className={`flex items-center space-x-1 text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3 h-3">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span>{item?.company?.name || "N/A"}</span>
-                    </div>
-                    <div className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
-                        {item?.location || "N/A"}
-                    </div>
+        "Tipo": (item: CreateEquipmentData) => (
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {item?.type || "N/A"}
+            </span>
+        ),
+        "Placa/Serie": (item: CreateEquipmentData) => (
+            <div>
+                <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {item?.plateNumber || "-"}
                 </div>
+                <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-600'}`}>
+                    {item?.serialNumber || "N/A"}
+                </div>
+            </div>
+        ),
+        "Departamento": (item: CreateEquipmentData) => (
+            <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {getDepartmentName(item?.location) || "-"}
+            </div>
+        ),
+        "Lo tiene": (item: CreateEquipmentData) => (
+            <div>
+                <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {item?.assignedToPerson?.fullName || "-"}
+                </div>
+                {item?.assignedToPerson?.position && (
+                    <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {item.assignedToPerson.position}
+                    </div>
+                )}
             </div>
         ),
         "Estado": (item: CreateEquipmentData) => (
@@ -275,19 +308,13 @@ export default function AllDevices() {
             </span>
         ),
         "Garantía": (item: CreateEquipmentData) => (
-            <div className={`flex items-center space-x-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-                <span>{item?.warrantyDetails || "N/A"}</span>
-            </div>
+            <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {item?.warrantyDetails || "-"}
+            </span>
         ),
         "Costo": (item: CreateEquipmentData) => (
             <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {item?.cost || "N/A"}
+                ${item?.cost || "-"}
             </span>
         ),
     };
@@ -297,7 +324,6 @@ export default function AllDevices() {
             case 'Todos los Equipos':
                 return filteredEquipos;
             case 'Asignaciones':
-                // ✅ Cambiado: assignedToPersonId en lugar de assignedToUserId
                 return filteredEquipos.filter(e => e.assignedToPersonId);
             case 'Garantías':
                 return filteredEquipos.filter(e => e.warrantyDetails);
@@ -334,7 +360,7 @@ export default function AllDevices() {
                             </button>
                         </div>
                         <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            ¿Estás seguro de que quieres eliminar el equipo{" "}
+                            ¿Estás seguro de que quieres eliminar el dispositivo{" "}
                             <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                 {deleteConfirmation.equipo?.model} ({deleteConfirmation.equipo?.serialNumber})
                             </span>? Esta acción no se puede deshacer.
@@ -366,7 +392,7 @@ export default function AllDevices() {
             )}
 
             <PagesHeader
-                title={`Equipos`}
+                title={`Dispositivos`}
                 description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
                 onExport={exportToExcel}
                 showCreate
@@ -375,68 +401,32 @@ export default function AllDevices() {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Equipos</span>
-                        <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                                <line x1="8" y1="21" x2="16" y2="21" />
-                                <line x1="12" y1="17" x2="12" y2="21" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En {selectedCompany?.name}</div>
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Dispositivos</span>
+                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
+                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En {selectedCompany?.name}</div>
                 </div>
 
                 <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
-                        <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="m22 21-3-3m0 0a5.5 5.5 0 1 0-7.78-7.78 5.5 5.5 0 0 0 7.78 7.78Z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{enUso}</div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Equipos asignados</div>
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
+                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
+                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Asignados</div>
                 </div>
 
                 <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
-                        <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                                <line x1="8" y1="21" x2="16" y2="21" />
-                                <line x1="12" y1="17" x2="12" y2="21" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{disponibles}</div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Sin asignar</div>
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
+                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
+                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Sin asignar</div>
                 </div>
 
                 <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías por Vencer</span>
-                        <div className={`w-6 h-6 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-full h-full">
-                                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                                <path d="M12 9v4" />
-                                <path d="m12 17 .01 0" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{garantiasPorVencer}</div>
-                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Próximos 30 días</div>
+                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías por Vencer</span>
+                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{garantiasPorVencer}</div>
+                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Próximos 30 días</div>
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="mb-6">
+            {/* ✅ Tabs + Filtro por Departamento */}
+            <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
                 <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
                         <button
@@ -452,16 +442,38 @@ export default function AllDevices() {
                         </button>
                     ))}
                 </div>
+
+                {/* ✅ Filtro por Departamento */}
+                <div className="flex-1">
+                    <select
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className={`w-full md:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isDarkMode
+                                ? 'bg-gray-800 border border-gray-700 text-white'
+                                : 'bg-white border border-gray-300 text-gray-900'
+                        }`}
+                    >
+                        <option value="todos">📍 Todos los Departamentos</option>
+                        {departments.map(dept => (
+                            <option key={dept.id} value={dept.id}>
+                                📍 {dept.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
-            <Tabla
-                datos={getTabData()}
-                titulo={`${pageName || "Dispositivos"} List`}
-                columnasPersonalizadas={columnConfig}
-                onEditar={(item) => window.location.href = `edit/${item.id}`}
-                onEliminar={openDeleteConfirmation}
-                mostrarAcciones={true}
-            />
+            <div className="">
+                <Tabla
+                    datos={getTabData()}
+                    titulo={`${pageName || "Dispositivos"} List`}
+                    columnasPersonalizadas={columnConfig}
+                    onEditar={(item) => window.location.href = `edit/${item.id}`}
+                    onEliminar={openDeleteConfirmation}
+                    mostrarAcciones={true}
+                />
+            </div>
         </div>
     )
 }

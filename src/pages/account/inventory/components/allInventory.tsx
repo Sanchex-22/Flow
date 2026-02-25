@@ -82,6 +82,7 @@ export default function AllInventory() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("todos");
   const { pageName } = usePageName();
   const [newEquipment, setNewEquipment] = useState({
     brand: "", model: "", type: "", 
@@ -143,7 +144,7 @@ export default function AllInventory() {
     ? inventory.filter((item) => {
         if (search.trim() === "") return true;
         const term = search.toLowerCase();
-        return (
+        const matchesSearch = (
           item.brand.toLowerCase().includes(term) ||
           item.model.toLowerCase().includes(term) ||
           item.type.toLowerCase().includes(term) ||
@@ -152,6 +153,9 @@ export default function AllInventory() {
           item.location?.toLowerCase().includes(term) ||
           item.assignedToPerson?.fullName?.toLowerCase().includes(term)
         );
+        // ✅ Filtro por departamento
+        const matchesDepartment = selectedDepartment === "todos" || item.location === selectedDepartment;
+        return matchesSearch && matchesDepartment;
       })
     : [];
 
@@ -408,6 +412,26 @@ export default function AllInventory() {
         </div>
       )}
 
+      {/* ✅ Filtro por Departamento */}
+      <div className="py-1">
+        <select
+          value={selectedDepartment}
+          onChange={(e) => setSelectedDepartment(e.target.value)}
+          className={`w-full md:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border border-gray-700 text-white'
+              : 'bg-white border border-gray-300 text-gray-900'
+          }`}
+        >
+          <option value="todos">📍 Todos los Departamentos</option>
+          {departments.map(dept => (
+            <option key={dept.id} value={dept.id}>
+              📍 {dept.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Tabla */}
       {filteredInventory.length > 0 ? (
         <Tabla
@@ -419,7 +443,7 @@ export default function AllInventory() {
           mostrarAcciones={true}
         />
       ) : (
-        <p className={`mt-6 ${subTextClass}`}>No hay equipos aún. Puedes agregar uno o importar un CSV.</p>
+        <p className={`mt-6 px-4 ${subTextClass}`}>No hay equipos aún. Puedes agregar uno o importar un CSV.</p>
       )}
 
       {/* Modal Agregar Equipo */}

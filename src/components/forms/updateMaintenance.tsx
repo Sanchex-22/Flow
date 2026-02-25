@@ -26,12 +26,21 @@ interface User {
     person?: { fullName?: string };
 }
 
+interface Person {
+    id: string;
+    fullName: string | null;
+    firstName: string | null;
+    lastName: string | null;
+}
+
 interface Equipment {
     id: string;
     serialNumber: string;
     type: string;
     brand: string;
     model: string;
+    plateNumber?: string | null;
+    assignedToPerson?: Person | null;
 }
 
 interface MaintenanceFormData {
@@ -102,6 +111,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
         formData.companyId ? `${VITE_API_URL}/api/devices/all` : null,
         fetcher
     );
+    console.log("Equipments fetched:", equipments);
 
     // --- EFECTOS (LIFECYCLE) ---
     useEffect(() => {
@@ -270,7 +280,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                 {/* Título */}
                 <div className="md:col-span-2">
                     <label htmlFor="title" className={`block text-sm font-medium ${labelClasses} mb-2`}>
-                        Título
+                        Título <span className="text-red-500">*</span>
                     </label>
                     <input 
                         type="text" 
@@ -299,10 +309,10 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                     {errors.companyId && <p className={isDarkMode ? "text-red-400 text-sm mt-1" : "text-red-500 text-sm mt-1"}>{errors.companyId}</p>}
                 </div>
 
-                {/* Equipo */}
+                {/* ✅ Equipo - MEJORADO */}
                 <div>
                     <label htmlFor="equipmentId" className={`block text-sm font-medium ${labelClasses} mb-2`}>
-                        Equipo Afectado
+                        Equipo Afectado <span className="text-red-500">*</span>
                     </label>
                     <select 
                         id="equipmentId" 
@@ -313,7 +323,14 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                         disabled={!formData.companyId}
                     >
                         <option value="">{formData.companyId ? 'Seleccione un equipo' : 'Primero elija una compañía'}</option>
-                        {equipments?.map(e => <option key={e.id} value={e.id}>{`${e.type} ${e.brand} (${e.serialNumber})`}</option>)}
+                        {equipments?.map(e => (
+                            <option key={e.id} value={e.id}>
+                                {/* ✅ Formato mejorado con información relevante */}
+                                📦 {e.type} - {e.brand} {e.model} | Serial: {e.serialNumber}
+                                {e.plateNumber ? ` [${e.plateNumber}]` : ''}
+                                {e.assignedToPerson ? ` → 👤 ${e.assignedToPerson.fullName}` : ' → Sin asignar'}
+                            </option>
+                        ))}
                     </select>
                     {errors.equipmentId && <p className={isDarkMode ? "text-red-400 text-xs mt-1" : "text-red-500 text-xs mt-1"}>{errors.equipmentId}</p>}
                 </div>
@@ -321,7 +338,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                 {/* Tipo de Mantenimiento */}
                 <div>
                     <label htmlFor="type" className={`block text-sm font-medium ${labelClasses} mb-2`}>
-                        Tipo
+                        Tipo <span className="text-red-500">*</span>
                     </label>
                     <select 
                         id="type" 
@@ -331,8 +348,8 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                         className={inputClasses}
                     >
                         <option value="">Seleccione un tipo</option>
-                        <option value="PREVENTIVE">Preventivo</option>
-                        <option value="CORRECTIVE">Correctivo</option>
+                        <option value="PREVENTIVE">🛡️ Preventivo</option>
+                        <option value="CORRECTIVE">🔧 Correctivo</option>
                     </select>
                     {errors.type && <p className={isDarkMode ? "text-red-400 text-xs mt-1" : "text-red-500 text-xs mt-1"}>{errors.type}</p>}
                 </div>
@@ -349,17 +366,17 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                         onChange={handleChange} 
                         className={inputClasses}
                     >
-                        <option value="SCHEDULED">Programado</option>
-                        <option value="IN_PROGRESS">En Progreso</option>
-                        <option value="COMPLETED">Completado</option>
-                        <option value="CANCELED">Cancelado</option>
+                        <option value="SCHEDULED">📅 Programado</option>
+                        <option value="IN_PROGRESS">⚙️ En Progreso</option>
+                        <option value="COMPLETED">✅ Completado</option>
+                        <option value="CANCELED">❌ Cancelado</option>
                     </select>
                 </div>
 
                 {/* Fecha Programada */}
                 <div>
                     <label htmlFor="scheduledDate" className={`block text-sm font-medium ${labelClasses} mb-2`}>
-                        Fecha Programada
+                        Fecha Programada <span className="text-red-500">*</span>
                     </label>
                     <input 
                         type="date" 
@@ -407,7 +424,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                 {/* Técnico Asignado */}
                 <div>
                     <label htmlFor="assignedToUserId" className={`block text-sm font-medium ${labelClasses} mb-2`}>
-                        Asignado a (Opcional)
+                        Tecnico asignado (Opcional)
                     </label>
                     <select 
                         id="assignedToUserId" 
@@ -417,7 +434,11 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                         className={inputClasses}
                     >
                         <option value="">Sin asignar</option>
-                        {users?.map(u => <option key={u.id} value={u.id}>{u.person?.fullName || u.username}</option>)}
+                        {users?.map(u => (
+                            <option key={u.id} value={u.id}>
+                                👤 {u.person?.fullName || u.username}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
