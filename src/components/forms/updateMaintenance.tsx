@@ -185,7 +185,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
             setTimeout(() => {
                 onSuccess?.();
                 if (company?.code) {
-                    navigate(`/${company.code}/maintenances/all`);
+                    navigate(`/${company.code}/maintenance/all`);
                 }
             }, 1500);
 

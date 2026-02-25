@@ -30,6 +30,11 @@ interface Equipment {
   cost?: number | null;
 }
 
+interface Department {
+  id: string;
+  name: string;
+}
+
 interface ImportResult {
   success: boolean;
   inserted: number;
@@ -69,10 +74,9 @@ export default function AllInventory() {
   const dividerClass = isDarkMode ? "border-gray-700" : "border-gray-200";
 
   const [inventory, setInventory] = useState<Equipment[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [importing, setImporting] = useState(false);
-  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportResultModal, setShowImportResultModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -80,11 +84,32 @@ export default function AllInventory() {
   const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
   const { pageName } = usePageName();
   const [newEquipment, setNewEquipment] = useState({
-    brand: "", model: "", type: "", plateNumber: "",
+    brand: "", model: "", type: "", 
     serialNumber: "", location: "", status: "Activo", cost: "",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ✅ Cargar departamentos
+  const fetchDepartments = async () => {
+    if (!selectedCompany?.code) return;
+    try {
+      const res = await fetch(`${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}`);
+      if (!res.ok) throw new Error("Error al cargar departamentos");
+      const data = await res.json();
+      setDepartments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error cargando departamentos:", error);
+      setDepartments([]);
+    }
+  };
+
+  // ✅ Función para obtener nombre de departamento por ID
+  const getDepartmentName = (departmentId: string | null | undefined): string => {
+    if (!departmentId) return "-";
+    const department = departments.find(d => d.id === departmentId);
+    return department ? department.name : departmentId;
+  };
 
   const getStatusBadge = (estado: string) => {
     switch (estado) {
@@ -109,7 +134,10 @@ export default function AllInventory() {
     }
   };
 
-  useEffect(() => { fetchInventory(); }, [selectedCompany?.id]);
+  useEffect(() => {
+    fetchInventory();
+    fetchDepartments();
+  }, [selectedCompany?.id, selectedCompany?.code]);
 
   const filteredInventory = Array.isArray(inventory)
     ? inventory.filter((item) => {
@@ -149,7 +177,11 @@ export default function AllInventory() {
     }
   };
 
-  const handleEdit = (equipment: Equipment) => { setEditingEquipment(equipment); setShowEditModal(true); };
+  // ✅ Redirigir a página de editar
+  const handleEdit = (item: Equipment) => {
+    window.location.href = `edit/${item.id}`;
+  };
+
   const abrirModalEliminar = (equipment: Equipment) => { setEquipmentToDelete(equipment); setShowDeleteModal(true); };
   const cerrarModalEliminar = () => { setShowDeleteModal(false); setEquipmentToDelete(null); };
 
@@ -164,27 +196,6 @@ export default function AllInventory() {
     } catch (error) { alert(`Error al eliminar: ${error}`); }
   };
 
-  const handleSaveEdit = async () => {
-    if (!editingEquipment) return;
-    try {
-      const res = await fetch(`${VITE_API_URL}/api/inventory/${selectedCompany?.id}/inventory/${editingEquipment.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brand: editingEquipment.brand, model: editingEquipment.model,
-          type: editingEquipment.type, plateNumber: editingEquipment.plateNumber,
-          serialNumber: editingEquipment.serialNumber, location: editingEquipment.location,
-          status: editingEquipment.status, cost: editingEquipment.cost,
-        }),
-      });
-      if (!res.ok) throw new Error("Error al actualizar equipo");
-      alert("Equipo actualizado correctamente");
-      setShowEditModal(false);
-      setEditingEquipment(null);
-      await fetchInventory();
-    } catch (error) { alert(`Error al actualizar: ${error}`); }
-  };
-
   const handleAddEquipment = async () => {
     if (!selectedCompany?.id) return;
     try {
@@ -193,14 +204,14 @@ export default function AllInventory() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brand: newEquipment.brand, model: newEquipment.model, type: newEquipment.type,
-          plateNumber: newEquipment.plateNumber, serialNumber: newEquipment.serialNumber,
+          serialNumber: newEquipment.serialNumber,
           location: newEquipment.location, status: newEquipment.status, cost: Number(newEquipment.cost),
         }),
       });
       if (!res.ok) throw new Error("Error al crear el equipo");
       alert("Equipo creado correctamente");
       setShowAddModal(false);
-      setNewEquipment({ brand: "", model: "", type: "", plateNumber: "", serialNumber: "", location: "", status: "Activo", cost: "" });
+      setNewEquipment({ brand: "", model: "", type: "", serialNumber: "", location: "", status: "Activo", cost: "" });
       await fetchInventory();
     } catch (error) { alert(`Error al crear: ${error}`); }
   };
@@ -235,7 +246,7 @@ export default function AllInventory() {
         <div className={`text-xs ${subTextClass}`}>{item.serialNumber}</div>
       </div>
     ),
-    "Ubicación": (item: Equipment) => item.location ?? "-",
+    "Ubicación": (item: Equipment) => getDepartmentName(item.location),
     "Lo tiene": (item: Equipment) => item.assignedToPerson?.fullName ?? "-",
     "Estado": (item: Equipment) => (
       <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(item.status)}`}>
@@ -251,7 +262,7 @@ export default function AllInventory() {
   return (
     <div className={`flex-1 transition-colors ${pageBg}`}>
       <PagesHeader
-        title={pageName}
+        title={`Inventario`}
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
         showCreate
         onDownloadTemplate={downloadTemplate}
@@ -421,8 +432,14 @@ export default function AllInventory() {
               <input className={inputClass} placeholder="Modelo" value={newEquipment.model} onChange={(e) => setNewEquipment({ ...newEquipment, model: e.target.value })} />
               <input className={inputClass} placeholder="Tipo" value={newEquipment.type} onChange={(e) => setNewEquipment({ ...newEquipment, type: e.target.value })} />
               <input className={inputClass} placeholder="Número de Serie" value={newEquipment.serialNumber} onChange={(e) => setNewEquipment({ ...newEquipment, serialNumber: e.target.value })} />
-              <input className={inputClass} placeholder="Placa (opcional)" value={newEquipment.plateNumber} onChange={(e) => setNewEquipment({ ...newEquipment, plateNumber: e.target.value })} />
-              <input className={inputClass} placeholder="Ubicación" value={newEquipment.location} onChange={(e) => setNewEquipment({ ...newEquipment, location: e.target.value })} />
+              <select className={selectClass} value={newEquipment.location} onChange={(e) => setNewEquipment({ ...newEquipment, location: e.target.value })}>
+                <option value="">Sin ubicación asignada</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
               <select className={selectClass} value={newEquipment.status} onChange={(e) => setNewEquipment({ ...newEquipment, status: e.target.value })}>
                 <option value="Activo">Activo</option>
                 <option value="En Uso">En Uso</option>
@@ -433,50 +450,6 @@ export default function AllInventory() {
             <div className="flex justify-end mt-6 gap-3">
               <button onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancelar</button>
               <button onClick={handleAddEquipment} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white font-medium">Guardar Equipo</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Editar Equipo */}
-      {showEditModal && editingEquipment && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className={`rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border transition-colors ${cardBg}`}>
-            <h3 className="text-xl font-bold mb-4">Editar Equipo</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: "Marca", field: "brand" as keyof Equipment },
-                { label: "Modelo", field: "model" as keyof Equipment },
-                { label: "Tipo", field: "type" as keyof Equipment },
-                { label: "Número de Serie", field: "serialNumber" as keyof Equipment },
-                { label: "Número de Placa", field: "plateNumber" as keyof Equipment },
-                { label: "Ubicación", field: "location" as keyof Equipment },
-              ].map(({ label, field }) => (
-                <div key={field} className={`flex flex-col gap-1 ${labelClass}`}>
-                  <label>{label}</label>
-                  <input
-                    className={inputClass}
-                    value={(editingEquipment[field] as string) || ""}
-                    onChange={(e) => setEditingEquipment({ ...editingEquipment, [field]: e.target.value })}
-                  />
-                </div>
-              ))}
-              <div className={`flex flex-col gap-1 ${labelClass}`}>
-                <label>Estado</label>
-                <select className={selectClass} value={editingEquipment.status} onChange={(e) => setEditingEquipment({ ...editingEquipment, status: e.target.value })}>
-                  <option value="Activo">Activo</option>
-                  <option value="En Uso">En Uso</option>
-                  <option value="Mantenimiento">Mantenimiento</option>
-                </select>
-              </div>
-              <div className={`flex flex-col gap-1 ${labelClass}`}>
-                <label>Costo</label>
-                <input type="number" className={inputClass} value={editingEquipment.cost || ""} onChange={(e) => setEditingEquipment({ ...editingEquipment, cost: Number(e.target.value) })} />
-              </div>
-            </div>
-            <div className="flex justify-end mt-6 gap-3">
-              <button onClick={() => { setShowEditModal(false); setEditingEquipment(null); }} className={cancelBtnClass}>Cancelar</button>
-              <button onClick={handleSaveEdit} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-medium">Guardar Cambios</button>
             </div>
           </div>
         </div>

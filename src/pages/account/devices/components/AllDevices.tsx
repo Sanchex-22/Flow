@@ -366,7 +366,7 @@ export default function AllDevices() {
             )}
 
             <PagesHeader
-                title={pageName}
+                title={`Equipos`}
                 description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
                 onExport={exportToExcel}
                 showCreate

@@ -27,7 +27,7 @@ export interface CreateEquipmentData {
     brand: string;
     model: string;
     serialNumber: string;
-    plateNumber: string;
+    // ❌ plateNumber removido - se genera automáticamente en backend
     location?: string;
     status?: string;
     acquisitionDate?: string;
@@ -47,7 +47,7 @@ interface Equipment {
     brand: string;
     model: string;
     serialNumber: string;
-    plateNumber?: string;
+    plateNumber?: string; // ✅ Lo mostramos pero no lo editamos
     location?: string;
     status: string;
     acquisitionDate?: string;
@@ -82,7 +82,6 @@ interface FormErrors {
     brand?: string;
     model?: string;
     serialNumber?: string;
-    plateNumber?: string;
     location?: string;
     status?: string;
     acquisitionDate?: string;
@@ -96,13 +95,14 @@ interface FormErrors {
     operatingSystem?: string;
 }
 
-const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) => {
+const UpdateDevices: React.FC<Props> = ({ persons, departments, selectedCompany, deviceID }) => {
     const isEditMode = !!deviceID;
     const navigate = useNavigate();
     const { isDarkMode } = useTheme();
 
     // --- Estados del scanner ---
     const [showScanner, setShowScanner] = useState(false);
+    const [generatedPlateNumber, setGeneratedPlateNumber] = useState<string | null>(null);
 
     // --- Clases dinámicas reutilizables ---
     const pageBg = isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900";
@@ -117,6 +117,12 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
     const selectClass = isDarkMode
         ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
         : "w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 appearance-none cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10";
+    const selectErrorClass = isDarkMode
+        ? "w-full px-4 py-2 bg-gray-700 border border-red-500 rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10"
+        : "w-full px-4 py-2 bg-gray-50 border border-red-500 rounded-lg text-gray-900 appearance-none cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10";
+    const readOnlyClass = isDarkMode
+        ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed opacity-60"
+        : "w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 cursor-not-allowed opacity-60";
     const subTextClass = isDarkMode ? "text-gray-400" : "text-gray-500";
     const cancelBtnClass = isDarkMode
         ? "px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
@@ -127,7 +133,7 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
         brand: "",
         model: "",
         serialNumber: "",
-        plateNumber: "",
+        // ❌ plateNumber removido
         location: "",
         status: "ACTIVE",
         acquisitionDate: "",
@@ -176,13 +182,17 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                     const response = await fetch(`${VITE_API_URL}/api/devices/${deviceID}`);
                     if (!response.ok) throw new Error("Error al cargar el equipo");
                     const data = await response.json();
+                    
+                    console.log("📌 Equipo cargado:", data);
+                    console.log("🔍 Plate Number:", data.plateNumber);
+                    console.log("📍 Location:", data.location);
+                    
                     setFormData({
                         type: data.type || "",
                         brand: data.brand || "",
                         model: data.model || "",
                         serialNumber: data.serialNumber || "",
-                        plateNumber: data.plateNumber || "",
-                        location: data.location || "",
+                        location: data.location || "", // ✅ Location puede ser ID o string
                         status: data.status || "ACTIVE",
                         acquisitionDate: data.acquisitionDate ? data.acquisitionDate.split('T')[0] : "",
                         warrantyDetails: data.warrantyDetails || "",
@@ -194,8 +204,18 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                         endUser: data.endUser || "",
                         operatingSystem: data.operatingSystem || "",
                     });
+                    
+                    // ✅ Guardar el plateNumber generado para mostrarlo read-only
+                    if (data.plateNumber) {
+                        console.log("✅ Plate Number capturado:", data.plateNumber);
+                        setGeneratedPlateNumber(data.plateNumber);
+                    } else {
+                        console.warn("⚠️ No se encontró plateNumber en la respuesta");
+                    }
+                    
                     if (data.invoiceUrl) setInvoicePreview(data.invoiceUrl);
                 } catch (error: any) {
+                    console.error("❌ Error al cargar el equipo:", error);
                     showNotification("error", "Error al cargar los datos del equipo");
                 }
             };
@@ -291,7 +311,7 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                 model: formData.model,
                 serialNumber: formData.serialNumber,
                 companyId: formData.companyId,
-                ...(formData.plateNumber?.trim() && { plateNumber: formData.plateNumber }),
+                // ❌ plateNumber NO se envía - se genera automáticamente en backend
                 ...(formData.assignedToPersonId && { assignedToPersonId: formData.assignedToPersonId }),
                 ...(formData.location?.trim() && { location: formData.location }),
                 ...(formData.status?.trim() && { status: formData.status }),
@@ -312,15 +332,23 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                 const errorData = await response.json();
                 throw new Error(errorData.error || `Error al ${isEditMode ? 'actualizar' : 'crear'} el equipo`);
             }
+            const responseData = await response.json();
+            
+            // ✅ Si es creación, guardar el plateNumber generado
+            if (!isEditMode && responseData.plateNumber) {
+                setGeneratedPlateNumber(responseData.plateNumber);
+            }
+
             showNotification("success", `Equipo ${isEditMode ? 'actualizado' : 'creado'} exitosamente.`);
             if (!isEditMode) {
                 setFormData({
-                    type: "", brand: "", model: "", serialNumber: "", plateNumber: "",
+                    type: "", brand: "", model: "", serialNumber: "",
                     location: "", status: "ACTIVE", acquisitionDate: "", warrantyDetails: "",
                     qrCode: "", invoiceUrl: "", cost: undefined, companyId: selectedCompany?.id || "",
                     assignedToPersonId: "", endUser: "", operatingSystem: "",
                 });
                 setInvoicePreview(null);
+                setGeneratedPlateNumber(null);
                 
                 // ✅ Redirigir a la página anterior después de 1.5 segundos
                 setTimeout(() => {
@@ -359,7 +387,7 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                             <select
                                 value={formData.type}
                                 onChange={(e) => handleInputChange("type", e.target.value)}
-                                className={errors.type ? selectClass.replace("border-gray-600", "border-red-500").replace("border-gray-300", "border-red-500") : selectClass}
+                                className={errors.type ? selectErrorClass : selectClass}
                             >
                                 <option value="">Seleccionar tipo...</option>
                                 {equipmentTypes.map((type) => (
@@ -463,16 +491,22 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                                 📷 Usa el botón de cámara para escanear el código de barras
                             </p>
                         </div>
+                        
+                        {/* ✅ NÚMERO DE PLACA - AHORA READ-ONLY */}
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Número de Placa</label>
                             <input
                                 type="text"
-                                value={formData.plateNumber}
-                                onChange={(e) => handleInputChange("plateNumber", e.target.value)}
-                                className={inputClass}
-                                placeholder="PLACA001 (opcional)"
+                                value={generatedPlateNumber || ""}
+                                disabled
+                                className={readOnlyClass}
+                                placeholder="Se genera automáticamente"
                             />
+                            <p className={`text-xs mt-1 ${subTextClass}`}>
+                                ✅ Se genera automáticamente al crear el equipo
+                            </p>
                         </div>
+
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Código QR</label>
                             <input
@@ -538,16 +572,29 @@ const UpdateDevices: React.FC<Props> = ({ persons, selectedCompany, deviceID }) 
                             </div>
                             {errors.cost && <p className="text-red-500 text-xs mt-1">{errors.cost}</p>}
                         </div>
+
+                        {/* ✅ UBICACIÓN - AHORA SELECTOR DE DEPARTAMENTOS */}
                         <div>
-                            <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Ubicación</label>
-                            <input
-                                type="text"
+                            <label className={`block text-sm font-medium mb-2 ${labelClass}`}>
+                                Ubicación (Departamento)
+                            </label>
+                            <select
                                 value={formData.location}
                                 onChange={(e) => handleInputChange("location", e.target.value)}
-                                className={inputClass}
-                                placeholder="Ej: Oficina 101, Piso 3"
-                            />
+                                className={errors.location ? selectErrorClass : selectClass}
+                            >
+                                <option value="">Sin ubicación asignada</option>
+                                {Array.isArray(departments) && departments.map((dept) => (
+                                    <option key={dept.id} value={dept.id}>
+                                        {dept.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className={`text-xs mt-1 ${subTextClass}`}>
+                                Selecciona el departamento donde se ubicará el equipo
+                            </p>
                         </div>
+
                         <div>
                             <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Estado del Equipo</label>
                             <select
