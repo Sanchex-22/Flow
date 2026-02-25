@@ -312,7 +312,8 @@ const UpdateDevices: React.FC<Props> = ({ persons, departments, selectedCompany,
                 serialNumber: formData.serialNumber,
                 companyId: formData.companyId,
                 // ❌ plateNumber NO se envía - se genera automáticamente en backend
-                ...(formData.assignedToPersonId && { assignedToPersonId: formData.assignedToPersonId }),
+                // ✅ Enviar assignedToPersonId siempre (puede ser vacío para limpiar)
+                assignedToPersonId: formData.assignedToPersonId || null,
                 ...(formData.location?.trim() && { location: formData.location }),
                 ...(formData.status?.trim() && { status: formData.status }),
                 ...(formData.acquisitionDate?.trim() && { acquisitionDate: formData.acquisitionDate }),
