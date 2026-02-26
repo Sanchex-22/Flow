@@ -320,7 +320,7 @@ export default function AllDevices() {
                     'Costo Promedio': `$${avgCost}`,
                 })
                 grandTotalCount += data.count
-                grandTotalCost += data.totalCost
+                grandTotalCost += Number(data.totalCost)
             })
 
         typeData.push({
@@ -419,7 +419,7 @@ export default function AllDevices() {
     const activos = filteredEquipos.filter(e => e.status === "Activo").length
     const enMantenimiento = filteredEquipos.filter(e => e.status === "Mantenimiento").length
     const dañados = filteredEquipos.filter(e => e.status === "DAMAGED").length
-    const totalCost = filteredEquipos.reduce((sum, e) => sum + (e.cost || 0), 0)
+    const totalCost = filteredEquipos.reduce((sum, e) => sum + (Number(e.cost) || 0), 0)
 
     // Garantías
     const getGarantiasPorVencer = () => {
@@ -713,7 +713,9 @@ export default function AllDevices() {
                 {/* Costo Total */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
-                    <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>${(totalCost / 1000).toFixed(1)}k</div>
+                    <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+                        ${(totalCost >= 1000000 ? (totalCost / 1000000).toFixed(1) + 'M' : (totalCost >= 1000 ? (totalCost / 1000).toFixed(1) + 'k' : totalCost.toFixed(0)))}
+                    </div>
                 </div>
             </div>
 
