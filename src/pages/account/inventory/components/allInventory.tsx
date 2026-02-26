@@ -83,6 +83,7 @@ export default function AllInventory() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("todos");
+  const [selectedType, setSelectedType] = useState<string>("todos");
   const { pageName } = usePageName();
   const [newEquipment, setNewEquipment] = useState({
     brand: "", model: "", type: "", 
@@ -155,7 +156,9 @@ export default function AllInventory() {
         );
         // ✅ Filtro por departamento
         const matchesDepartment = selectedDepartment === "todos" || item.location === selectedDepartment;
-        return matchesSearch && matchesDepartment;
+        // ✅ Filtro por tipo
+        const matchesType = selectedType === "todos" || item.type === selectedType;
+        return matchesSearch && matchesDepartment && matchesType;
       })
     : [];
 
@@ -412,12 +415,31 @@ export default function AllInventory() {
         </div>
       )}
 
-      {/* ✅ Filtro por Departamento */}
-      <div className="py-1">
+      {/* ✅ Filtros por Tipo y Departamento */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center flex-wrap">
+        {/* Filtro por Tipo */}
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            isDarkMode
+              ? 'bg-gray-800 border border-gray-700 text-white'
+              : 'bg-white border border-gray-300 text-gray-900'
+          }`}
+        >
+          <option value="todos">🖥️ Todos los Tipos</option>
+          {Array.from(new Set(inventory.map(eq => eq.type).filter(Boolean))).sort().map(type => (
+            <option key={type} value={type}>
+              🖥️ {type}
+            </option>
+          ))}
+        </select>
+
+        {/* Filtro por Departamento */}
         <select
           value={selectedDepartment}
           onChange={(e) => setSelectedDepartment(e.target.value)}
-          className={`w-full md:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             isDarkMode
               ? 'bg-gray-800 border border-gray-700 text-white'
               : 'bg-white border border-gray-300 text-gray-900'
@@ -443,7 +465,7 @@ export default function AllInventory() {
           mostrarAcciones={true}
         />
       ) : (
-        <p className={`mt-6 px-4 ${subTextClass}`}>No hay equipos aún. Puedes agregar uno o importar un CSV.</p>
+        <p className={`mt-6 ${subTextClass}`}>No hay equipos aún. Puedes agregar uno o importar un CSV.</p>
       )}
 
       {/* Modal Agregar Equipo */}

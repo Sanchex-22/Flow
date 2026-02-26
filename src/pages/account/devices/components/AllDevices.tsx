@@ -67,7 +67,7 @@ interface DeleteConfirmation {
 export default function AllDevices() {
     const { isDarkMode } = useTheme()
     const { search } = useSearch()
-    const [selectedType, ] = useState("Todos los...")
+    const [selectedType, setSelectedType] = useState<string>("todos")
     const [activeTab, setActiveTab] = useState("Todos los Equipos")
     const { selectedCompany } = useCompany();
     const { pageName } = usePageName();
@@ -115,39 +115,263 @@ export default function AllDevices() {
     }, [notification.show])
 
     const exportToExcel = () => {
-        const excelData = filteredEquipos.map((equipo) => ({
-            'Marca': equipo?.brand || 'N/A',
-            'Modelo': equipo?.model || 'N/A',
-            'Tipo': equipo?.type || 'N/A',
-            'Número de Placa': equipo?.plateNumber || 'N/A',
-            'Número de Serie': equipo?.serialNumber || 'N/A',
-            'Persona Asignada': equipo?.assignedToPerson?.fullName || 'Sin asignar',
-            'Posición': equipo?.assignedToPerson?.position || 'N/A',
-            'Departamento': getDepartmentName(equipo?.location) || 'N/A',
-            'Estado': equipo?.status || 'Activo',
-            'Garantía': equipo?.warrantyDetails || 'N/A',
-            'Costo': equipo?.cost || 'N/A',
-            'Empresa': equipo?.company?.name || 'N/A',
-            'Fecha de Adquisición': equipo?.acquisitionDate || 'N/A'
-        }));
+        const wb = XLSX.utils.book_new()
 
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Dispositivos');
+        // ===== HOJA 1: RESUMEN GENERAL =====
+        const summaryData: Record<string, unknown>[] = []
 
-        const maxWidth = 50;
-        const columnWidths = Object.keys(excelData[0] || {}).map(key => {
-            const maxLength = Math.max(
-                key.length,
-                ...excelData.map(row => String(row[key as keyof typeof row]).length)
-            );
-            return { wch: Math.min(maxLength + 2, maxWidth) };
-        });
-        worksheet['!cols'] = columnWidths;
+        const headerRow: Record<string, unknown> = {
+            'Marca': 'Marca',
+            'Modelo': 'Modelo',
+            'Tipo': 'Tipo',
+            'Placa': 'Placa',
+            'Serie': 'Serie',
+            'Departamento': 'Departamento',
+            'Lo tiene': 'Lo tiene',
+            'Posición': 'Posición',
+            'Estado': 'Estado',
+            'Garantía': 'Garantía',
+            'Costo': 'Costo',
+            'Empresa': 'Empresa',
+        }
+        summaryData.push(headerRow)
 
-        const timestamp = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(workbook, `dispositivos_${timestamp}.xlsx`);
-        showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} dispositivos.`);
+        filteredEquipos.forEach((equipo) => {
+            summaryData.push({
+                'Marca': equipo.brand || '-',
+                'Modelo': equipo.model || '-',
+                'Tipo': equipo.type || '-',
+                'Placa': equipo.plateNumber || '-',
+                'Serie': equipo.serialNumber || '-',
+                'Departamento': getDepartmentName(equipo.location) || '-',
+                'Lo tiene': equipo.assignedToPerson?.fullName || '-',
+                'Posición': equipo.assignedToPerson?.position || '-',
+                'Estado': equipo.status || 'Activo',
+                'Garantía': equipo.warrantyDetails || '-',
+                'Costo': equipo.cost ? `$${equipo.cost}` : '-',
+                'Empresa': equipo.company?.name || '-',
+            })
+        })
+
+        const wsSummary = XLSX.utils.json_to_sheet(summaryData)
+        wsSummary['!cols'] = [15, 15, 12, 12, 15, 18, 20, 15, 12, 12, 10, 15].map(
+            (w) => ({ wch: w })
+        )
+
+        const summaryRange = XLSX.utils.decode_range(wsSummary['!ref'] || 'A1')
+        for (let col = 0; col <= summaryRange.e.c; col++) {
+            const cellRef = XLSX.utils.encode_col(col) + '1'
+            wsSummary[cellRef] = wsSummary[cellRef] || { t: 's', v: '' }
+            wsSummary[cellRef].s = {
+                fill: { fgColor: { rgb: '4472C4' } },
+                font: { bold: true, color: { rgb: 'FFFFFF' } },
+            }
+        }
+
+        for (let row = 2; row <= summaryRange.e.r; row++) {
+            const rowColor = row % 2 === 0 ? 'FFFFFF' : 'F2F2F2'
+            for (let col = 0; col <= summaryRange.e.c; col++) {
+                const cellRef = XLSX.utils.encode_col(col) + row.toString()
+                wsSummary[cellRef] = wsSummary[cellRef] || { t: 's', v: '' }
+                wsSummary[cellRef].s = {
+                    fill: { fgColor: { rgb: rowColor } },
+                }
+            }
+        }
+
+        wsSummary['!autofilter'] = { ref: XLSX.utils.encode_range(summaryRange) }
+
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Todos los Dispositivos')
+
+        // ===== HOJAS POR DEPARTAMENTO =====
+        const departmentMap = new Map<string, CreateEquipmentData[]>()
+
+        filteredEquipos.forEach((equipo) => {
+            const deptName = getDepartmentName(equipo.location)
+            if (!departmentMap.has(deptName)) {
+                departmentMap.set(deptName, [])
+            }
+            departmentMap.get(deptName)!.push(equipo)
+        })
+
+        Array.from(departmentMap.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .forEach(([deptName, equiposInDept]) => {
+                const deptData: Record<string, unknown>[] = []
+
+                const deptHeaderRow: Record<string, unknown> = {
+                    'Marca': 'Marca',
+                    'Modelo': 'Modelo',
+                    'Tipo': 'Tipo',
+                    'Placa': 'Placa',
+                    'Serie': 'Serie',
+                    'Lo tiene': 'Lo tiene',
+                    'Posición': 'Posición',
+                    'Estado': 'Estado',
+                    'Garantía': 'Garantía',
+                    'Costo': 'Costo',
+                }
+                deptData.push(deptHeaderRow)
+
+                equiposInDept.forEach((equipo) => {
+                    deptData.push({
+                        'Marca': equipo.brand || '-',
+                        'Modelo': equipo.model || '-',
+                        'Tipo': equipo.type || '-',
+                        'Placa': equipo.plateNumber || '-',
+                        'Serie': equipo.serialNumber || '-',
+                        'Lo tiene': equipo.assignedToPerson?.fullName || '-',
+                        'Posición': equipo.assignedToPerson?.position || '-',
+                        'Estado': equipo.status || 'Activo',
+                        'Garantía': equipo.warrantyDetails || '-',
+                        'Costo': equipo.cost ? `$${equipo.cost}` : '-',
+                    })
+                })
+
+                const totalCost = equiposInDept.reduce((sum, eq) => sum + (eq.cost || 0), 0)
+                deptData.push({
+                    'Marca': 'TOTAL',
+                    'Modelo': '',
+                    'Tipo': '',
+                    'Placa': '',
+                    'Serie': '',
+                    'Lo tiene': '',
+                    'Posición': '',
+                    'Estado': '',
+                    'Garantía': '',
+                    'Costo': `$${totalCost.toFixed(2)}`,
+                })
+
+                const wsDept = XLSX.utils.json_to_sheet(deptData)
+                wsDept['!cols'] = [15, 15, 12, 12, 15, 20, 15, 12, 12, 10].map(
+                    (w) => ({ wch: w })
+                )
+
+                const deptRange = XLSX.utils.decode_range(wsDept['!ref'] || 'A1')
+                for (let col = 0; col <= deptRange.e.c; col++) {
+                    const cellRef = XLSX.utils.encode_col(col) + '1'
+                    wsDept[cellRef] = wsDept[cellRef] || { t: 's', v: '' }
+                    wsDept[cellRef].s = {
+                        fill: { fgColor: { rgb: '70AD47' } },
+                        font: { bold: true, color: { rgb: 'FFFFFF' } },
+                    }
+                }
+
+                const deptTotalRowIndex = deptData.length
+                const deptTotalRowNumber = deptTotalRowIndex.toString()
+                for (let col = 0; col <= deptRange.e.c; col++) {
+                    const cellRef = XLSX.utils.encode_col(col) + deptTotalRowNumber
+                    wsDept[cellRef] = wsDept[cellRef] || { t: 's', v: '' }
+                    wsDept[cellRef].s = {
+                        fill: { fgColor: { rgb: 'E2EFD9' } },
+                        font: { bold: true },
+                    }
+                }
+
+                for (let row = 2; row < deptTotalRowIndex; row++) {
+                    const rowColor = row % 2 === 0 ? 'FFFFFF' : 'F2F2F2'
+                    for (let col = 0; col <= deptRange.e.c; col++) {
+                        const cellRef = XLSX.utils.encode_col(col) + row.toString()
+                        wsDept[cellRef] = wsDept[cellRef] || { t: 's', v: '' }
+                        wsDept[cellRef].s = {
+                            fill: { fgColor: { rgb: rowColor } },
+                        }
+                    }
+                }
+
+                wsDept['!autofilter'] = { ref: XLSX.utils.encode_range(deptRange) }
+
+                const sheetName = deptName === '-' ? 'Sin Departamento' : deptName.substring(0, 31)
+                XLSX.utils.book_append_sheet(wb, wsDept, sheetName)
+            })
+
+        // ===== HOJA FINAL: RESUMEN POR TIPO =====
+        const typeData: Record<string, unknown>[] = []
+        const typeHeaderRow: Record<string, unknown> = {
+            'Tipo': 'Tipo',
+            'Cantidad': 'Cantidad',
+            'Costo Total': 'Costo Total',
+            'Costo Promedio': 'Costo Promedio',
+        }
+        typeData.push(typeHeaderRow)
+
+        const typeMap = new Map<string, { count: number; totalCost: number }>()
+        filteredEquipos.forEach((equipo) => {
+            const type = equipo.type || 'Sin tipo'
+            if (!typeMap.has(type)) {
+                typeMap.set(type, { count: 0, totalCost: 0 })
+            }
+            const data = typeMap.get(type)!
+            data.count += 1
+            data.totalCost += equipo.cost || 0
+        })
+
+        let grandTotalCount = 0
+        let grandTotalCost = 0
+
+        Array.from(typeMap.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .forEach(([type, data]) => {
+                const avgCost = data.count > 0 ? (data.totalCost / data.count).toFixed(2) : '0'
+                typeData.push({
+                    'Tipo': type,
+                    'Cantidad': data.count,
+                    'Costo Total': `$${data.totalCost.toFixed(2)}`,
+                    'Costo Promedio': `$${avgCost}`,
+                })
+                grandTotalCount += data.count
+                grandTotalCost += data.totalCost
+            })
+
+        typeData.push({
+            'Tipo': 'TOTAL',
+            'Cantidad': grandTotalCount,
+            'Costo Total': `$${grandTotalCost.toFixed(2)}`,
+            'Costo Promedio': grandTotalCount > 0 ? `$${(grandTotalCost / grandTotalCount).toFixed(2)}` : '$0',
+        })
+
+        const wsType = XLSX.utils.json_to_sheet(typeData)
+        wsType['!cols'] = [20, 12, 15, 18].map((w) => ({ wch: w }))
+
+        const typeRange = XLSX.utils.decode_range(wsType['!ref'] || 'A1')
+        for (let col = 0; col <= typeRange.e.c; col++) {
+            const cellRef = XLSX.utils.encode_col(col) + '1'
+            wsType[cellRef] = wsType[cellRef] || { t: 's', v: '' }
+            wsType[cellRef].s = {
+                fill: { fgColor: { rgb: 'ED7D31' } },
+                font: { bold: true, color: { rgb: 'FFFFFF' } },
+            }
+        }
+
+        const typeTotalRowIndex = typeData.length
+        const typeTotalRowNumber = typeTotalRowIndex.toString()
+        for (let col = 0; col <= typeRange.e.c; col++) {
+            const cellRef = XLSX.utils.encode_col(col) + typeTotalRowNumber
+            wsType[cellRef] = wsType[cellRef] || { t: 's', v: '' }
+            wsType[cellRef].s = {
+                fill: { fgColor: { rgb: 'FCE4D6' } },
+                font: { bold: true },
+            }
+        }
+
+        for (let row = 2; row < typeTotalRowIndex; row++) {
+            const rowColor = row % 2 === 0 ? 'FFFFFF' : 'F2F2F2'
+            for (let col = 0; col <= typeRange.e.c; col++) {
+                const cellRef = XLSX.utils.encode_col(col) + row.toString()
+                wsType[cellRef] = wsType[cellRef] || { t: 's', v: '' }
+                wsType[cellRef].s = {
+                    fill: { fgColor: { rgb: rowColor } },
+                }
+            }
+        }
+
+        wsType['!autofilter'] = { ref: XLSX.utils.encode_range(typeRange) }
+
+        XLSX.utils.book_append_sheet(wb, wsType, 'Resumen por Tipo')
+
+        const timestamp = new Date().toISOString().split('T')[0]
+        XLSX.writeFile(wb, `dispositivos_${timestamp}.xlsx`)
+        showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} dispositivos.`)
     };
 
     // ✅ Función para obtener nombre del departamento
@@ -170,6 +394,7 @@ export default function AllDevices() {
     }
 
     const equipos = Array.isArray(data) ? data : [];
+    const uniqueTypes = Array.from(new Set(equipos.map(e => e.type).filter(Boolean)));
 
     const filteredEquipos = equipos.filter(equipo => {
         const searchTermLower = search.toLowerCase()
@@ -181,18 +406,22 @@ export default function AllDevices() {
             equipo?.assignedToPerson?.fullName?.toLowerCase()?.includes(searchTermLower) ||
             equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
 
-        const matchesType = selectedType === "Todos los..." || equipo?.type === selectedType
-
-        // ✅ Filtro por departamento
+        const matchesType = selectedType === "todos" || equipo?.type === selectedType
         const matchesDepartment = selectedDepartment === "todos" || equipo?.location === selectedDepartment
 
         return matchesSearch && matchesType && matchesDepartment
     })
 
+    // ✅ CÁLCULOS DETALLADOS DE KPIs
     const totalEquipos = filteredEquipos.length
     const enUso = filteredEquipos.filter(e => e.assignedToPersonId != null).length
     const disponibles = filteredEquipos.filter(e => !e.assignedToPersonId).length
+    const activos = filteredEquipos.filter(e => e.status === "Activo").length
+    const enMantenimiento = filteredEquipos.filter(e => e.status === "Mantenimiento").length
+    const dañados = filteredEquipos.filter(e => e.status === "DAMAGED").length
+    const totalCost = filteredEquipos.reduce((sum, e) => sum + (e.cost || 0), 0)
 
+    // Garantías
     const getGarantiasPorVencer = () => {
         const proximos30Dias = new Date(new Date().setDate(new Date().getDate() + 30));
         return filteredEquipos.filter(equipo => {
@@ -207,6 +436,44 @@ export default function AllDevices() {
         }).length;
     }
     const garantiasPorVencer = getGarantiasPorVencer();
+
+    // Usuario con más equipos
+    const getUserStats = () => {
+        const userMap = new Map<string, number>();
+        filteredEquipos.forEach(e => {
+            const user = e.assignedToPerson?.fullName || "Sin asignar";
+            userMap.set(user, (userMap.get(user) || 0) + 1);
+        });
+        const sorted = Array.from(userMap.entries()).sort((a, b) => b[1] - a[1]);
+        return {
+            max: sorted[0] || ["Sin datos", 0],
+            min: sorted[sorted.length - 1] || ["Sin datos", 0]
+        };
+    };
+    const userStats = getUserStats();
+
+    // Departamento con más equipos
+    const getDeptStats = () => {
+        const deptMap = new Map<string, number>();
+        filteredEquipos.forEach(e => {
+            const dept = getDepartmentName(e.location);
+            deptMap.set(dept, (deptMap.get(dept) || 0) + 1);
+        });
+        const sorted = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1]);
+        return sorted.slice(0, 3);
+    };
+    const topDepts = getDeptStats();
+
+    // Equipos por tipo
+    const getTypeStats = () => {
+        const typeMap = new Map<string, number>();
+        filteredEquipos.forEach(e => {
+            const type = e.type || "Sin tipo";
+            typeMap.set(type, (typeMap.get(type) || 0) + 1);
+        });
+        return Array.from(typeMap.entries()).sort((a, b) => b[1] - a[1]);
+    };
+    const typeStats = getTypeStats();
 
     const getStatusBadge = (estado: string) => {
         switch (estado) {
@@ -260,7 +527,6 @@ export default function AllDevices() {
         }
     }
 
-    // ✅ TABLA MEJORADA
     const columnConfig = {
         "Marca/Modelo": (item: CreateEquipmentData) => (
             <div>
@@ -398,41 +664,97 @@ export default function AllDevices() {
                 showCreate
             />
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Dispositivos</span>
-                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
-                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En {selectedCompany?.name}</div>
+            {/* ===== KPIs PRINCIPALES (Fila 1) ===== */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3">
+                {/* Total */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
                 </div>
 
-                <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
-                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
-                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Asignados</div>
+                {/* En Uso */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
+                    <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((enUso / totalEquipos) * 100).toFixed(0) : 0}%</div>
                 </div>
 
-                <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
-                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
-                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Sin asignar</div>
+                {/* Disponibles */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
+                    <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((disponibles / totalEquipos) * 100).toFixed(0) : 0}%</div>
                 </div>
 
-                <div className={`rounded-lg p-6 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías por Vencer</span>
-                    <div className={`text-3xl font-bold mt-2 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{garantiasPorVencer}</div>
-                    <div className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Próximos 30 días</div>
+                {/* Activos */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activos</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>{activos}</div>
+                </div>
+
+                {/* En Mantenimiento */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mant.</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{enMantenimiento}</div>
+                </div>
+
+                {/* Dañados */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dañados</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{dañados}</div>
+                </div>
+
+                {/* Garantías */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías</span>
+                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>{garantiasPorVencer}</div>
+                </div>
+
+                {/* Costo Total */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
+                    <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>${(totalCost / 1000).toFixed(1)}k</div>
                 </div>
             </div>
 
-            {/* ✅ Tabs + Filtro por Departamento */}
-            <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
+            {/* ===== ANÁLISIS POR USUARIO (Fila 2) ===== */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+                {/* Usuario con más equipos */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
+                    <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
+                    <div className={`text-xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{userStats.max[1]}</div>
+                </div>
+
+                {/* Departamentos top 3 */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>📍 Top Deptos</span>
+                    {topDepts.slice(0, 3).map((dept, idx) => (
+                        <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {dept[0]}: <span className="font-bold">{dept[1]}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tipos de equipos */}
+                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>🖥️ Tipos</span>
+                    {typeStats.slice(0, 3).map((type, idx) => (
+                        <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {type[0]}: <span className="font-bold">{type[1]}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ===== TABS Y FILTROS ===== */}
+            <div className="mb-3 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
                 <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                                 activeTab === tab
                                     ? isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'
                                     : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
@@ -443,28 +765,45 @@ export default function AllDevices() {
                     ))}
                 </div>
 
-                {/* ✅ Filtro por Departamento */}
-                <div className="flex-1">
-                    <select
-                        value={selectedDepartment}
-                        onChange={(e) => setSelectedDepartment(e.target.value)}
-                        className={`w-full md:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            isDarkMode
-                                ? 'bg-gray-800 border border-gray-700 text-white'
-                                : 'bg-white border border-gray-300 text-gray-900'
-                        }`}
-                    >
-                        <option value="todos">📍 Todos los Departamentos</option>
-                        {departments.map(dept => (
-                            <option key={dept.id} value={dept.id}>
-                                📍 {dept.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                {/* Filtro por Tipo */}
+                <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        isDarkMode
+                            ? 'bg-gray-800 border border-gray-700 text-white'
+                            : 'bg-white border border-gray-300 text-gray-900'
+                    }`}
+                >
+                    <option value="todos">🖥️ Todos</option>
+                    {uniqueTypes.map(type => (
+                        <option key={type} value={type}>
+                            🖥️ {type}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Filtro por Departamento */}
+                <select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        isDarkMode
+                            ? 'bg-gray-800 border border-gray-700 text-white'
+                            : 'bg-white border border-gray-300 text-gray-900'
+                    }`}
+                >
+                    <option value="todos">📍 Todos</option>
+                    {departments.map(dept => (
+                        <option key={dept.id} value={dept.id}>
+                            📍 {dept.name}
+                        </option>
+                    ))}
+                </select>
             </div>
 
-            <div className="">
+            {/* ===== TABLA ===== */}
+            <div className="px-0">
                 <Tabla
                     datos={getTabData()}
                     titulo={`${pageName || "Dispositivos"} List`}
