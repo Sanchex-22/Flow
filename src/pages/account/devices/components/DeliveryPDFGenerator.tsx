@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 import { X } from "lucide-react";
 import { useTheme } from "../../../../context/themeContext";
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
 const DeliveryPDFDocument = ({
   equipos,
   company,
-  departmentNameResolver,
+  // departmentNameResolver,
 }: DeliveryPDFProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -470,8 +470,8 @@ export default function DeliveryPDFGenerator({
 function HTMLPreview({
   equipos,
   company,
-  departmentNameResolver,
-  onClose,
+  // departmentNameResolver,
+  // onClose,
 }: DeliveryPDFProps) {
   return (
     <div

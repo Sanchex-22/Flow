@@ -17,7 +17,7 @@ interface TablaProps<T extends { id: string }> {
 
 export default function Tabla<T extends { id: string }>({
     datos,
-    titulo,
+    // titulo,
     columnasPersonalizadas,
     onEditar,
     onEliminar,
