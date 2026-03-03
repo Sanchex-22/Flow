@@ -14,6 +14,8 @@
     "vercel-build": "rm -rf node_modules package-lock.json && npm install && npm run build"
   },
   "dependencies": {
+    "@react-pdf-kit/viewer": "^2.0.0",
+    "@react-pdf/renderer": "^4.3.2",
     "@types/classnames": "^2.3.4",
     "@vercel/analytics": "^1.5.0",
     "@vercel/blob": "^2.0.0",

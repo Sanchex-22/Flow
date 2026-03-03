@@ -9,8 +9,9 @@ import { useCompany } from "../../../../context/routerContext"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
-import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
+import Tabla from "../../../../components/tables/Table"
+import DeliveryPDFGenerator from "./DeliveryPDFGenerator"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -87,6 +88,8 @@ export default function AllDevices() {
     })
     const [departments, setDepartments] = useState<Department[]>([])
     const [selectedDepartment, setSelectedDepartment] = useState<string>("todos")
+    const [equipmentsToDeliver, setEquipmentsToDeliver] = useState<CreateEquipmentData[]>([])
+    const [showDeliveryModal, setShowDeliveryModal] = useState(false)
 
     // ✅ Cargar departamentos
     useEffect(() => {
@@ -180,7 +183,6 @@ export default function AllDevices() {
         }
 
         wsSummary['!autofilter'] = { ref: XLSX.utils.encode_range(summaryRange) }
-
         XLSX.utils.book_append_sheet(wb, wsSummary, 'Todos los Dispositivos')
 
         // ===== HOJAS POR DEPARTAMENTO =====
@@ -527,6 +529,16 @@ export default function AllDevices() {
         }
     }
 
+    const closeDeliveryModal = () => {
+        setShowDeliveryModal(false)
+        setEquipmentsToDeliver([])
+    }
+
+    const handleSelectForDelivery = (selectedItems: CreateEquipmentData[]) => {
+        setEquipmentsToDeliver(selectedItems)
+        setShowDeliveryModal(true)
+    }
+
     const columnConfig = {
         "Marca/Modelo": (item: CreateEquipmentData) => (
             <div>
@@ -665,7 +677,7 @@ export default function AllDevices() {
             />
 
             {/* ===== KPIs PRINCIPALES (Fila 1) ===== */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3 p-4">
                 {/* Total */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
@@ -720,7 +732,7 @@ export default function AllDevices() {
             </div>
 
             {/* ===== ANÁLISIS POR USUARIO (Fila 2) ===== */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3 px-4">
                 {/* Usuario con más equipos */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
@@ -750,7 +762,7 @@ export default function AllDevices() {
             </div>
 
             {/* ===== TABS Y FILTROS ===== */}
-            <div className="mb-3 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
+            <div className="mb-3 px-4 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
                 <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
                         <button
@@ -805,7 +817,7 @@ export default function AllDevices() {
             </div>
 
             {/* ===== TABLA ===== */}
-            <div className="px-0">
+            <div className="px-4">
                 <Tabla
                     datos={getTabData()}
                     titulo={`${pageName || "Dispositivos"} List`}
@@ -813,8 +825,20 @@ export default function AllDevices() {
                     onEditar={(item) => window.location.href = `edit/${item.id}`}
                     onEliminar={openDeleteConfirmation}
                     mostrarAcciones={true}
+                    onSelectItemsForDelivery={handleSelectForDelivery}
+                    showSelectForDelivery={true}
                 />
             </div>
+
+            {/* Modal del PDF */}
+            {showDeliveryModal && selectedCompany && (
+                <DeliveryPDFGenerator
+                    equipos={equipmentsToDeliver}
+                    company={selectedCompany}
+                    departmentNameResolver={getDepartmentName}
+                    onClose={closeDeliveryModal}
+                />
+            )}
         </div>
     )
 }

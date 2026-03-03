@@ -1,229 +1,284 @@
-import { useState } from "react"
-import { ChevronUp, ChevronDown, Eye, Edit, Trash2 } from "lucide-react"
-import { useTheme } from "../../context/themeContext"
+"use client"
 
-interface TablaProps {
-  datos: any[]
-  titulo: string
-  columnasPersonalizadas?: Record<string, (item: any) => React.ReactNode>
-  onVer?: (item: any) => void
-  onEditar?: (item: any) => void
-  onEliminar?: (item: any) => void
-  mostrarAcciones?: boolean
+import React, { useState } from 'react'
+import { Edit, Trash2, FileText } from 'lucide-react'
+import { useTheme } from '../../context/themeContext'
+
+interface TablaProps<T extends { id: string }> {
+    datos: T[]
+    titulo: string
+    columnasPersonalizadas?: { [key: string]: (item: T) => React.ReactNode }
+    onEditar?: (item: T) => void
+    onEliminar?: (item: T) => void
+    mostrarAcciones?: boolean
+    onSelectItemsForDelivery?: (selectedItems: T[]) => void
+    showSelectForDelivery?: boolean
 }
 
-export default function Tabla({
-  datos,
-  titulo,
-  columnasPersonalizadas,
-  onVer,
-  onEditar,
-  onEliminar,
-  mostrarAcciones = true,
-}: TablaProps) {
-  const { isDarkMode } = useTheme()
-  const [ordenar, setOrdenar] = useState<{
-    columna: string | null
-    direccion: "asc" | "desc"
-  }>({
-    columna: null,
-    direccion: "asc",
-  })
+export default function Tabla<T extends { id: string }>({
+    datos,
+    titulo,
+    columnasPersonalizadas,
+    onEditar,
+    onEliminar,
+    mostrarAcciones = false,
+    onSelectItemsForDelivery,
+    showSelectForDelivery = false,
+}: TablaProps<T>) {
+    const { isDarkMode } = useTheme()
+    const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
 
-  const obtenerColumnas = () => {
-    if (columnasPersonalizadas) {
-      return Object.keys(columnasPersonalizadas)
+    const handleRowSelect = (id: string) => {
+        const newSelectedRows = new Set(selectedRows)
+        if (newSelectedRows.has(id)) {
+            newSelectedRows.delete(id)
+        } else {
+            newSelectedRows.add(id)
+        }
+        setSelectedRows(newSelectedRows)
     }
 
-    if (datos && datos.length > 0) {
-      return Object.keys(datos[0]).filter((col) => col !== "id")
-    }
-    return []
-  }
-
-  const columnas = obtenerColumnas()
-
-  const ordenarDatos = (columna: string) => {
-    let nuevaDireccion: "asc" | "desc" = "asc"
-
-    if (ordenar.columna === columna && ordenar.direccion === "asc") {
-      nuevaDireccion = "desc"
+    const handleSelectAll = () => {
+        if (selectedRows.size === datos.length && datos.length > 0) {
+            setSelectedRows(new Set())
+        } else {
+            setSelectedRows(new Set(datos.map(item => item.id)))
+        }
     }
 
-    const datosOrdenados = [...datos].sort((a, b) => {
-      const valA = a[columna]
-      const valB = b[columna]
+    const handleGenerateDelivery = () => {
+        if (onSelectItemsForDelivery && selectedRows.size > 0) {
+            const selectedItems = datos.filter(item => selectedRows.has(item.id))
+            onSelectItemsForDelivery(selectedItems)
+            setSelectedRows(new Set())
+        } else {
+            alert("Por favor, selecciona al menos un equipo para la entrega.")
+        }
+    }
 
-      if (typeof valA === "string") {
-        return nuevaDireccion === "asc"
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA)
-      }
-
-      return nuevaDireccion === "asc" ? valA - valB : valB - valA
-    })
-
-    setOrdenar({ columna, direccion: nuevaDireccion })
-    datos.splice(0, datos.length, ...datosOrdenados)
-  }
-
-  const IconoOrden = ({ columna }: { columna: string }) => {
-    if (ordenar.columna !== columna) return <div className="w-4 h-4" />
-    return ordenar.direccion === "asc" ? (
-      <ChevronUp size={16} className={isDarkMode ? "text-gray-300" : "text-gray-600"} />
-    ) : (
-      <ChevronDown size={16} className={isDarkMode ? "text-gray-300" : "text-gray-600"} />
-    )
-  }
-
-  if (!datos || datos.length === 0) {
-    return (
-      <div className={`rounded-xl border p-6 mt-6 transition-colors ${
-        isDarkMode
-          ? 'bg-gray-800 border-gray-700'
-          : 'bg-white border-gray-200'
-      }`}>
-        <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
-          No hay datos disponibles
-        </p>
-      </div>
-    )
-  }
-
-  return (
-    <div className={`rounded-xl border mt-6 transition-colors ${
-      isDarkMode
-        ? 'bg-gray-800 border-gray-700'
-        : 'bg-white border-gray-200'
-    }`}>
-      <div className={`p-6 border-b transition-colors ${
-        isDarkMode
-          ? 'border-gray-700'
-          : 'border-gray-200'
-      }`}>
-        <h2 className={`text-xl font-semibold capitalize ${
-          isDarkMode ? 'text-white' : 'text-gray-900'
-        }`}>
-          {titulo}
-        </h2>
-        <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          {datos.length} registros encontrados
-        </p>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className={`border-b transition-colors ${
-              isDarkMode
-                ? 'border-gray-700'
-                : 'border-gray-200'
-            }`}>
-              {columnas.map((col) => (
-                <th
-                  key={col}
-                  onClick={() => ordenarDatos(col)}
-                  className={`py-3 px-4 text-left font-semibold cursor-pointer transition ${
+    if (!datos || datos.length === 0) {
+        return (
+            <div
+                className={`p-4 rounded-lg border ${
                     isDarkMode
-                      ? 'text-gray-300 hover:bg-gray-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {col}
-                    <IconoOrden columna={col} />
-                  </div>
-                </th>
-              ))}
-              {mostrarAcciones && (
-                <th className={`py-3 px-4 text-center font-semibold ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Acciones
-                </th>
-              )}
-            </tr>
-          </thead>
-
-          <tbody>
-            {datos.map((item, idx) => (
-              <tr
-                key={idx}
-                className={`border-b transition ${
-                  isDarkMode
-                    ? 'border-gray-700 hover:bg-gray-700'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {columnas.map((col) => (
-                  <td 
-                    key={`${idx}-${col}`} 
-                    className={`py-3 px-4 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                        ? 'bg-gray-800 border-gray-700'
+                        : 'bg-white border-gray-200'
+                } text-center`}
+            >
+                <p
+                    className={`${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
                     }`}
-                  >
-                    {columnasPersonalizadas?.[col]
-                      ? columnasPersonalizadas[col](item)
-                      : typeof item[col] === "boolean"
-                      ? item[col]
-                        ? "Sí"
-                        : "No"
-                      : String(item[col] ?? "-")}
-                  </td>
-                ))}
+                >
+                    No hay datos disponibles.
+                </p>
+            </div>
+        )
+    }
 
-                {mostrarAcciones && (
-                  <td className="py-3 px-4">
-                    <div className="flex items-center justify-center gap-2">
-                      {onVer && (
-                        <button
-                          onClick={() => onVer(item)}
-                          className={`flex items-center px-3 py-1 border rounded-lg transition ${
-                            isDarkMode
-                              ? 'border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white'
-                              : 'border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white'
-                          }`}
-                          title="Ver"
-                        >
-                          <Eye size={14} />
-                        </button>
-                      )}
+    let nombresColumnas: string[]
+    if (columnasPersonalizadas) {
+        nombresColumnas = Object.keys(columnasPersonalizadas)
+    } else {
+        const primeraFila = datos[0]
+        nombresColumnas = Object.keys(primeraFila).filter(
+            (key) =>
+                ![
+                    'id',
+                    'companyId',
+                    'assignedToPersonId',
+                    'company',
+                    '_count',
+                ].includes(key) && typeof primeraFila[key as keyof T] !== 'object'
+        )
+    }
 
-                      {onEditar && (
-                        <button
-                          onClick={() => onEditar(item)}
-                          className={`flex items-center px-3 py-1 border rounded-lg transition ${
-                            isDarkMode
-                              ? 'border-orange-600 text-orange-400 hover:bg-orange-600 hover:text-white'
-                              : 'border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white'
-                          }`}
-                          title="Editar"
+    return (
+        <div
+            className={`overflow-hidden rounded-lg shadow-md transition-colors ${
+                isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
+        >
+            <table
+                className={`min-w-full divide-y ${
+                    isDarkMode ? 'divide-gray-700' : 'divide-gray-200'
+                }`}
+            >
+                <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+                    <tr>
+                        {showSelectForDelivery && (
+                            <th scope="col" className="p-4 text-center">
+                                <input
+                                    type="checkbox"
+                                    className={`rounded ${
+                                        isDarkMode
+                                            ? 'bg-gray-600 border-gray-500 text-blue-600 focus:ring-blue-500'
+                                            : 'border-gray-300 text-blue-600 focus:ring-blue-500'
+                                    }`}
+                                    checked={
+                                        selectedRows.size === datos.length &&
+                                        datos.length > 0
+                                    }
+                                    onChange={handleSelectAll}
+                                />
+                            </th>
+                        )}
+                        {nombresColumnas.map((columna) => (
+                            <th
+                                key={columna}
+                                scope="col"
+                                className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                                    isDarkMode
+                                        ? 'text-gray-300'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                {columna}
+                            </th>
+                        ))}
+                        {mostrarAcciones && (
+                            <th
+                                scope="col"
+                                className={`px-6 py-3 text-center text-xs font-medium uppercase tracking-wider ${
+                                    isDarkMode
+                                        ? 'text-gray-300'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                Acciones
+                            </th>
+                        )}
+                    </tr>
+                </thead>
+                <tbody
+                    className={`divide-y ${
+                        isDarkMode ? 'divide-gray-700' : 'divide-gray-200'
+                    } ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
+                >
+                    {datos.map((item) => (
+                        <tr
+                            key={item.id}
+                            className={`${
+                                selectedRows.has(item.id)
+                                    ? isDarkMode
+                                        ? 'bg-blue-900 bg-opacity-30'
+                                        : 'bg-blue-50'
+                                    : isDarkMode
+                                    ? 'hover:bg-gray-700'
+                                    : 'hover:bg-gray-50'
+                            } transition-colors`}
                         >
-                          <Edit size={14} />
-                        </button>
-                      )}
+                            {showSelectForDelivery && (
+                                <td className="p-4 text-center">
+                                    <input
+                                        type="checkbox"
+                                        className={`rounded ${
+                                            isDarkMode
+                                                ? 'bg-gray-600 border-gray-500 text-blue-600 focus:ring-blue-500'
+                                                : 'border-gray-300 text-blue-600 focus:ring-blue-500'
+                                        }`}
+                                        checked={selectedRows.has(item.id)}
+                                        onChange={() =>
+                                            handleRowSelect(item.id)
+                                        }
+                                    />
+                                </td>
+                            )}
+                            {nombresColumnas.map((columna) => (
+                                <td
+                                    key={`${item.id}-${columna}`}
+                                    className={`px-6 py-4 whitespace-nowrap ${
+                                        isDarkMode
+                                            ? 'text-gray-300'
+                                            : 'text-gray-900'
+                                    }`}
+                                >
+                                    {columnasPersonalizadas &&
+                                    columnasPersonalizadas[columna]
+                                        ? columnasPersonalizadas[columna](
+                                              item
+                                          )
+                                        : typeof item[columna as keyof T] ===
+                                          'string' ||
+                                          typeof item[columna as keyof T] ===
+                                              'number'
+                                        ? (item[
+                                              columna as keyof T
+                                          ] as React.ReactNode)
+                                        : null}
+                                </td>
+                            ))}
+                            {mostrarAcciones && (
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex justify-center space-x-2">
+                                        {onEditar && (
+                                            <button
+                                                onClick={() => onEditar(item)}
+                                                className={`p-2 rounded-full transition-colors ${
+                                                    isDarkMode
+                                                        ? 'text-blue-400 hover:bg-gray-700'
+                                                        : 'text-blue-600 hover:bg-gray-100'
+                                                }`}
+                                                title="Editar"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                        )}
+                                        {onEliminar && (
+                                            <button
+                                                onClick={() =>
+                                                    onEliminar(item)
+                                                }
+                                                className={`p-2 rounded-full transition-colors ${
+                                                    isDarkMode
+                                                        ? 'text-red-400 hover:bg-gray-700'
+                                                        : 'text-red-600 hover:bg-gray-100'
+                                                }`}
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                            )}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
 
-                      {onEliminar && (
-                        <button
-                          onClick={() => onEliminar(item)}
-                          className={`flex items-center px-3 py-1 border rounded-lg transition ${
+            {showSelectForDelivery && (
+                <div
+                    className={`p-4 border-t flex justify-between items-center ${
+                        isDarkMode
+                            ? 'border-gray-700 bg-gray-800'
+                            : 'border-gray-200 bg-white'
+                    }`}
+                >
+                    <span
+                        className={`text-sm font-medium ${
                             isDarkMode
-                              ? 'border-red-600 text-red-400 hover:bg-red-600 hover:text-white'
-                              : 'border-red-500 text-red-600 hover:bg-red-500 hover:text-white'
-                          }`}
-                          title="Eliminar"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
+                                ? 'text-gray-300'
+                                : 'text-gray-700'
+                        }`}
+                    >
+                        {selectedRows.size} equipo{selectedRows.size !== 1 ? 's' : ''} seleccionado
+                        {selectedRows.size !== 1 ? 's' : ''}
+                    </span>
+                    <button
+                        onClick={handleGenerateDelivery}
+                        disabled={selectedRows.size === 0}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                            selectedRows.size > 0
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                        }`}
+                    >
+                        <FileText size={18} />
+                        Generar Acta de Entrega
+                    </button>
+                </div>
+            )}
+        </div>
+    )
 }
