@@ -10,25 +10,8 @@ import PagesHeader from "../../../../components/headers/pagesHeader";
 import { useSearch } from "../../../../context/searchContext";
 import Tabla from "../../../../components/tables/Table";
 import { X } from "lucide-react";
+import { CreateEquipmentData } from "../../devices/components/AllDevices";
 
-interface Equipment {
-  id: string;
-  brand: string;
-  model: string;
-  type: string;
-  plateNumber?: string | null;
-  serialNumber: string;
-  location?: string | null;
-  assignedToPersonId?: string;
-  assignedToPerson?: {
-    fullName: string | null;
-    firstName: string | null;
-    lastName: string | null;
-    position: string | null;
-  }
-  status: string;
-  cost?: number | null;
-}
 
 interface Department {
   id: string;
@@ -73,7 +56,7 @@ export default function AllInventory() {
     : "px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800 font-medium";
   const dividerClass = isDarkMode ? "border-gray-700" : "border-gray-200";
 
-  const [inventory, setInventory] = useState<Equipment[]>([]);
+  const [inventory, setInventory] = useState<CreateEquipmentData[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [importing, setImporting] = useState(false);
@@ -81,12 +64,12 @@ export default function AllInventory() {
   const [showImportResultModal, setShowImportResultModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [equipmentToDelete, setEquipmentToDelete] = useState<Equipment | null>(null);
+  const [equipmentToDelete, setEquipmentToDelete] = useState<CreateEquipmentData | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("todos");
   const [selectedType, setSelectedType] = useState<string>("todos");
   const { pageName } = usePageName();
   const [newEquipment, setNewEquipment] = useState({
-    brand: "", model: "", type: "", 
+    brand: "", model: "", type: "",
     serialNumber: "", location: "", status: "Activo", cost: "",
   });
 
@@ -143,23 +126,23 @@ export default function AllInventory() {
 
   const filteredInventory = Array.isArray(inventory)
     ? inventory.filter((item) => {
-        if (search.trim() === "") return true;
-        const term = search.toLowerCase();
-        const matchesSearch = (
-          item.brand.toLowerCase().includes(term) ||
-          item.model.toLowerCase().includes(term) ||
-          item.type.toLowerCase().includes(term) ||
-          item.serialNumber.toLowerCase().includes(term) ||
-          item.plateNumber?.toLowerCase().includes(term) ||
-          item.location?.toLowerCase().includes(term) ||
-          item.assignedToPerson?.fullName?.toLowerCase().includes(term)
-        );
-        // ✅ Filtro por departamento
-        const matchesDepartment = selectedDepartment === "todos" || item.location === selectedDepartment;
-        // ✅ Filtro por tipo
-        const matchesType = selectedType === "todos" || item.type === selectedType;
-        return matchesSearch && matchesDepartment && matchesType;
-      })
+      if (search.trim() === "") return true;
+      const term = search.toLowerCase();
+      const matchesSearch = (
+        item.brand.toLowerCase().includes(term) ||
+        item.model.toLowerCase().includes(term) ||
+        item.type.toLowerCase().includes(term) ||
+        item.serialNumber.toLowerCase().includes(term) ||
+        item.plateNumber?.toLowerCase().includes(term) ||
+        item.location?.toLowerCase().includes(term) ||
+        item.assignedToPerson?.fullName?.toLowerCase().includes(term)
+      );
+      // ✅ Filtro por departamento
+      const matchesDepartment = selectedDepartment === "todos" || item.location === selectedDepartment;
+      // ✅ Filtro por tipo
+      const matchesType = selectedType === "todos" || item.type === selectedType;
+      return matchesSearch && matchesDepartment && matchesType;
+    })
     : [];
 
   const handleImportClick = () => fileInputRef.current?.click();
@@ -185,11 +168,11 @@ export default function AllInventory() {
   };
 
   // ✅ Redirigir a página de editar
-  const handleEdit = (item: Equipment) => {
+  const handleEdit = (item: CreateEquipmentData) => {
     window.location.href = `edit/${item.id}`;
   };
 
-  const abrirModalEliminar = (equipment: Equipment) => { setEquipmentToDelete(equipment); setShowDeleteModal(true); };
+  const abrirModalEliminar = (equipment: CreateEquipmentData) => { setEquipmentToDelete(equipment); setShowDeleteModal(true); };
   const cerrarModalEliminar = () => { setShowDeleteModal(false); setEquipmentToDelete(null); };
 
   const handleDelete = async () => {
@@ -240,28 +223,100 @@ export default function AllInventory() {
   };
 
   const columnConfig = {
-    "Marca/Modelo": (item: Equipment) => (
+    "Marca/Modelo": (item: CreateEquipmentData) => (
       <div>
         <div className="font-medium">{item.brand}</div>
         <div className={`text-sm ${subTextClass}`}>{item.model}</div>
       </div>
     ),
-    "Tipo": (item: Equipment) => item.type,
-    "Placa/Serie": (item: Equipment) => (
+    "Tipo": (item: CreateEquipmentData) => item.type,
+    "Placa/Serie": (item: CreateEquipmentData) => (
       <div>
         <div>{item.plateNumber ?? "-"}</div>
         <div className={`text-xs ${subTextClass}`}>{item.serialNumber}</div>
       </div>
     ),
-    "Ubicación": (item: Equipment) => getDepartmentName(item.location),
-    "Lo tiene": (item: Equipment) => item.assignedToPerson?.fullName ?? "-",
-    "Estado": (item: Equipment) => (
-      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(item.status)}`}>
+    "Ubicación": (item: CreateEquipmentData) => getDepartmentName(item.location),
+    "Lo tiene": (item: CreateEquipmentData) => item.assignedToPerson?.fullName ?? "-",
+    "Estado": (item: CreateEquipmentData) => (
+      <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(String(item?.status))}`}>
         {item.status}
       </span>
     ),
-    "Costo": (item: Equipment) => item.cost ?? "-",
+    "Costo": (item: CreateEquipmentData) => item.cost ?? "-",
   };
+  const filteredEquipos = inventory.filter(equipo => {
+    const searchTermLower = search.toLowerCase()
+    const matchesSearch =
+      equipo?.model?.toLowerCase()?.includes(searchTermLower) ||
+      equipo?.brand?.toLowerCase()?.includes(searchTermLower) ||
+      equipo?.type?.toLowerCase()?.includes(searchTermLower) ||
+      equipo?.serialNumber?.toLowerCase()?.includes(searchTermLower) ||
+      equipo?.assignedToPerson?.fullName?.toLowerCase()?.includes(searchTermLower) ||
+      equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
+
+    const matchesType = selectedType === "todos" || equipo?.type === selectedType
+    const matchesDepartment = selectedDepartment === "todos" || equipo?.location === selectedDepartment
+
+    return matchesSearch && matchesType && matchesDepartment
+  })
+  const totalEquipos = filteredEquipos.length
+  const enUso = filteredEquipos.filter(e => e.assignedToPersonId != null).length
+  const disponibles = filteredEquipos.filter(e => !e.assignedToPersonId).length
+  const activos = filteredEquipos.filter(e => e.status === "Activo").length
+  const enMantenimiento = filteredEquipos.filter(e => e.status === "Mantenimiento").length
+  const dañados = filteredEquipos.filter(e => e.status === "DAMAGED").length
+  const totalCost = filteredEquipos.reduce((sum, e) => sum + (Number(e.cost) || 0), 0)
+
+  const getGarantiasPorVencer = () => {
+    const proximos30Dias = new Date(new Date().setDate(new Date().getDate() + 30))
+    return filteredEquipos.filter(equipo => {
+      if (!equipo.warrantyDetails) return false
+      try {
+        if (isNaN(new Date(equipo.warrantyDetails).getTime())) return false
+        const fechaGarantia = new Date(equipo.warrantyDetails)
+        return fechaGarantia <= proximos30Dias && fechaGarantia >= new Date()
+      } catch (e) {
+        return false
+      }
+    }).length
+  }
+  const garantiasPorVencer = getGarantiasPorVencer()
+
+  const getUserStats = () => {
+    const userMap = new Map<string, number>()
+    filteredEquipos.forEach(e => {
+      const user = e.assignedToPerson?.fullName || "Sin asignar"
+      userMap.set(user, (userMap.get(user) || 0) + 1)
+    })
+    const sorted = Array.from(userMap.entries()).sort((a, b) => b[1] - a[1])
+    return {
+      max: sorted[0] || ["Sin datos", 0] as [string, number],
+      min: sorted[sorted.length - 1] || ["Sin datos", 0] as [string, number]
+    }
+  }
+  const userStats = getUserStats()
+
+  const getDeptStats = () => {
+    const deptMap = new Map<string, number>()
+    filteredEquipos.forEach(e => {
+      const dept = getDepartmentName(e.location)
+      deptMap.set(dept, (deptMap.get(dept) || 0) + 1)
+    })
+    const sorted = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1])
+    return sorted.slice(0, 3)
+  }
+  const topDepts = getDeptStats()
+
+  const getTypeStats = () => {
+    const typeMap = new Map<string, number>()
+    filteredEquipos.forEach(e => {
+      const type = e.type || "Sin tipo"
+      typeMap.set(type, (typeMap.get(type) || 0) + 1)
+    })
+    return Array.from(typeMap.entries()).sort((a, b) => b[1] - a[1])
+  }
+  const typeStats = getTypeStats()
 
   if (loading) return <Loader />;
   if (!selectedCompany?.id) return <p className={subTextClass}>No se encontró el código de empresa.</p>;
@@ -415,17 +470,81 @@ export default function AllInventory() {
         </div>
       )}
 
+      {/* KPIs PRINCIPALES */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3">
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
+          <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((enUso / totalEquipos) * 100).toFixed(0) : 0}%</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
+          <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((disponibles / totalEquipos) * 100).toFixed(0) : 0}%</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activos</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>{activos}</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mant.</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{enMantenimiento}</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dañados</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{dañados}</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías</span>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>{garantiasPorVencer}</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
+          <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
+            ${(totalCost >= 1000000 ? (totalCost / 1000000).toFixed(1) + 'M' : (totalCost >= 1000 ? (totalCost / 1000).toFixed(1) + 'k' : totalCost.toFixed(0)))}
+          </div>
+        </div>
+      </div>
+
+      {/* ANÁLISIS POR USUARIO */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
+          <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
+          <div className={`text-xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{userStats.max[1]}</div>
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>📍 Top Deptos</span>
+          {topDepts.slice(0, 3).map((dept, idx) => (
+            <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {dept[0]}: <span className="font-bold">{dept[1]}</span>
+            </div>
+          ))}
+        </div>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>🖥️ Tipos</span>
+          {typeStats.slice(0, 3).map((type, idx) => (
+            <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {type[0]}: <span className="font-bold">{type[1]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ✅ Filtros por Tipo y Departamento */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center flex-wrap">
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center flex-wrap mb-3">
         {/* Filtro por Tipo */}
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            isDarkMode
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDarkMode
               ? 'bg-gray-800 border border-gray-700 text-white'
               : 'bg-white border border-gray-300 text-gray-900'
-          }`}
+            }`}
         >
           <option value="todos">🖥️ Todos los Tipos</option>
           {Array.from(new Set(inventory.map(eq => eq.type).filter(Boolean))).sort().map(type => (
@@ -439,11 +558,10 @@ export default function AllInventory() {
         <select
           value={selectedDepartment}
           onChange={(e) => setSelectedDepartment(e.target.value)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            isDarkMode
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDarkMode
               ? 'bg-gray-800 border border-gray-700 text-white'
               : 'bg-white border border-gray-300 text-gray-900'
-          }`}
+            }`}
         >
           <option value="todos">📍 Todos los Departamentos</option>
           {departments.map(dept => (

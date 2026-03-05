@@ -432,64 +432,6 @@ export default function AllDevices() {
         return matchesSearch && matchesType && matchesDepartment
     })
 
-    const totalEquipos = filteredEquipos.length
-    const enUso = filteredEquipos.filter(e => e.assignedToPersonId != null).length
-    const disponibles = filteredEquipos.filter(e => !e.assignedToPersonId).length
-    const activos = filteredEquipos.filter(e => e.status === "Activo").length
-    const enMantenimiento = filteredEquipos.filter(e => e.status === "Mantenimiento").length
-    const dañados = filteredEquipos.filter(e => e.status === "DAMAGED").length
-    const totalCost = filteredEquipos.reduce((sum, e) => sum + (Number(e.cost) || 0), 0)
-
-    const getGarantiasPorVencer = () => {
-        const proximos30Dias = new Date(new Date().setDate(new Date().getDate() + 30))
-        return filteredEquipos.filter(equipo => {
-            if (!equipo.warrantyDetails) return false
-            try {
-                if (isNaN(new Date(equipo.warrantyDetails).getTime())) return false
-                const fechaGarantia = new Date(equipo.warrantyDetails)
-                return fechaGarantia <= proximos30Dias && fechaGarantia >= new Date()
-            } catch (e) {
-                return false
-            }
-        }).length
-    }
-    const garantiasPorVencer = getGarantiasPorVencer()
-
-    const getUserStats = () => {
-        const userMap = new Map<string, number>()
-        filteredEquipos.forEach(e => {
-            const user = e.assignedToPerson?.fullName || "Sin asignar"
-            userMap.set(user, (userMap.get(user) || 0) + 1)
-        })
-        const sorted = Array.from(userMap.entries()).sort((a, b) => b[1] - a[1])
-        return {
-            max: sorted[0] || ["Sin datos", 0] as [string, number],
-            min: sorted[sorted.length - 1] || ["Sin datos", 0] as [string, number]
-        }
-    }
-    const userStats = getUserStats()
-
-    const getDeptStats = () => {
-        const deptMap = new Map<string, number>()
-        filteredEquipos.forEach(e => {
-            const dept = getDepartmentName(e.location)
-            deptMap.set(dept, (deptMap.get(dept) || 0) + 1)
-        })
-        const sorted = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1])
-        return sorted.slice(0, 3)
-    }
-    const topDepts = getDeptStats()
-
-    const getTypeStats = () => {
-        const typeMap = new Map<string, number>()
-        filteredEquipos.forEach(e => {
-            const type = e.type || "Sin tipo"
-            typeMap.set(type, (typeMap.get(type) || 0) + 1)
-        })
-        return Array.from(typeMap.entries()).sort((a, b) => b[1] - a[1])
-    }
-    const typeStats = getTypeStats()
-
     const getStatusBadge = (estado: string) => {
         switch (estado) {
             case "En Uso":
@@ -682,143 +624,9 @@ export default function AllDevices() {
                 showCreate
             />
 
-            {/* BOTONES GENERAR ACTA - DEBAJO DEL HEADER */}
-            <div className=" py-3 flex justify-end gap-3 flex-wrap">
-                {/* Botón ENTREGA */}
-                <button
-                    onClick={() => {
-                        if (equipmentsToDeliver.length === 0) {
-                            alert("Por favor, selecciona al menos un equipo para entregar")
-                            return
-                        }
-                        setActaState({
-                            actaType: 'entrega',
-                            equiposEntregados: equipmentsToDeliver,
-                            equiposRetirados: [],
-                            showModal: true
-                        })
-                    }}
-                    disabled={equipmentsToDeliver.length === 0}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
-                        equipmentsToDeliver.length > 0
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                    }`}
-                >
-                    📤 Acta de Entrega ({equipmentsToDeliver.length})
-                </button>
-
-                {/* Botón RETIRO */}
-                <button
-                    onClick={() => {
-                        if (equipmentsToDeliver.length === 0) {
-                            alert("Por favor, selecciona al menos un equipo para retirar")
-                            return
-                        }
-                        setActaState({
-                            actaType: 'retiro',
-                            equiposEntregados: [],
-                            equiposRetirados: equipmentsToDeliver,
-                            showModal: true
-                        })
-                    }}
-                    disabled={equipmentsToDeliver.length === 0}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
-                        equipmentsToDeliver.length > 0
-                            ? 'bg-red-600 hover:bg-red-700 text-white'
-                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                    }`}
-                >
-                    📥 Acta de Retiro ({equipmentsToDeliver.length})
-                </button>
-
-                {/* Botón CAMBIO */}
-                <button
-                    onClick={() => {
-                        if (equipmentsToDeliver.length === 0) {
-                            alert("Por favor, selecciona equipos para el cambio")
-                            return
-                        }
-                        setShowCambioSelector(true)
-                    }}
-                    disabled={equipmentsToDeliver.length === 0}
-                    className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
-                        equipmentsToDeliver.length > 0
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                    }`}
-                >
-                    🔄 Acta de Cambio ({equipmentsToDeliver.length})
-                </button>
-            </div>
-
-            {/* KPIs PRINCIPALES */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3">
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
-                    <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((enUso / totalEquipos) * 100).toFixed(0) : 0}%</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
-                    <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((disponibles / totalEquipos) * 100).toFixed(0) : 0}%</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activos</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>{activos}</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mant.</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{enMantenimiento}</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dañados</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{dañados}</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías</span>
-                    <div className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>{garantiasPorVencer}</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
-                    <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
-                        ${(totalCost >= 1000000 ? (totalCost / 1000000).toFixed(1) + 'M' : (totalCost >= 1000 ? (totalCost / 1000).toFixed(1) + 'k' : totalCost.toFixed(0)))}
-                    </div>
-                </div>
-            </div>
-
-            {/* ANÁLISIS POR USUARIO */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
-                    <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
-                    <div className={`text-xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{userStats.max[1]}</div>
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>📍 Top Deptos</span>
-                    {topDepts.slice(0, 3).map((dept, idx) => (
-                        <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {dept[0]}: <span className="font-bold">{dept[1]}</span>
-                        </div>
-                    ))}
-                </div>
-                <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>🖥️ Tipos</span>
-                    {typeStats.slice(0, 3).map((type, idx) => (
-                        <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {type[0]}: <span className="font-bold">{type[1]}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
             {/* TABS Y FILTROS */}
-            <div className="mb-3 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
+            <div className="mb-3 flex justify-between items-center flex-wrap gap-3">
+                <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
                 <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
                         <button
@@ -868,6 +676,76 @@ export default function AllDevices() {
                         </option>
                     ))}
                 </select>
+                </div>
+                {/* BOTONES GENERAR ACTA - DEBAJO DEL HEADER */}
+                <div className=" py-3 flex justify-end gap-3 flex-wrap">
+                    {/* Botón ENTREGA */}
+                    <button
+                        onClick={() => {
+                            if (equipmentsToDeliver.length === 0) {
+                                alert("Por favor, selecciona al menos un equipo para entregar")
+                                return
+                            }
+                            setActaState({
+                                actaType: 'entrega',
+                                equiposEntregados: equipmentsToDeliver,
+                                equiposRetirados: [],
+                                showModal: true
+                            })
+                        }}
+                        disabled={equipmentsToDeliver.length === 0}
+                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                            equipmentsToDeliver.length > 0
+                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                        }`}
+                    >
+                        📤 Acta de Entrega ({equipmentsToDeliver.length})
+                    </button>
+
+                    {/* Botón RETIRO */}
+                    <button
+                        onClick={() => {
+                            if (equipmentsToDeliver.length === 0) {
+                                alert("Por favor, selecciona al menos un equipo para retirar")
+                                return
+                            }
+                            setActaState({
+                                actaType: 'retiro',
+                                equiposEntregados: [],
+                                equiposRetirados: equipmentsToDeliver,
+                                showModal: true
+                            })
+                        }}
+                        disabled={equipmentsToDeliver.length === 0}
+                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                            equipmentsToDeliver.length > 0
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                        }`}
+                    >
+                        📥 Acta de Retiro ({equipmentsToDeliver.length})
+                    </button>
+
+                    {/* Botón CAMBIO */}
+                    <button
+                        onClick={() => {
+                            if (equipmentsToDeliver.length === 0) {
+                                alert("Por favor, selecciona equipos para el cambio")
+                                return
+                            }
+                            setShowCambioSelector(true)
+                        }}
+                        disabled={equipmentsToDeliver.length === 0}
+                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                            equipmentsToDeliver.length > 0
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                        }`}
+                    >
+                        🔄 Acta de Cambio ({equipmentsToDeliver.length})
+                    </button>
+                </div>
             </div>
 
             {/* TABLA */}
