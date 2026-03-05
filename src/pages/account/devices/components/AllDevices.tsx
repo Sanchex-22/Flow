@@ -683,7 +683,7 @@ export default function AllDevices() {
             />
 
             {/* BOTONES GENERAR ACTA - DEBAJO DEL HEADER */}
-            <div className="px-4 py-3 flex justify-end gap-3 flex-wrap">
+            <div className=" py-3 flex justify-end gap-3 flex-wrap">
                 {/* Botón ENTREGA */}
                 <button
                     onClick={() => {
@@ -753,7 +753,7 @@ export default function AllDevices() {
             </div>
 
             {/* KPIs PRINCIPALES */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3 p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3">
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
@@ -793,7 +793,7 @@ export default function AllDevices() {
             </div>
 
             {/* ANÁLISIS POR USUARIO */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3 px-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
                     <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
@@ -818,7 +818,7 @@ export default function AllDevices() {
             </div>
 
             {/* TABS Y FILTROS */}
-            <div className="mb-3 px-4 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
+            <div className="mb-3 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
                 <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
                         <button
@@ -871,7 +871,7 @@ export default function AllDevices() {
             </div>
 
             {/* TABLA */}
-            <div className="px-4">
+            <div className="">
                 <Tabla
                     datos={getTabData()}
                     titulo={`${pageName || "Dispositivos"} List`}
