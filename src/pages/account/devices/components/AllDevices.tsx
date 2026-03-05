@@ -11,44 +11,45 @@ import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
 import { X } from "lucide-react"
 import Tabla from "../../../../components/tables/Table"
-import DeliveryPDFGenerator from "./DeliveryPDFGenerator"
+import CambioSelectorModal from "./CambioSelectorModal"
+import DeliveryActaGenerator from "./DeliveryPDFGenerator"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export interface CreateEquipmentData {
-    id: string;
-    type: string;
-    brand: string;
-    model: string;
-    serialNumber: string;
-    plateNumber: string;
-    location?: string;
-    status?: string;
-    acquisitionDate?: string;
-    warrantyDetails?: string;
-    qrCode?: string;
-    cost?: number;
-    companyId: string;
+    id: string
+    type: string
+    brand: string
+    model: string
+    serialNumber: string
+    plateNumber: string
+    location?: string
+    status?: string
+    acquisitionDate?: string
+    warrantyDetails?: string
+    qrCode?: string
+    cost?: number
+    companyId: string
     company: {
-        name: string;
+        name: string
     }
-    assignedToPersonId?: string;
+    assignedToPersonId?: string
     assignedToPerson?: {
-        fullName: string | null;
-        firstName: string | null;
-        lastName: string | null;
-        position: string | null;
+        fullName: string | null
+        firstName: string | null
+        lastName: string | null
+        position: string | null
     }
     _count?: {
-        maintenances?: number;
-        documents?: number;
+        maintenances?: number
+        documents?: number
     }
 }
 
 interface Department {
-    id: string;
-    name: string;
+    id: string
+    name: string
 }
 
 type NotificationType = "success" | "error"
@@ -65,20 +66,35 @@ interface DeleteConfirmation {
     isDeleting: boolean
 }
 
+type ActaType = 'entrega' | 'retiro' | 'cambio'
+
+interface ActaState {
+    actaType: ActaType
+    equiposEntregados: CreateEquipmentData[]
+    equiposRetirados: CreateEquipmentData[]
+    showModal: boolean
+}
+
+interface Company {
+    id?: string
+    name: string
+    code?: string
+}
+
 export default function AllDevices() {
     const { isDarkMode } = useTheme()
     const { search } = useSearch()
     const [selectedType, setSelectedType] = useState<string>("todos")
-    const [activeTab, setActiveTab] = useState("Todos los Equipos")
-    const { selectedCompany } = useCompany();
-    const { pageName } = usePageName();
+    const [activeTab, setActiveTab] = useState<string>("Todos los Equipos")
+    const { selectedCompany } = useCompany() as { selectedCompany: Company | null }
+    const { pageName } = usePageName()
     const [notification, setNotification] = useState<Notification>({
         type: "success",
         message: "",
         show: false,
     })
     const { data, error, isLoading } = useSWR<CreateEquipmentData[]>(
-        `${VITE_API_URL}/api/devices/${selectedCompany?.id}/all`,
+        selectedCompany?.id ? `${VITE_API_URL}/api/devices/${selectedCompany.id}/all` : null,
         fetcher
     )
     const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({
@@ -89,24 +105,30 @@ export default function AllDevices() {
     const [departments, setDepartments] = useState<Department[]>([])
     const [selectedDepartment, setSelectedDepartment] = useState<string>("todos")
     const [equipmentsToDeliver, setEquipmentsToDeliver] = useState<CreateEquipmentData[]>([])
-    const [showDeliveryModal, setShowDeliveryModal] = useState(false)
+    const [actaState, setActaState] = useState<ActaState>({
+        actaType: 'entrega',
+        equiposEntregados: [],
+        equiposRetirados: [],
+        showModal: false
+    })
+    const [showCambioSelector, setShowCambioSelector] = useState<boolean>(false)
 
     // ✅ Cargar departamentos
     useEffect(() => {
         const fetchDepartments = async () => {
-            if (!selectedCompany?.code) return;
+            if (!selectedCompany?.code) return
             try {
-                const res = await fetch(`${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}`);
+                const res = await fetch(`${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}`)
                 if (res.ok) {
-                    const data = await res.json();
-                    setDepartments(Array.isArray(data) ? data : []);
+                    const data = await res.json()
+                    setDepartments(Array.isArray(data) ? data : [])
                 }
             } catch (error) {
-                console.error("Error cargando departamentos:", error);
+                console.error("Error cargando departamentos:", error)
             }
-        };
-        fetchDepartments();
-    }, [selectedCompany?.code]);
+        }
+        fetchDepartments()
+    }, [selectedCompany?.code])
 
     useEffect(() => {
         if (notification.show) {
@@ -117,10 +139,15 @@ export default function AllDevices() {
         }
     }, [notification.show])
 
+    const getDepartmentName = (departmentId: string | null | undefined): string => {
+        if (!departmentId) return "-"
+        const dept = departments.find(d => d.id === departmentId)
+        return dept ? dept.name : departmentId
+    }
+
     const exportToExcel = () => {
         const wb = XLSX.utils.book_new()
 
-        // ===== HOJA 1: RESUMEN GENERAL =====
         const summaryData: Record<string, unknown>[] = []
 
         const headerRow: Record<string, unknown> = {
@@ -185,7 +212,6 @@ export default function AllDevices() {
         wsSummary['!autofilter'] = { ref: XLSX.utils.encode_range(summaryRange) }
         XLSX.utils.book_append_sheet(wb, wsSummary, 'Todos los Dispositivos')
 
-        // ===== HOJAS POR DEPARTAMENTO =====
         const departmentMap = new Map<string, CreateEquipmentData[]>()
 
         filteredEquipos.forEach((equipo) => {
@@ -287,7 +313,6 @@ export default function AllDevices() {
                 XLSX.utils.book_append_sheet(wb, wsDept, sheetName)
             })
 
-        // ===== HOJA FINAL: RESUMEN POR TIPO =====
         const typeData: Record<string, unknown>[] = []
         const typeHeaderRow: Record<string, unknown> = {
             'Tipo': 'Tipo',
@@ -303,9 +328,9 @@ export default function AllDevices() {
             if (!typeMap.has(type)) {
                 typeMap.set(type, { count: 0, totalCost: 0 })
             }
-            const data = typeMap.get(type)!
-            data.count += 1
-            data.totalCost += equipo.cost || 0
+            const typeItem = typeMap.get(type)!
+            typeItem.count += 1
+            typeItem.totalCost += equipo.cost || 0
         })
 
         let grandTotalCount = 0
@@ -313,16 +338,16 @@ export default function AllDevices() {
 
         Array.from(typeMap.entries())
             .sort((a, b) => a[0].localeCompare(b[0]))
-            .forEach(([type, data]) => {
-                const avgCost = data.count > 0 ? (data.totalCost / data.count).toFixed(2) : '0'
+            .forEach(([type, typeItem]) => {
+                const avgCost = typeItem.count > 0 ? (typeItem.totalCost / typeItem.count).toFixed(2) : '0'
                 typeData.push({
                     'Tipo': type,
-                    'Cantidad': data.count,
-                    'Costo Total': `$${data.totalCost.toFixed(2)}`,
+                    'Cantidad': typeItem.count,
+                    'Costo Total': `$${typeItem.totalCost.toFixed(2)}`,
                     'Costo Promedio': `$${avgCost}`,
                 })
-                grandTotalCount += data.count
-                grandTotalCost += Number(data.totalCost)
+                grandTotalCount += typeItem.count
+                grandTotalCost += typeItem.totalCost
             })
 
         typeData.push({
@@ -374,14 +399,7 @@ export default function AllDevices() {
         const timestamp = new Date().toISOString().split('T')[0]
         XLSX.writeFile(wb, `dispositivos_${timestamp}.xlsx`)
         showNotification("success", `Archivo Excel exportado exitosamente con ${filteredEquipos.length} dispositivos.`)
-    };
-
-    // ✅ Función para obtener nombre del departamento
-    const getDepartmentName = (departmentId: string | null | undefined): string => {
-        if (!departmentId) return "-";
-        const dept = departments.find(d => d.id === departmentId);
-        return dept ? dept.name : departmentId;
-    };
+    }
 
     if (isLoading) return <Loader />
 
@@ -395,8 +413,8 @@ export default function AllDevices() {
         )
     }
 
-    const equipos = Array.isArray(data) ? data : [];
-    const uniqueTypes = Array.from(new Set(equipos.map(e => e.type).filter(Boolean)));
+    const equipos = Array.isArray(data) ? data : []
+    const uniqueTypes = Array.from(new Set(equipos.map(e => e.type).filter(Boolean)))
 
     const filteredEquipos = equipos.filter(equipo => {
         const searchTermLower = search.toLowerCase()
@@ -414,7 +432,6 @@ export default function AllDevices() {
         return matchesSearch && matchesType && matchesDepartment
     })
 
-    // ✅ CÁLCULOS DETALLADOS DE KPIs
     const totalEquipos = filteredEquipos.length
     const enUso = filteredEquipos.filter(e => e.assignedToPersonId != null).length
     const disponibles = filteredEquipos.filter(e => !e.assignedToPersonId).length
@@ -423,59 +440,55 @@ export default function AllDevices() {
     const dañados = filteredEquipos.filter(e => e.status === "DAMAGED").length
     const totalCost = filteredEquipos.reduce((sum, e) => sum + (Number(e.cost) || 0), 0)
 
-    // Garantías
     const getGarantiasPorVencer = () => {
-        const proximos30Dias = new Date(new Date().setDate(new Date().getDate() + 30));
+        const proximos30Dias = new Date(new Date().setDate(new Date().getDate() + 30))
         return filteredEquipos.filter(equipo => {
-            if (!equipo.warrantyDetails) return false;
+            if (!equipo.warrantyDetails) return false
             try {
-                if (isNaN(new Date(equipo.warrantyDetails).getTime())) return false;
-                const fechaGarantia = new Date(equipo.warrantyDetails);
-                return fechaGarantia <= proximos30Dias && fechaGarantia >= new Date();
+                if (isNaN(new Date(equipo.warrantyDetails).getTime())) return false
+                const fechaGarantia = new Date(equipo.warrantyDetails)
+                return fechaGarantia <= proximos30Dias && fechaGarantia >= new Date()
             } catch (e) {
-                return false;
+                return false
             }
-        }).length;
+        }).length
     }
-    const garantiasPorVencer = getGarantiasPorVencer();
+    const garantiasPorVencer = getGarantiasPorVencer()
 
-    // Usuario con más equipos
     const getUserStats = () => {
-        const userMap = new Map<string, number>();
+        const userMap = new Map<string, number>()
         filteredEquipos.forEach(e => {
-            const user = e.assignedToPerson?.fullName || "Sin asignar";
-            userMap.set(user, (userMap.get(user) || 0) + 1);
-        });
-        const sorted = Array.from(userMap.entries()).sort((a, b) => b[1] - a[1]);
+            const user = e.assignedToPerson?.fullName || "Sin asignar"
+            userMap.set(user, (userMap.get(user) || 0) + 1)
+        })
+        const sorted = Array.from(userMap.entries()).sort((a, b) => b[1] - a[1])
         return {
-            max: sorted[0] || ["Sin datos", 0],
-            min: sorted[sorted.length - 1] || ["Sin datos", 0]
-        };
-    };
-    const userStats = getUserStats();
+            max: sorted[0] || ["Sin datos", 0] as [string, number],
+            min: sorted[sorted.length - 1] || ["Sin datos", 0] as [string, number]
+        }
+    }
+    const userStats = getUserStats()
 
-    // Departamento con más equipos
     const getDeptStats = () => {
-        const deptMap = new Map<string, number>();
+        const deptMap = new Map<string, number>()
         filteredEquipos.forEach(e => {
-            const dept = getDepartmentName(e.location);
-            deptMap.set(dept, (deptMap.get(dept) || 0) + 1);
-        });
-        const sorted = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1]);
-        return sorted.slice(0, 3);
-    };
-    const topDepts = getDeptStats();
+            const dept = getDepartmentName(e.location)
+            deptMap.set(dept, (deptMap.get(dept) || 0) + 1)
+        })
+        const sorted = Array.from(deptMap.entries()).sort((a, b) => b[1] - a[1])
+        return sorted.slice(0, 3)
+    }
+    const topDepts = getDeptStats()
 
-    // Equipos por tipo
     const getTypeStats = () => {
-        const typeMap = new Map<string, number>();
+        const typeMap = new Map<string, number>()
         filteredEquipos.forEach(e => {
-            const type = e.type || "Sin tipo";
-            typeMap.set(type, (typeMap.get(type) || 0) + 1);
-        });
-        return Array.from(typeMap.entries()).sort((a, b) => b[1] - a[1]);
-    };
-    const typeStats = getTypeStats();
+            const type = e.type || "Sin tipo"
+            typeMap.set(type, (typeMap.get(type) || 0) + 1)
+        })
+        return Array.from(typeMap.entries()).sort((a, b) => b[1] - a[1])
+    }
+    const typeStats = getTypeStats()
 
     const getStatusBadge = (estado: string) => {
         switch (estado) {
@@ -522,21 +535,16 @@ export default function AllDevices() {
             mutate(`${VITE_API_URL}/api/devices/${selectedCompany?.id}/all`)
             showNotification("success", `Equipo ${deleteConfirmation.equipo.model} eliminado exitosamente.`)
             closeDeleteConfirmation()
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Error inesperado al eliminar el equipo."
             console.error("Error al eliminar equipo:", error)
-            showNotification("error", error.message || "Error inesperado al eliminar el equipo.")
+            showNotification("error", errorMessage)
             setDeleteConfirmation((prev) => ({ ...prev, isDeleting: false }))
         }
     }
 
-    const closeDeliveryModal = () => {
-        setShowDeliveryModal(false)
-        setEquipmentsToDeliver([])
-    }
-
     const handleSelectForDelivery = (selectedItems: CreateEquipmentData[]) => {
         setEquipmentsToDeliver(selectedItems)
-        setShowDeliveryModal(true)
     }
 
     const columnConfig = {
@@ -595,25 +603,24 @@ export default function AllDevices() {
                 ${item?.cost || "-"}
             </span>
         ),
-    };
+    }
 
     const getTabData = () => {
         switch (activeTab) {
             case 'Todos los Equipos':
-                return filteredEquipos;
+                return filteredEquipos
             case 'Asignaciones':
-                return filteredEquipos.filter(e => e.assignedToPersonId);
+                return filteredEquipos.filter(e => e.assignedToPersonId)
             case 'Garantías':
-                return filteredEquipos.filter(e => e.warrantyDetails);
+                return filteredEquipos.filter(e => e.warrantyDetails)
             default:
-                return filteredEquipos;
+                return filteredEquipos
         }
-    };
+    }
 
     return (
         <div className={`transition-colors ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
 
-            {/* Notificación */}
             {notification.show && (
                 <div className={`fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white max-w-sm z-50 transition-transform transform ${notification.show ? 'translate-x-0' : 'translate-x-full'} ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     <p className="font-bold">{notification.type === 'success' ? 'Éxito' : 'Error'}</p>
@@ -621,7 +628,6 @@ export default function AllDevices() {
                 </div>
             )}
 
-            {/* Modal de Confirmación de Borrado */}
             {deleteConfirmation.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
                     <div className={`rounded-lg p-8 shadow-2xl max-w-md w-full border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -641,7 +647,7 @@ export default function AllDevices() {
                             ¿Estás seguro de que quieres eliminar el dispositivo{" "}
                             <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                                 {deleteConfirmation.equipo?.model} ({deleteConfirmation.equipo?.serialNumber})
-                            </span>? Esta acción no se puede deshacer.
+                            </span>?
                         </p>
                         <div className="flex justify-end space-x-4">
                             <button
@@ -676,53 +682,108 @@ export default function AllDevices() {
                 showCreate
             />
 
-            {/* ===== KPIs PRINCIPALES (Fila 1) ===== */}
+            {/* BOTONES GENERAR ACTA - DEBAJO DEL HEADER */}
+            <div className="px-4 py-3 flex justify-end gap-3 flex-wrap">
+                {/* Botón ENTREGA */}
+                <button
+                    onClick={() => {
+                        if (equipmentsToDeliver.length === 0) {
+                            alert("Por favor, selecciona al menos un equipo para entregar")
+                            return
+                        }
+                        setActaState({
+                            actaType: 'entrega',
+                            equiposEntregados: equipmentsToDeliver,
+                            equiposRetirados: [],
+                            showModal: true
+                        })
+                    }}
+                    disabled={equipmentsToDeliver.length === 0}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                        equipmentsToDeliver.length > 0
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                    }`}
+                >
+                    📤 Acta de Entrega ({equipmentsToDeliver.length})
+                </button>
+
+                {/* Botón RETIRO */}
+                <button
+                    onClick={() => {
+                        if (equipmentsToDeliver.length === 0) {
+                            alert("Por favor, selecciona al menos un equipo para retirar")
+                            return
+                        }
+                        setActaState({
+                            actaType: 'retiro',
+                            equiposEntregados: [],
+                            equiposRetirados: equipmentsToDeliver,
+                            showModal: true
+                        })
+                    }}
+                    disabled={equipmentsToDeliver.length === 0}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                        equipmentsToDeliver.length > 0
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                    }`}
+                >
+                    📥 Acta de Retiro ({equipmentsToDeliver.length})
+                </button>
+
+                {/* Botón CAMBIO */}
+                <button
+                    onClick={() => {
+                        if (equipmentsToDeliver.length === 0) {
+                            alert("Por favor, selecciona equipos para el cambio")
+                            return
+                        }
+                        setShowCambioSelector(true)
+                    }}
+                    disabled={equipmentsToDeliver.length === 0}
+                    className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                        equipmentsToDeliver.length > 0
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                    }`}
+                >
+                    🔄 Acta de Cambio ({equipmentsToDeliver.length})
+                </button>
+            </div>
+
+            {/* KPIs PRINCIPALES */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3 p-4">
-                {/* Total */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
                 </div>
-
-                {/* En Uso */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
                     <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((enUso / totalEquipos) * 100).toFixed(0) : 0}%</div>
                 </div>
-
-                {/* Disponibles */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
                     <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((disponibles / totalEquipos) * 100).toFixed(0) : 0}%</div>
                 </div>
-
-                {/* Activos */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activos</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>{activos}</div>
                 </div>
-
-                {/* En Mantenimiento */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mant.</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{enMantenimiento}</div>
                 </div>
-
-                {/* Dañados */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dañados</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{dañados}</div>
                 </div>
-
-                {/* Garantías */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías</span>
                     <div className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>{garantiasPorVencer}</div>
                 </div>
-
-                {/* Costo Total */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
                     <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
@@ -731,16 +792,13 @@ export default function AllDevices() {
                 </div>
             </div>
 
-            {/* ===== ANÁLISIS POR USUARIO (Fila 2) ===== */}
+            {/* ANÁLISIS POR USUARIO */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3 px-4">
-                {/* Usuario con más equipos */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
                     <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
                     <div className={`text-xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{userStats.max[1]}</div>
                 </div>
-
-                {/* Departamentos top 3 */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>📍 Top Deptos</span>
                     {topDepts.slice(0, 3).map((dept, idx) => (
@@ -749,8 +807,6 @@ export default function AllDevices() {
                         </div>
                     ))}
                 </div>
-
-                {/* Tipos de equipos */}
                 <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                     <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>🖥️ Tipos</span>
                     {typeStats.slice(0, 3).map((type, idx) => (
@@ -761,7 +817,7 @@ export default function AllDevices() {
                 </div>
             </div>
 
-            {/* ===== TABS Y FILTROS ===== */}
+            {/* TABS Y FILTROS */}
             <div className="mb-3 px-4 flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
                 <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
@@ -779,7 +835,6 @@ export default function AllDevices() {
                     ))}
                 </div>
 
-                {/* Filtro por Tipo */}
                 <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
@@ -797,7 +852,6 @@ export default function AllDevices() {
                     ))}
                 </select>
 
-                {/* Filtro por Departamento */}
                 <select
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -816,7 +870,7 @@ export default function AllDevices() {
                 </select>
             </div>
 
-            {/* ===== TABLA ===== */}
+            {/* TABLA */}
             <div className="px-4">
                 <Tabla
                     datos={getTabData()}
@@ -830,13 +884,32 @@ export default function AllDevices() {
                 />
             </div>
 
-            {/* Modal del PDF */}
-            {showDeliveryModal && selectedCompany && (
-                <DeliveryPDFGenerator
+            {/* Modal Selector de Cambio */}
+            {showCambioSelector && (
+                <CambioSelectorModal
                     equipos={equipmentsToDeliver}
+                    onConfirm={(equiposRetirados, equiposEntregados) => {
+                        setActaState({
+                            actaType: 'cambio',
+                            equiposEntregados,
+                            equiposRetirados,
+                            showModal: true
+                        })
+                        setShowCambioSelector(false)
+                    }}
+                    onCancel={() => setShowCambioSelector(false)}
+                />
+            )}
+
+            {/* Modal del Acta */}
+            {actaState.showModal && selectedCompany && (
+                <DeliveryActaGenerator
+                    actaType={actaState.actaType}
+                    equiposEntregados={actaState.equiposEntregados}
+                    equiposRetirados={actaState.equiposRetirados}
                     company={selectedCompany}
                     departmentNameResolver={getDepartmentName}
-                    onClose={closeDeliveryModal}
+                    onClose={() => setActaState({ ...actaState, showModal: false })}
                 />
             )}
         </div>

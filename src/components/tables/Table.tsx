@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Edit, Trash2, FileText } from 'lucide-react'
+import { Edit, Trash2 } from 'lucide-react'
 import { useTheme } from '../../context/themeContext'
 
 interface TablaProps<T extends { id: string }> {
@@ -36,23 +36,27 @@ export default function Tabla<T extends { id: string }>({
             newSelectedRows.add(id)
         }
         setSelectedRows(newSelectedRows)
-    }
-
-    const handleSelectAll = () => {
-        if (selectedRows.size === datos.length && datos.length > 0) {
-            setSelectedRows(new Set())
-        } else {
-            setSelectedRows(new Set(datos.map(item => item.id)))
+        
+        // ✅ Actualizar equipmentsToDeliver en tiempo real
+        if (onSelectItemsForDelivery) {
+            const selectedItems = datos.filter(item => newSelectedRows.has(item.id))
+            onSelectItemsForDelivery(selectedItems)
         }
     }
 
-    const handleGenerateDelivery = () => {
-        if (onSelectItemsForDelivery && selectedRows.size > 0) {
-            const selectedItems = datos.filter(item => selectedRows.has(item.id))
-            onSelectItemsForDelivery(selectedItems)
-            setSelectedRows(new Set())
+    const handleSelectAll = () => {
+        let newSelectedRows: Set<string>
+        if (selectedRows.size === datos.length && datos.length > 0) {
+            newSelectedRows = new Set()
         } else {
-            alert("Por favor, selecciona al menos un equipo para la entrega.")
+            newSelectedRows = new Set(datos.map(item => item.id))
+        }
+        setSelectedRows(newSelectedRows)
+        
+        // ✅ Actualizar equipmentsToDeliver en tiempo real
+        if (onSelectItemsForDelivery) {
+            const selectedItems = datos.filter(item => newSelectedRows.has(item.id))
+            onSelectItemsForDelivery(selectedItems)
         }
     }
 
@@ -265,18 +269,6 @@ export default function Tabla<T extends { id: string }>({
                         {selectedRows.size} equipo{selectedRows.size !== 1 ? 's' : ''} seleccionado
                         {selectedRows.size !== 1 ? 's' : ''}
                     </span>
-                    <button
-                        onClick={handleGenerateDelivery}
-                        disabled={selectedRows.size === 0}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                            selectedRows.size > 0
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
-                        }`}
-                    >
-                        <FileText size={18} />
-                        Generar Acta de Entrega
-                    </button>
                 </div>
             )}
         </div>
