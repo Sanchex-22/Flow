@@ -112,6 +112,25 @@ export default function AllDevices() {
         showModal: false
     })
     const [showCambioSelector, setShowCambioSelector] = useState<boolean>(false)
+    
+    const equipos = Array.isArray(data) ? data : []
+    const uniqueTypes = Array.from(new Set(equipos.map(e => e.type).filter(Boolean)))
+
+    const filteredEquipos = equipos.filter(equipo => {
+        const searchTermLower = search.toLowerCase()
+        const matchesSearch =
+            equipo?.model?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.brand?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.type?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.serialNumber?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.assignedToPerson?.fullName?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
+
+        const matchesType = selectedType === "todos" || equipo?.type === selectedType
+        const matchesDepartment = selectedDepartment === "todos" || equipo?.location === selectedDepartment
+
+        return matchesSearch && matchesType && matchesDepartment
+    })
 
     // ✅ Cargar departamentos
     useEffect(() => {
@@ -256,7 +275,7 @@ export default function AllDevices() {
                     })
                 })
 
-                const totalCost = equiposInDept.reduce((sum, eq) => sum + (eq.cost || 0), 0)
+                const totalCost = equiposInDept.reduce((sum, eq) => sum + Number(eq.cost || 0), 0)
                 deptData.push({
                     'Marca': 'TOTAL',
                     'Modelo': '',
@@ -330,7 +349,7 @@ export default function AllDevices() {
             }
             const typeItem = typeMap.get(type)!
             typeItem.count += 1
-            typeItem.totalCost += equipo.cost || 0
+            typeItem.totalCost += Number(equipo.cost || 0)
         })
 
         let grandTotalCount = 0
@@ -412,25 +431,6 @@ export default function AllDevices() {
             </div>
         )
     }
-
-    const equipos = Array.isArray(data) ? data : []
-    const uniqueTypes = Array.from(new Set(equipos.map(e => e.type).filter(Boolean)))
-
-    const filteredEquipos = equipos.filter(equipo => {
-        const searchTermLower = search.toLowerCase()
-        const matchesSearch =
-            equipo?.model?.toLowerCase()?.includes(searchTermLower) ||
-            equipo?.brand?.toLowerCase()?.includes(searchTermLower) ||
-            equipo?.type?.toLowerCase()?.includes(searchTermLower) ||
-            equipo?.serialNumber?.toLowerCase()?.includes(searchTermLower) ||
-            equipo?.assignedToPerson?.fullName?.toLowerCase()?.includes(searchTermLower) ||
-            equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
-
-        const matchesType = selectedType === "todos" || equipo?.type === selectedType
-        const matchesDepartment = selectedDepartment === "todos" || equipo?.location === selectedDepartment
-
-        return matchesSearch && matchesType && matchesDepartment
-    })
 
     const getStatusBadge = (estado: string) => {
         switch (estado) {
