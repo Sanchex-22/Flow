@@ -99,7 +99,7 @@ export default function Tabla<T extends { id: string }>({
 
     return (
         <div
-            className={`overflow-hidden rounded-lg shadow-md transition-colors ${
+            className={`overflow-hidden rounded-lg shadow-md transition-colors px-4 overflow-x-auto ${
                 isDarkMode ? 'bg-gray-800' : 'bg-white'
             }`}
         >
