@@ -41,6 +41,10 @@ export interface CreateEquipmentData {
         lastName: string | null
         position: string | null
     }
+    endUser?: string
+    operatingSystem?: string
+    createdAt?: string | Date
+    updatedAt?: string | Date
     _count?: {
         maintenances?: number
         documents?: number
@@ -79,6 +83,16 @@ interface Company {
     id?: string
     name: string
     code?: string
+}
+
+const formatDate = (date: string | Date | undefined): string => {
+    if (!date) return "-"
+    try {
+        const d = new Date(date)
+        return d.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    } catch {
+        return "-"
+    }
 }
 
 export default function AllDevices() {
@@ -124,7 +138,8 @@ export default function AllDevices() {
             equipo?.type?.toLowerCase()?.includes(searchTermLower) ||
             equipo?.serialNumber?.toLowerCase()?.includes(searchTermLower) ||
             equipo?.assignedToPerson?.fullName?.toLowerCase()?.includes(searchTermLower) ||
-            equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower)
+            equipo?.plateNumber?.toLowerCase()?.includes(searchTermLower) ||
+            equipo?.endUser?.toLowerCase()?.includes(searchTermLower)
 
         const matchesType = selectedType === "todos" || equipo?.type === selectedType
         const matchesDepartment = selectedDepartment === "todos" || equipo?.location === selectedDepartment
@@ -177,9 +192,12 @@ export default function AllDevices() {
             'Serie': 'Serie',
             'Departamento': 'Departamento',
             'Lo tiene': 'Lo tiene',
+            'Usuario Final': 'Usuario Final',
             'Posición': 'Posición',
             'Estado': 'Estado',
             'Garantía': 'Garantía',
+            'Creado': 'Creado',
+            'Actualizado': 'Actualizado',
             'Costo': 'Costo',
             'Empresa': 'Empresa',
         }
@@ -194,16 +212,19 @@ export default function AllDevices() {
                 'Serie': equipo.serialNumber || '-',
                 'Departamento': getDepartmentName(equipo.location) || '-',
                 'Lo tiene': equipo.assignedToPerson?.fullName || '-',
+                'Usuario Final': equipo.endUser || '-',
                 'Posición': equipo.assignedToPerson?.position || '-',
                 'Estado': equipo.status || 'Activo',
                 'Garantía': equipo.warrantyDetails || '-',
+                'Creado': formatDate(equipo.createdAt),
+                'Actualizado': formatDate(equipo.updatedAt),
                 'Costo': equipo.cost ? `$${equipo.cost}` : '-',
                 'Empresa': equipo.company?.name || '-',
             })
         })
 
         const wsSummary = XLSX.utils.json_to_sheet(summaryData)
-        wsSummary['!cols'] = [15, 15, 12, 12, 15, 18, 20, 15, 12, 12, 10, 15].map(
+        wsSummary['!cols'] = [15, 15, 12, 12, 15, 18, 20, 15, 15, 12, 12, 12, 12, 10, 15].map(
             (w) => ({ wch: w })
         )
 
@@ -253,9 +274,12 @@ export default function AllDevices() {
                     'Placa': 'Placa',
                     'Serie': 'Serie',
                     'Lo tiene': 'Lo tiene',
+                    'Usuario Final': 'Usuario Final',
                     'Posición': 'Posición',
                     'Estado': 'Estado',
                     'Garantía': 'Garantía',
+                    'Creado': 'Creado',
+                    'Actualizado': 'Actualizado',
                     'Costo': 'Costo',
                 }
                 deptData.push(deptHeaderRow)
@@ -268,9 +292,12 @@ export default function AllDevices() {
                         'Placa': equipo.plateNumber || '-',
                         'Serie': equipo.serialNumber || '-',
                         'Lo tiene': equipo.assignedToPerson?.fullName || '-',
+                        'Usuario Final': equipo.endUser || '-',
                         'Posición': equipo.assignedToPerson?.position || '-',
                         'Estado': equipo.status || 'Activo',
                         'Garantía': equipo.warrantyDetails || '-',
+                        'Creado': formatDate(equipo.createdAt),
+                        'Actualizado': formatDate(equipo.updatedAt),
                         'Costo': equipo.cost ? `$${equipo.cost}` : '-',
                     })
                 })
@@ -283,14 +310,17 @@ export default function AllDevices() {
                     'Placa': '',
                     'Serie': '',
                     'Lo tiene': '',
+                    'Usuario Final': '',
                     'Posición': '',
                     'Estado': '',
                     'Garantía': '',
+                    'Creado': '',
+                    'Actualizado': '',
                     'Costo': `$${totalCost.toFixed(2)}`,
                 })
 
                 const wsDept = XLSX.utils.json_to_sheet(deptData)
-                wsDept['!cols'] = [15, 15, 12, 12, 15, 20, 15, 12, 12, 10].map(
+                wsDept['!cols'] = [15, 15, 12, 12, 15, 20, 15, 15, 12, 12, 12, 12, 10].map(
                     (w) => ({ wch: w })
                 )
 
@@ -530,6 +560,11 @@ export default function AllDevices() {
                 )}
             </div>
         ),
+        "Usuario Final": (item: CreateEquipmentData) => (
+            <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {item?.endUser || "-"}
+            </span>
+        ),
         "Estado": (item: CreateEquipmentData) => (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item.status || "Activo")}`}>
                 {item?.status || "Activo"}
@@ -538,6 +573,16 @@ export default function AllDevices() {
         "Garantía": (item: CreateEquipmentData) => (
             <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {item?.warrantyDetails || "-"}
+            </span>
+        ),
+        "Creado": (item: CreateEquipmentData) => (
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {formatDate(item?.createdAt)}
+            </span>
+        ),
+        "Actualizado": (item: CreateEquipmentData) => (
+            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {formatDate(item?.updatedAt)}
             </span>
         ),
         "Costo": (item: CreateEquipmentData) => (
@@ -632,7 +677,7 @@ export default function AllDevices() {
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                            className={`px-3 py-2 text-xs font-medium rounded-md transition-colors ${
                                 activeTab === tab
                                     ? isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'
                                     : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
@@ -646,7 +691,7 @@ export default function AllDevices() {
                 <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                         isDarkMode
                             ? 'bg-gray-800 border border-gray-700 text-white'
                             : 'bg-white border border-gray-300 text-gray-900'
@@ -663,7 +708,7 @@ export default function AllDevices() {
                 <select
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                         isDarkMode
                             ? 'bg-gray-800 border border-gray-700 text-white'
                             : 'bg-white border border-gray-300 text-gray-900'
@@ -677,8 +722,8 @@ export default function AllDevices() {
                     ))}
                 </select>
                 </div>
-                {/* BOTONES GENERAR ACTA - DEBAJO DEL HEADER */}
-                <div className=" py-3 flex justify-end gap-3 flex-wrap">
+                {/* BOTONES GENERAR ACTA */}
+                <div className="flex justify-end gap-3 flex-wrap">
                     {/* Botón ENTREGA */}
                     <button
                         onClick={() => {
@@ -749,18 +794,16 @@ export default function AllDevices() {
             </div>
 
             {/* TABLA */}
-            <div className="">
-                <Tabla
-                    datos={getTabData()}
-                    titulo={`${pageName || "Dispositivos"} List`}
-                    columnasPersonalizadas={columnConfig}
-                    onEditar={(item) => window.location.href = `edit/${item.id}`}
-                    onEliminar={openDeleteConfirmation}
-                    mostrarAcciones={true}
-                    onSelectItemsForDelivery={handleSelectForDelivery}
-                    showSelectForDelivery={true}
-                />
-            </div>
+            <Tabla
+                datos={getTabData()}
+                titulo={`${pageName || "Dispositivos"} List`}
+                columnasPersonalizadas={columnConfig}
+                onEditar={(item) => window.location.href = `edit/${item.id}`}
+                onEliminar={openDeleteConfirmation}
+                mostrarAcciones={true}
+                onSelectItemsForDelivery={handleSelectForDelivery}
+                showSelectForDelivery={true}
+            />
 
             {/* Modal Selector de Cambio */}
             {showCambioSelector && (
