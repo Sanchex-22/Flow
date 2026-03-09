@@ -2,6 +2,19 @@ export type Kpi = { count: number; change: number };
 export type InventoryCategory = { name: string; count: number };
 export type RecentActivity = { type: string; description: string; date: string; icon: string };
 
+export interface PersonDetail {
+    id: string;
+    fullName: string;
+    firstName?: string;
+    lastName?: string;
+    department?: string;
+    departmentId?: string;
+    position?: string;
+    phoneNumber?: string;
+    email?: string;
+    status?: string;
+}
+
 export interface SoftwareExpense {
     name: string;
     category: string;
