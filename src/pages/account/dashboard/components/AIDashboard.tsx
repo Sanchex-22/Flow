@@ -16,7 +16,7 @@ import AiChatAssistant from "./AiChatAssistant";
 import SoftwareExpensesPanel from "./SoftwareExpensesPanel";
 import PersonsPanel from "./PersonsPanel";
 import { formatDate } from "./utils";
-import { Package, Users, CheckCircle2, DollarSign, Award, BarChart3, AlertTriangle, Zap } from "lucide-react";
+import { Package, Users, Monitor, CheckCircle2, DollarSign, Award, BarChart3, AlertTriangle, Zap, UserX } from "lucide-react";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -49,6 +49,7 @@ interface Person {
   position?: string;
   departmentId?: string;
   status: string;
+  email?: string;
 }
 
 const AIDashboard: React.FC<DashboardProps> = () => {
@@ -78,11 +79,10 @@ const AIDashboard: React.FC<DashboardProps> = () => {
   );
 
   const { data: personsData } = useSWR(
-    selectedCompany?.id ? `${VITE_API_URL}/api/persons/company/${selectedCompany.id}` : null,
+    selectedCompany?.id ? `${VITE_API_URL}/api/persons/company/${selectedCompany?.id}` : null,
     fetcher,
     swrConfig
   );
-  console.log("📊 Dashboard Data:", personsData);
 
   const enhancedStats = useMemo(() => {
     const equipmentList = Array.isArray(equipmentData) ? equipmentData : [];
@@ -106,6 +106,15 @@ const AIDashboard: React.FC<DashboardProps> = () => {
     const totalPersons = personsList.length;
     const personsWithEquipment = equipmentByPerson.size;
     const personsWithoutEquipment = totalPersons - personsWithEquipment;
+
+    // Personas sin equipos
+    const personsWithoutDevices = personsList.filter((p: Person) => !equipmentByPerson.has(p.id));
+
+    // Personas sin monitor
+    const personsWithoutMonitor = personsList.filter((p: Person) => {
+      const equips = equipmentByPerson.get(p.id) || [];
+      return equips.length > 0 && !equips.some(e => e.type?.toLowerCase().includes('monitor'));
+    });
 
     const topPersons = Array.from(equipmentByPerson.entries())
       .map(([personId, equips]) => {
@@ -144,6 +153,13 @@ const AIDashboard: React.FC<DashboardProps> = () => {
         description: "Requieren asignación inmediata",
       });
     }
+    if (personsWithoutMonitor.length > 0) {
+      alerts.push({
+        level: "medium",
+        title: `${personsWithoutMonitor.length} personas sin monitor`,
+        description: "Necesitan monitor asignado",
+      });
+    }
     if (personsWithComplete < personsWithEquipment) {
       alerts.push({
         level: "medium",
@@ -167,6 +183,8 @@ const AIDashboard: React.FC<DashboardProps> = () => {
       topPersons,
       topTypes,
       alerts,
+      personsWithoutDevices,
+      personsWithoutMonitor,
     };
   }, [equipmentData, personsData]);
 
@@ -422,6 +440,54 @@ const AIDashboard: React.FC<DashboardProps> = () => {
             </div>
           </div>
         </div>
+
+        {enhancedStats.personsWithoutDevices.length > 0 && (
+          <div className={`rounded-xl p-6 border mb-8 transition-colors ${isDarkMode ? 'bg-red-900/20 border-red-700/50' : 'bg-red-50 border-red-300'}`}>
+            <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-red-400' : 'text-red-700'}`}>
+              <UserX size={20} />
+              ⚠️ Personas Sin Equipos ({enhancedStats.personsWithoutDevices.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {enhancedStats.personsWithoutDevices.map((person) => (
+                <div
+                  key={person.id}
+                  className={`p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800/50 border-red-700/30' : 'bg-white border-red-200'}`}
+                >
+                  <p className={`font-bold ${textMain}`}>{person.fullName}</p>
+                  {person.position && <p className={`text-sm ${textSub}`}>{person.position}</p>}
+                  {person.email && <p className={`text-xs ${textSub}`}>{person.email}</p>}
+                  <div className={`mt-2 px-3 py-1 rounded text-xs font-semibold ${isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
+                    Requiere asignación
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {enhancedStats.personsWithoutMonitor.length > 0 && (
+          <div className={`rounded-xl p-6 border mb-8 transition-colors ${isDarkMode ? 'bg-yellow-900/20 border-yellow-700/50' : 'bg-yellow-50 border-yellow-300'}`}>
+            <h2 className={`text-lg font-bold mb-4 flex items-center gap-2 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
+              <Monitor size={20} />
+              📊 Personas Sin Monitor ({enhancedStats.personsWithoutMonitor.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {enhancedStats.personsWithoutMonitor.map((person) => (
+                <div
+                  key={person.id}
+                  className={`p-4 rounded-lg border ${isDarkMode ? 'bg-gray-800/50 border-yellow-700/30' : 'bg-white border-yellow-200'}`}
+                >
+                  <p className={`font-bold ${textMain}`}>{person.fullName}</p>
+                  {person.position && <p className={`text-sm ${textSub}`}>{person.position}</p>}
+                  {person.email && <p className={`text-xs ${textSub}`}>{person.email}</p>}
+                  <div className={`mt-2 px-3 py-1 rounded text-xs font-semibold ${isDarkMode ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-700'}`}>
+                    Necesita monitor
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className={`rounded-xl border p-6 transition-colors ${cardBg}`}>
