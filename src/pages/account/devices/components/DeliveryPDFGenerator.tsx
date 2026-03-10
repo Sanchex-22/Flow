@@ -590,7 +590,7 @@ function HTMLPreview({
             </div>
 
             {/* INTRO TEXT */}
-            <p className="text-xs mb-4 text-justify leading-relaxed">
+            <p className="text-xs mb-4 text-justify leading-relaxed" style={{ color: "#333" }}>
                 {actaType === 'entrega' && 
                     "Por medio de la presente, hacemos constar que en fecha __________________ el departamento de IT hace entrega del siguiente equipo al colaborador antes mencionado para el desempeño de sus funciones laborales:"
                 }
@@ -603,46 +603,46 @@ function HTMLPreview({
             </p>
 
             {/* SECCIÓN DE RETIRO */}
-            {(actaType === 'retiro' || actaType === 'cambio') && equiposRetirados.length > 0 && (
+            {(actaType === 'retiro' || actaType === 'cambio') && equiposRetirados && equiposRetirados.length > 0 && (
                 <>
-                    <p className="text-xs font-bold mb-2" style={{ color: "#1a3a5c" }}>
+                    <p className="text-xs font-bold mb-2 mt-4" style={{ color: "#1a3a5c" }}>
                         Equipos a Retirar:
                     </p>
 
-                    <div className="mb-4 flex-shrink-0">
+                    <div className="mb-4">
                         <table
-                            className="w-full border-collapse text-xs"
-                            style={{ borderSpacing: "0", border: "1px solid #000" }}
+                            className="w-full border-collapse"
+                            style={{ borderSpacing: "0", border: "1px solid #000", fontSize: "8px" }}
                         >
                             <thead>
                                 <tr style={{ backgroundColor: "#333" }}>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "10%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "10%", color: "white" }}
                                     >
-                                        Cantidad
+                                        Cant.
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "20%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "20%", color: "white" }}
                                     >
                                         Descripción
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "20%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "20%", color: "white" }}
                                     >
                                         Marca / Modelo
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "25%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "25%", color: "white" }}
                                     >
                                         Número de Serie
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "25%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "25%", color: "white" }}
                                     >
                                         Observaciones
                                     </th>
@@ -650,18 +650,20 @@ function HTMLPreview({
                             </thead>
                             <tbody>
                                 {equiposRetirados.map((equipo, index) => (
-                                    <tr key={equipo.id || index} style={{ height: "22px" }}>
-                                        <td className="border border-black p-1 text-center text-xs">1</td>
-                                        <td className="border border-black p-1 text-xs">{equipo.type}</td>
-                                        <td className="border border-black p-1 text-xs">
-                                            {equipo.brand} {equipo.model}
+                                    <tr key={equipo?.id || `retiro-${index}`} style={{ height: "20px" }}>
+                                        <td className="border border-black p-1 text-center" style={{ color: "#333" }}>1</td>
+                                        <td className="border border-black p-1" style={{ color: "#333" }}>{equipo?.type || "-"}</td>
+                                        <td className="border border-black p-1" style={{ color: "#333", fontSize: "7px" }}>
+                                            {equipo?.brand || "-"} {equipo?.model || "-"}
                                         </td>
-                                        <td className="border border-black p-1 text-xs">{equipo.serialNumber}</td>
-                                        <td className="border border-black p-1 text-xs"></td>
+                                        <td className="border border-black p-1" style={{ color: "#333", fontSize: "7px" }}>
+                                            {equipo?.serialNumber || "-"}
+                                        </td>
+                                        <td className="border border-black p-1" style={{ color: "#333" }}></td>
                                     </tr>
                                 ))}
-                                {[...Array(Math.max(0, 2 - equiposRetirados.length))].map((_, i) => (
-                                    <tr key={`empty-${i}`} style={{ height: "22px" }}>
+                                {[...Array(Math.max(0, 2 - (equiposRetirados?.length || 0)))].map((_, i) => (
+                                    <tr key={`empty-retiro-${i}`} style={{ height: "20px" }}>
                                         <td className="border border-black p-1"></td>
                                         <td className="border border-black p-1"></td>
                                         <td className="border border-black p-1"></td>
@@ -676,46 +678,46 @@ function HTMLPreview({
             )}
 
             {/* SECCIÓN DE ENTREGA */}
-            {(actaType === 'entrega' || actaType === 'cambio') && equiposEntregados.length > 0 && (
+            {(actaType === 'entrega' || actaType === 'cambio') && equiposEntregados && equiposEntregados.length > 0 && (
                 <>
-                    <p className="text-xs font-bold mb-2" style={{ color: "#1a3a5c" }}>
+                    <p className="text-xs font-bold mb-2 mt-4" style={{ color: "#1a3a5c" }}>
                         {actaType === 'cambio' ? 'Equipos a Entregar:' : 'Equipos Entregados:'}
                     </p>
 
-                    <div className="mb-4 flex-shrink-0">
+                    <div className="mb-4">
                         <table
-                            className="w-full border-collapse text-xs"
-                            style={{ borderSpacing: "0", border: "1px solid #000" }}
+                            className="w-full border-collapse"
+                            style={{ borderSpacing: "0", border: "1px solid #000", fontSize: "8px" }}
                         >
                             <thead>
                                 <tr style={{ backgroundColor: "#333" }}>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "10%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "10%", color: "white" }}
                                     >
-                                        Cantidad
+                                        Cant.
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "20%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "20%", color: "white" }}
                                     >
                                         Descripción
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "20%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "20%", color: "white" }}
                                     >
                                         Marca / Modelo
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "25%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "25%", color: "white" }}
                                     >
                                         Número de Serie
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center text-white"
-                                        style={{ width: "25%", fontSize: "7px" }}
+                                        className="border border-black p-1 font-bold text-center"
+                                        style={{ width: "25%", color: "white" }}
                                     >
                                         Observaciones
                                     </th>
@@ -723,18 +725,20 @@ function HTMLPreview({
                             </thead>
                             <tbody>
                                 {equiposEntregados.map((equipo, index) => (
-                                    <tr key={equipo.id || index} style={{ height: "22px" }}>
-                                        <td className="border border-black p-1 text-center text-xs">1</td>
-                                        <td className="border border-black p-1 text-xs">{equipo.type}</td>
-                                        <td className="border border-black p-1 text-xs">
-                                            {equipo.brand} {equipo.model}
+                                    <tr key={equipo?.id || `entrega-${index}`} style={{ height: "20px" }}>
+                                        <td className="border border-black p-1 text-center" style={{ color: "#333" }}>1</td>
+                                        <td className="border border-black p-1" style={{ color: "#333" }}>{equipo?.type || "-"}</td>
+                                        <td className="border border-black p-1" style={{ color: "#333", fontSize: "7px" }}>
+                                            {equipo?.brand || "-"} {equipo?.model || "-"}
                                         </td>
-                                        <td className="border border-black p-1 text-xs">{equipo.serialNumber}</td>
-                                        <td className="border border-black p-1 text-xs"></td>
+                                        <td className="border border-black p-1" style={{ color: "#333", fontSize: "7px" }}>
+                                            {equipo?.serialNumber || "-"}
+                                        </td>
+                                        <td className="border border-black p-1" style={{ color: "#333" }}></td>
                                     </tr>
                                 ))}
-                                {[...Array(Math.max(0, 2 - equiposEntregados.length))].map((_, i) => (
-                                    <tr key={`empty-${i}`} style={{ height: "22px" }}>
+                                {[...Array(Math.max(0, 2 - (equiposEntregados?.length || 0)))].map((_, i) => (
+                                    <tr key={`empty-entrega-${i}`} style={{ height: "20px" }}>
                                         <td className="border border-black p-1"></td>
                                         <td className="border border-black p-1"></td>
                                         <td className="border border-black p-1"></td>
