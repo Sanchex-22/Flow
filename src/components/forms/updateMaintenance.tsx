@@ -208,7 +208,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
 
     const handleCancel = () => {
         if (company?.code) {
-            navigate(`/${company.code}/maintenances/all`);
+            navigate(`/${company.code}/maintenance/all`);
         }
     };
 
