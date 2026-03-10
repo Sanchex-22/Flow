@@ -143,7 +143,8 @@ const styles = StyleSheet.create({
         fontSize: 9,
         fontWeight: "bold",
         minHeight: 20,
-        color: "#000",
+        color: "#fff",
+        backgroundColor: "#333",
     },
     signatureSection: {
         marginTop: 25,
@@ -554,8 +555,6 @@ function HTMLPreview({
     equiposRetirados,
     company,
 }: Omit<DeliveryActaGeneratorProps, 'onClose' | 'departmentNameResolver'>) {
-    // const titleText = getActaTitle(actaType)
-
     return (
         <div
             className="bg-white p-10 shadow-lg"
@@ -616,33 +615,33 @@ function HTMLPreview({
                             style={{ borderSpacing: "0", border: "1px solid #000" }}
                         >
                             <thead>
-                                <tr style={{ backgroundColor: "#e8e8e8" }}>
+                                <tr style={{ backgroundColor: "#333" }}>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "10%", fontSize: "7px" }}
                                     >
                                         Cantidad
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "20%", fontSize: "7px" }}
                                     >
                                         Descripción
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "20%", fontSize: "7px" }}
                                     >
                                         Marca / Modelo
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "25%", fontSize: "7px" }}
                                     >
                                         Número de Serie
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "25%", fontSize: "7px" }}
                                     >
                                         Observaciones
@@ -689,33 +688,33 @@ function HTMLPreview({
                             style={{ borderSpacing: "0", border: "1px solid #000" }}
                         >
                             <thead>
-                                <tr style={{ backgroundColor: "#e8e8e8" }}>
+                                <tr style={{ backgroundColor: "#333" }}>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "10%", fontSize: "7px" }}
                                     >
                                         Cantidad
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "20%", fontSize: "7px" }}
                                     >
                                         Descripción
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "20%", fontSize: "7px" }}
                                     >
                                         Marca / Modelo
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "25%", fontSize: "7px" }}
                                     >
                                         Número de Serie
                                     </th>
                                     <th
-                                        className="border border-black p-1 font-bold text-center"
+                                        className="border border-black p-1 font-bold text-center text-white"
                                         style={{ width: "25%", fontSize: "7px" }}
                                     >
                                         Observaciones
