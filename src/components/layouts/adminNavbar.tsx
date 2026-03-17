@@ -44,7 +44,8 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
   const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const { setSearch } = useSearch();
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const { search, setSearch } = useSearch();
   const location = useLocation();
   const AppName = import.meta.env.VITE_APP_NAME || "Flow IT";
   const initials = profile?.username ? profile.username[0].toUpperCase() : "U";
@@ -67,7 +68,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
     }))
   );
 
-  useEffect(() => { setSearch("") }, [location.pathname]);
+  useEffect(() => { setSearch(""); setMobileSearchOpen(false); }, [location.pathname]);
   useEffect(() => { setNotifOpen(false) }, [location.pathname]);
 
   useEffect(() => {
@@ -240,6 +241,9 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
             <span className={`text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>{AppName}</span>
           </div>
           <div className="flex items-center gap-1">
+            <button onClick={() => { setMobileSearchOpen((v) => !v); setIsMenuOpen(false); }} className={`relative ${iconBtn}`}>
+              {mobileSearchOpen ? <X className="w-[18px] h-[18px]" /> : <Search className="w-[18px] h-[18px]" />}
+            </button>
             <button onClick={() => setNotifOpen((v) => !v)} className={`relative ${iconBtn}`}>
               <Bell className="w-[18px] h-[18px]" />
               {unreadCount > 0 && (
@@ -252,7 +256,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
               {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             </button>
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              onClick={() => { setIsMenuOpen(!isMenuOpen); setMobileSearchOpen(false); }}
               className={`${iconBtn} p-2 rounded-md`}
               aria-expanded={isMenuOpen}
             >
@@ -260,6 +264,28 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
             </button>
           </div>
         </div>
+
+        {/* ── Mobile search bar ── */}
+        {mobileSearchOpen && (
+          <div className="md:hidden pb-2">
+            <div className={`flex items-center gap-2 rounded-xl px-3 py-2 ${isDarkMode ? "bg-white/[0.06] border border-white/[0.08]" : "bg-gray-100 border border-gray-200"}`}>
+              <Search className={`w-4 h-4 flex-shrink-0 ${isDarkMode ? "text-[#8e8e93]" : "text-gray-400"}`} />
+              <input
+                autoFocus
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("common.search")}
+                className={`bg-transparent outline-none text-sm flex-1 ${isDarkMode ? "text-white placeholder-[#636366]" : "text-gray-900 placeholder-gray-400"}`}
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className={isDarkMode ? "text-[#636366]" : "text-gray-400"}>
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Mobile overlay ── */}
@@ -282,9 +308,20 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
         <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-y-auto">
           <div className={`px-4 py-3 space-y-3 border-b ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
             <CompanySelectorComponent isDarkMode={isDarkMode} />
-            <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${isDarkMode ? "bg-white/[0.06] text-[#8e8e93]" : "bg-gray-100 text-gray-500"}`}>
-              <Search className="w-4 h-4 flex-shrink-0" />
-              <span>{t("common.search")}</span>
+            <div className={`flex items-center gap-2 rounded-xl px-3 py-2 ${isDarkMode ? "bg-white/[0.06] border border-white/[0.08]" : "bg-gray-100 border border-gray-200"}`}>
+              <Search className={`w-4 h-4 flex-shrink-0 ${isDarkMode ? "text-[#8e8e93]" : "text-gray-400"}`} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("common.search")}
+                className={`bg-transparent outline-none text-sm flex-1 ${isDarkMode ? "text-white placeholder-[#636366]" : "text-gray-900 placeholder-gray-400"}`}
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className={isDarkMode ? "text-[#636366]" : "text-gray-400"}>
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
 

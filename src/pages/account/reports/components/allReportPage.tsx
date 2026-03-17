@@ -239,14 +239,14 @@ export default function AllReportsPage() {
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."} 
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {error && <p className={`col-span-full text-center text-red-500 transition-colors ${
           isDarkMode
             ? 'text-red-500'
             : 'text-red-700'
         }`}>Error al cargar los datos. Por favor, intente de nuevo.</p>}
         {data && reportsData.map((reporte) => (
-          <div key={reporte.id} className={`rounded-lg p-6 border flex flex-col justify-between transition-colors ${
+          <div key={reporte.id} className={`rounded-xl p-4 sm:p-5 border flex flex-col justify-between transition-colors ${
             isDarkMode
               ? 'bg-gray-800 border-white/[0.08]'
               : 'bg-white border-gray-200 shadow'

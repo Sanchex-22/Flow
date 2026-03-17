@@ -46,22 +46,22 @@ const PagesHeader: React.FC<PagesHeaderProps> = ({
   const btnPurple = `flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium transition-colors whitespace-nowrap bg-purple-600 hover:bg-purple-500 text-white`;
 
   return (
-    <div className="mb-6">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className="mb-4 sm:mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Title */}
-        <div>
-          <h1 className={`text-xl font-semibold capitalize tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+        <div className="min-w-0">
+          <h1 className={`text-lg sm:text-xl font-semibold capitalize tracking-tight truncate ${isDarkMode ? "text-white" : "text-gray-900"}`}>
             {title}
           </h1>
           {description && (
-            <p className={`text-[13px] mt-0.5 ${isDarkMode ? "text-[#636366]" : "text-gray-400"}`}>
+            <p className={`text-xs sm:text-[13px] mt-0.5 truncate ${isDarkMode ? "text-[#636366]" : "text-gray-400"}`}>
               {description}
             </p>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 flex-shrink-0">
           {onExport && (
             <button onClick={onExport} className={btnSecondary}>
               <Download className="w-3.5 h-3.5" />

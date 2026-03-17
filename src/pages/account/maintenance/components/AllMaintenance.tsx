@@ -401,8 +401,8 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className={`rounded-lg p-6 border transition-colors ${
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
           isDarkMode
             ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -423,7 +423,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
               </svg>
             </div>
           </div>
-          <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-2xl sm:text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             {totalMantenimientos}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -431,7 +431,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
           </div>
         </div>
 
-        <div className={`rounded-lg p-6 border transition-colors ${
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
           isDarkMode
             ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -454,7 +454,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
               </svg>
             </div>
           </div>
-          <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-2xl sm:text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             {pendientes}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -462,7 +462,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
           </div>
         </div>
 
-        <div className={`rounded-lg p-6 border transition-colors ${
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
           isDarkMode
             ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -484,7 +484,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
               </svg>
             </div>
           </div>
-          <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-2xl sm:text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             {completados}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -492,7 +492,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
           </div>
         </div>
 
-        <div className={`rounded-lg p-6 border transition-colors ${
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
           isDarkMode
             ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -514,7 +514,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
               </svg>
             </div>
           </div>
-          <div className={`text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-2xl sm:text-3xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             ${costoTotal.toFixed(2)}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>

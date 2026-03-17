@@ -166,18 +166,18 @@ export default function AllDocuments() {
         showCreate
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`rounded-xl p-5 border ${cardBg}`}>
-          <p className={`text-sm ${textSub}`}>Total Documentos</p>
-          <p className={`text-3xl font-bold ${textMain}`}>{filteredDocuments.length}</p>
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
+          <p className={`text-xs ${textSub}`}>Total Documentos</p>
+          <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>{filteredDocuments.length}</p>
         </div>
-        <div className={`rounded-xl p-5 border ${cardBg}`}>
-          <p className={`text-sm ${textSub}`}>Categorías</p>
-          <p className={`text-3xl font-bold ${textMain}`}>{categories.length - 1}</p>
+        <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
+          <p className={`text-xs ${textSub}`}>Categorías</p>
+          <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>{categories.length - 1}</p>
         </div>
-        <div className={`rounded-xl p-5 border ${cardBg}`}>
-          <p className={`text-sm ${textSub}`}>Con Equipo Asociado</p>
-          <p className={`text-3xl font-bold ${textMain}`}>
+        <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
+          <p className={`text-xs ${textSub}`}>Con Equipo</p>
+          <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>
             {filteredDocuments.filter((d) => d.equipmentId).length}
           </p>
         </div>

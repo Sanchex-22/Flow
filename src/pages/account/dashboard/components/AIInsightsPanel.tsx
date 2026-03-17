@@ -70,7 +70,7 @@ const AIInsightsPanel: React.FC<Props> = ({ companyId, isDarkMode }) => {
             {/* Estado vacío */}
             {!loading && insights.length === 0 && !error && (
                 <div className={`text-center py-8 ${subText}`}>
-                    <Bot size={40} className="mx-auto mb-3 opacity-30" />
+                    <Bot size={40} className="mx-auto mb-3" />
                     <p className="text-sm">
                         Haz clic en <strong>"Analizar Datos"</strong> para obtener insights inteligentes.
                     </p>

@@ -15,7 +15,7 @@ interface SubRoutesProps {
 const DashboardPage:React.FC<SubRoutesProps> = () => {
   const { isDarkMode, } = useTheme();
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-gray-100 text-gray-900'} p-6 flex flex-col`}>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-gray-50 text-gray-900'} px-3 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6 flex flex-col`}>
       <Outlet />
     </div>
   )

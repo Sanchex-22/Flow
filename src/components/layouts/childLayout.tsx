@@ -68,8 +68,8 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
 
             {/* Main content area */}
             <div className="flex flex-1 overflow-hidden">
-              {/* Sidebar */}
-              <div className="hidden sm:inline-flex md:block lg:flex xl:flex flex-shrink-0">
+              {/* Sidebar — hidden on mobile, visible md+ */}
+              <div className="hidden md:flex flex-shrink-0 relative z-10">
                 <SlideBarComponent
                   subroutes={[]}
                   currentPathname={currentPathname}
@@ -80,7 +80,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
               </div>
 
               {/* Page content */}
-              <div id="page-content" className="flex-1 overflow-y-auto w-full px-6 py-5">
+              <div id="page-content" className="flex-1 overflow-y-auto w-full min-w-0 px-3 py-3 sm:px-4 sm:py-4 md:px-5 md:py-5">
                 {children}
               </div>
             </div>

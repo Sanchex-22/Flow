@@ -585,9 +585,9 @@ export default function AllExpensePage() {
         onExport={handleExportExcel}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <div
-          className={`rounded-xl p-6 transition-colors ${
+          className={`rounded-xl p-3 sm:p-4 transition-colors ${
             isDarkMode
               ? "bg-gray-800 border border-gray-700"
               : "bg-white border border-gray-200 shadow"
@@ -601,7 +601,7 @@ export default function AllExpensePage() {
             Total de Personas
           </p>
           <p
-            className={`text-3xl font-bold mt-2 transition-colors ${
+            className={`text-2xl sm:text-3xl font-bold mt-1 transition-colors ${
               isDarkMode ? "text-blue-400" : "text-blue-600"
             }`}
           >
@@ -610,7 +610,7 @@ export default function AllExpensePage() {
         </div>
 
         <div
-          className={`rounded-xl p-6 transition-colors ${
+          className={`rounded-xl p-3 sm:p-4 transition-colors ${
             isDarkMode
               ? "bg-gray-800 border border-gray-700"
               : "bg-white border border-gray-200 shadow"
@@ -624,7 +624,7 @@ export default function AllExpensePage() {
             Total Aplicaciones
           </p>
           <p
-            className={`text-3xl font-bold mt-2 transition-colors ${
+            className={`text-2xl sm:text-3xl font-bold mt-1 transition-colors ${
               isDarkMode ? "text-purple-400" : "text-purple-600"
             }`}
           >
@@ -633,7 +633,7 @@ export default function AllExpensePage() {
         </div>
 
         <div
-          className={`rounded-xl p-6 transition-colors ${
+          className={`rounded-xl p-3 sm:p-4 transition-colors ${
             isDarkMode
               ? "bg-gray-800 border border-gray-700"
               : "bg-white border border-gray-200 shadow"
@@ -647,7 +647,7 @@ export default function AllExpensePage() {
             Costo Total Anual
           </p>
           <p
-            className={`text-3xl font-bold mt-2 transition-colors ${
+            className={`text-2xl sm:text-3xl font-bold mt-1 transition-colors ${
               isDarkMode ? "text-green-400" : "text-green-600"
             }`}
           >

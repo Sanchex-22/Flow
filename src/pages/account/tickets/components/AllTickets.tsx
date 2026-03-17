@@ -8,9 +8,10 @@ import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 import { useSearch } from "../../../../context/searchContext"
 import Tabla from "../../../../components/tables/Table"
-import { X } from "lucide-react"
+import { X, Ticket, Clock, CheckCircle2, AlertCircle } from "lucide-react"
 import * as XLSX from 'xlsx'
 import { useTheme } from "../../../../context/themeContext"
+import useUserProfile from "../../../../hook/userUserProfile"
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -81,7 +82,7 @@ export const AllUsers: React.FC = () => {
     const { isDarkMode } = useTheme()
   const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
   const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
-  const { pageName } = usePageName()
+  usePageName()
   const { search } = useSearch()
   const [statusFilter, setStatusFilter] = useState("Todos")
   const [notification, setNotification] = useState<Notification>({ type: "success", message: "", show: false })
@@ -211,43 +212,43 @@ export const AllUsers: React.FC = () => {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className={`rounded-lg p-6 border transition-colors ${
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Total Usuarios</span>
-          <div className="text-3xl font-bold mb-1">{totalUsers}</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{totalUsers}</div>
           <div className="text-sm text-gray-400">Registrados en el sistema</div>
         </div>
-          <div className={`rounded-lg p-6 border transition-colors ${
+          <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Usuarios Activos</span>
-          <div className="text-3xl font-bold mb-1">{activeUsers}</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{activeUsers}</div>
           <div className="text-sm text-gray-400">Con acceso al sistema</div>
         </div>
-          <div className={`rounded-lg p-6 border transition-colors ${
+          <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Con Equipos</span>
-          <div className="text-3xl font-bold mb-1">{usersWithEquipment}</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{usersWithEquipment}</div>
           <div className="text-sm text-gray-400">Tienen equipos asignados</div>
         </div>
-          <div className={`rounded-lg p-6 border transition-colors ${
+          <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Departamentos</span>
-          <div className="text-3xl font-bold mb-1">{departments}</div>
+          <div className="text-2xl sm:text-3xl font-bold mb-1">{departments}</div>
           <div className="text-sm text-gray-400">Diferentes áreas</div>
         </div>
       </div>
 
       {/* Users List */}
-      <div className={`rounded-lg border mb-8 transition-colors ${
+      <div className={`rounded-xl border mb-5 transition-colors ${
         isDarkMode
           ? 'bg-[#1c1c1e] border-white/[0.08]'
           : 'bg-white border-gray-100'
@@ -436,7 +437,9 @@ export const AllTickets: React.FC = () => {
   const { isDarkMode } = useTheme()
   const { search } = useSearch()
   const { selectedCompany } = useCompany()
-  const { pageName } = usePageName()
+  usePageName()
+  const { profile } = useUserProfile()
+  const canManage = ["SUPER_ADMIN"].includes(profile?.roles?.toUpperCase?.() ?? "")
   const [activeTab, setActiveTab] = useState("Todos")
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
@@ -537,26 +540,26 @@ export const AllTickets: React.FC = () => {
   })
 
   const columnConfig = {
-    "ticketNumber": (item: Ticket) => (
-      <span className="text-sm font-medium">{item.ticketNumber || item.id.slice(0, 8)}</span>
+    "#": (item: Ticket) => (
+      <span className="text-sm font-mono font-medium text-blue-400">#{item.ticketNumber || item.id.slice(0, 6)}</span>
     ),
-    "title": (item: Ticket) => (
+    "Título": (item: Ticket) => (
       <div>
         <div className="font-medium text-sm">{item.title}</div>
-        <div className="text-xs text-gray-400">{item.description?.substring(0, 40)}...</div>
+        <div className="text-xs text-gray-400">{item.description?.substring(0, 50)}...</div>
       </div>
     ),
-    "status": (item: Ticket) => (
+    "Estado": (item: Ticket) => (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeTicket(item.status)}`}>
         {item.status}
       </span>
     ),
-    "priority": (item: Ticket) => (
+    "Prioridad": (item: Ticket) => (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(item.priority)}`}>
         {item.priority}
       </span>
     ),
-    "createdAt": (item: Ticket) => (
+    "Fecha": (item: Ticket) => (
       <span className="text-sm">{item.createdAt?.toLocaleDateString()}</span>
     ),
   }
@@ -614,103 +617,172 @@ export const AllTickets: React.FC = () => {
     }
   }
 
+  const urgentes = tickets.filter((t) => t.priority === "urgent" && ["open", "pending"].includes(t.status)).length
+
   return (
-    <div className={`transition-colors ${
-      isDarkMode
-        ? 'bg-[#1c1c1e] text-white'
-        : 'bg-[#f5f5f7] text-gray-900'
+    <div className={`min-h-screen transition-colors ${
+      isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-[#f5f5f7] text-gray-900'
     }`}>
-      <PagesHeader
-        title={pageName}
-        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
-        showCreate
-        onExport={exportToExcel}
-      />
+      {/* Page Header */}
+      <div className="mb-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className={`text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Tickets de Soporte
+            </h1>
+            <p className={`text-[13px] mt-1 ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>
+              {selectedCompany?.name} · {totalTickets} tickets registrados
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={exportToExcel} className={`flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium transition-colors whitespace-nowrap ${
+              isDarkMode
+                ? 'bg-white/[0.06] hover:bg-white/[0.1] text-[#8e8e93] hover:text-white border border-white/[0.06]'
+                : 'bg-white hover:bg-gray-50 text-[#6e6e73] hover:text-gray-900 border border-gray-200'
+            }`}>
+              <span className="text-xs">↓</span> Exportar
+            </button>
+            <a href="create" className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white transition-colors whitespace-nowrap">
+              + Crear Ticket
+            </a>
+          </div>
+        </div>
+      </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className={`rounded-lg p-6 border transition-colors ${
-          isDarkMode
-            ? 'bg-[#1c1c1e] border-white/[0.08]'
-            : 'bg-white border-gray-100'
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        {/* Total */}
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
+          isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
         }`}>
-          <span className="text-gray-400 text-sm">Total Tickets</span>
-          <div className="text-3xl font-bold mb-1">{totalTickets}</div>
-          <div className="text-sm text-gray-400">Registrados</div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Total</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+              <Ticket className="w-4 h-4 text-blue-500" />
+            </div>
+          </div>
+          <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalTickets}</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Tickets registrados</div>
         </div>
-        <div className={`rounded-lg p-6 border transition-colors ${
-          isDarkMode
-            ? 'bg-[#1c1c1e] border-white/[0.08]'
-            : 'bg-white border-gray-100'
+
+        {/* Pendientes */}
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
+          isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
         }`}>
-          <span className="text-gray-400 text-sm">Pendientes</span>
-          <div className="text-3xl font-bold mb-1">{pendientes}</div>
-          <div className="text-sm text-gray-400">Requieren atención</div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Pendientes</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-yellow-500/10' : 'bg-yellow-50'}`}>
+              <Clock className="w-4 h-4 text-yellow-500" />
+            </div>
+          </div>
+          <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{pendientes}</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Requieren atención</div>
         </div>
-        <div className={`rounded-lg p-6 border transition-colors ${
-          isDarkMode
-            ? 'bg-[#1c1c1e] border-white/[0.08]'
-            : 'bg-white border-gray-100'
+
+        {/* Completados */}
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
+          isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
         }`}>
-          <span className="text-gray-400 text-sm">Completados</span>
-          <div className="text-3xl font-bold mb-1">{completados}</div>
-          <div className="text-sm text-gray-400">Finalizados</div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Completados</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-green-500/10' : 'bg-green-50'}`}>
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+            </div>
+          </div>
+          <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{completados}</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Finalizados</div>
+        </div>
+
+        {/* Urgentes */}
+        <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
+          isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
+        }`}>
+          <div className="flex items-center justify-between mb-3">
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Urgentes</span>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-red-500/10' : 'bg-red-50'}`}>
+              <AlertCircle className="w-4 h-4 text-red-500" />
+            </div>
+          </div>
+          <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{urgentes}</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Prioridad urgente</div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-6">
-        <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${
-          isDarkMode
-            ? 'bg-white/[0.06]'
-            : 'bg-gray-200'
+      {/* Table Card */}
+      <div className={`rounded-xl border transition-colors ${
+        isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
+      }`}>
+        {/* Table Header */}
+        <div className={`px-4 py-3 border-b flex items-center justify-between transition-colors ${
+          isDarkMode ? 'border-white/[0.06]' : 'border-gray-100'
         }`}>
-          {["Todos", "Pendientes", "Completados"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === tab
-                  ? isDarkMode
-                    ? 'bg-[#2c2c2e] text-white'
-                    : 'bg-blue-600 text-white'
-                  : isDarkMode
-                    ? 'text-[#8e8e93] hover:text-white hover:bg-white/[0.06]'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-300'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          <div>
+            <h2 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Lista de Tickets
+            </h2>
+            <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>
+              {filteredTickets.length} de {totalTickets} tickets
+            </p>
+          </div>
+
+          {/* Tabs inline */}
+          <div className={`flex space-x-1 p-1 rounded-lg ${isDarkMode ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
+            {[
+              { label: "Todos", count: totalTickets },
+              { label: "Pendientes", count: pendientes },
+              { label: "Completados", count: completados },
+            ].map((tab) => (
+              <button
+                key={tab.label}
+                onClick={() => setActiveTab(tab.label)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                  activeTab === tab.label
+                    ? isDarkMode
+                      ? 'bg-[#3a3a3c] text-white'
+                      : 'bg-white text-gray-900 shadow-sm'
+                    : isDarkMode
+                      ? 'text-[#8e8e93] hover:text-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                  activeTab === tab.label
+                    ? 'bg-blue-600 text-white'
+                    : isDarkMode ? 'bg-white/[0.08] text-[#8e8e93]' : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Table Content */}
+        <div className="p-1">
+          {loading ? (
+            <div className={`p-12 text-center ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>
+              <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-3" />
+              <p className="text-sm">Cargando tickets...</p>
+            </div>
+          ) : filteredTickets.length === 0 ? (
+            <div className={`p-12 text-center ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>
+              <Ticket className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-medium">No hay tickets disponibles</p>
+              <p className="text-xs mt-1 opacity-60">Prueba cambiando el filtro o crea un nuevo ticket</p>
+            </div>
+          ) : (
+            <Tabla
+              datos={filteredTickets}
+              titulo=""
+              columnasPersonalizadas={columnConfig}
+              onEditar={canManage ? (item) => window.location.href = `edit/${item.id}` : undefined}
+              onEliminar={canManage ? openDeleteModal : undefined}
+              mostrarAcciones={canManage}
+            />
+          )}
         </div>
       </div>
-
-      {loading ? (
-        <div className={`p-8 text-center transition-colors ${
-          isDarkMode
-            ? 'text-gray-400'
-            : 'text-gray-600'
-        }`}>
-          <p>Cargando tickets...</p>
-        </div>
-      ) : filteredTickets?.length === 0 ? (
-        <div className={`p-8 text-center transition-colors ${
-          isDarkMode
-            ? 'text-gray-400'
-            : 'text-gray-600'
-        }`}>
-          <p>No hay tickets disponibles</p>
-        </div>
-      ) : (
-        <Tabla
-          datos={filteredTickets}
-          titulo={`${pageName} - ${selectedCompany?.name}`}
-          columnasPersonalizadas={columnConfig}
-          onEditar={(item) => window.location.href = `edit/${item.id}`}
-          onEliminar={openDeleteModal}
-          mostrarAcciones={true}
-        />
-      )}
 
       {/* Delete Modal */}
       {deleteConfirmation.show && deleteConfirmation.ticket && (

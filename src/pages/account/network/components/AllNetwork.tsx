@@ -374,8 +374,8 @@ const AllNetwork: React.FC<Props> = ({ }) => {
       <PagesHeader title={pageName} description={`${pageName} in ${selectedCompany?.name}`} showCreate />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className={`border rounded-xl p-6 transition-colors ${
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className={`border rounded-xl p-3 sm:p-4 transition-colors ${
           isDarkMode
             ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -393,7 +393,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           </div>
         </div>
 
-        <div className={`border rounded-xl p-6 transition-colors ${
+        <div className={`border rounded-xl p-3 sm:p-4 transition-colors ${
           isDarkMode
             ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -411,7 +411,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           </div>
         </div>
 
-        <div className={`border rounded-xl p-6 transition-colors ${
+        <div className={`border rounded-xl p-3 sm:p-4 transition-colors ${
           isDarkMode
             ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
@@ -429,7 +429,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           </div>
         </div>
 
-        <div className={`border rounded-xl p-6 transition-colors ${
+        <div className={`border rounded-xl p-3 sm:p-4 transition-colors ${
           isDarkMode
             ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'

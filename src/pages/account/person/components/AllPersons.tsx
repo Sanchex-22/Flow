@@ -232,41 +232,41 @@ export const AllPersons: React.FC = () => {
             />
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className={`rounded-lg p-6 border transition-colors ${
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Total Personas</span>
-                    <div className="text-3xl font-bold mb-1">{totalPersons}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{totalPersons}</div>
                     <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Registradas en el sistema</div>
                 </div>
-                <div className={`rounded-lg p-6 border transition-colors ${
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Personas Activas</span>
-                    <div className="text-3xl font-bold mb-1">{activePersons}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{activePersons}</div>
                     <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Con estado activo</div>
                 </div>
-                <div className={`rounded-lg p-6 border transition-colors ${
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Con Usuario</span>
-                    <div className="text-3xl font-bold mb-1">{personsWithUser}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{personsWithUser}</div>
                     <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Vinculadas a usuario</div>
                 </div>
-                <div className={`rounded-lg p-6 border transition-colors ${
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Departamentos</span>
-                    <div className="text-3xl font-bold mb-1">{departments}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{departments}</div>
                     <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Diferentes áreas</div>
                 </div>
             </div>

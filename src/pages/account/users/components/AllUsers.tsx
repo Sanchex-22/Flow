@@ -211,41 +211,41 @@ export const AllUsers: React.FC = () => {
             />
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className={`rounded-lg p-6 border transition-colors ${
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Total Usuarios</span>
-                    <div className="text-3xl font-bold mb-1">{totalUsers}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{totalUsers}</div>
                     <div className="text-sm text-gray-400">Registrados en el sistema</div>
                 </div>
-                <div className={`rounded-lg p-6 border transition-colors ${
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Usuarios Activos</span>
-                    <div className="text-3xl font-bold mb-1">{activeUsers}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{activeUsers}</div>
                     <div className="text-sm text-gray-400">Con acceso al sistema</div>
                 </div>
-                <div className={`rounded-lg p-6 border transition-colors ${
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Con Equipos</span>
-                    <div className="text-3xl font-bold mb-1">{usersWithEquipment}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{usersWithEquipment}</div>
                     <div className="text-sm text-gray-400">Tienen equipos asignados</div>
                 </div>
-                <div className={`rounded-lg p-6 border transition-colors ${
+                <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Departamentos</span>
-                    <div className="text-3xl font-bold mb-1">{departments}</div>
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">{departments}</div>
                     <div className="text-sm text-gray-400">Diferentes áreas</div>
                 </div>
             </div>

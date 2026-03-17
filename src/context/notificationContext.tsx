@@ -57,15 +57,15 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   })
 
   const { data: tickets } = useSWR(
-    cid ? `${VITE_API_URL}/api/tickets/company/${cid}` : null,
+    cid ? `${VITE_API_URL}/api/companies/tickets/${cid}/all` : null,
     fetcher, { refreshInterval: 30000 }
   )
   const { data: maintenance } = useSWR(
-    cid ? `${VITE_API_URL}/api/maintenance/company/${cid}` : null,
+    cid ? `${VITE_API_URL}/api/maintenances/${cid}/all` : null,
     fetcher, { refreshInterval: 60000 }
   )
   const { data: devices } = useSWR(
-    cid ? `${VITE_API_URL}/api/equipments/company/${cid}` : null,
+    cid ? `${VITE_API_URL}/api/devices/${cid}/all` : null,
     fetcher, { refreshInterval: 60000 }
   )
 

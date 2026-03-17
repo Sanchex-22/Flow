@@ -673,69 +673,79 @@ export default function AllDevices() {
             />
 
             {/* TABS Y FILTROS */}
-            <div className="mb-4 flex justify-between items-center flex-wrap gap-3">
-                <div className="flex flex-col md:flex-row gap-2 items-start md:items-center flex-wrap">
-                <div className={`flex p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
-                    {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${
-                                activeTab === tab
-                                    ? isDarkMode ? 'bg-[#2c2c2e] text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'
-                                    : isDarkMode ? 'text-[#8e8e93] hover:text-white' : 'text-gray-500 hover:text-gray-900'
-                            }`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
-                </div>
+            <div className="mb-4 overflow-x-auto">
+                <div className="flex items-center gap-2 min-w-max">
+                    {/* Tab pills */}
+                    <div className={`flex p-1 rounded-lg transition-colors ${isDarkMode ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
+                        {[['Todos los Equipos', 'Todos'], ['Asignaciones', 'Asig.'], ['Garantías', 'Gtías']].map(([tab, short]) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-2.5 py-1.5 text-[12px] font-medium rounded-md transition-colors ${
+                                    activeTab === tab
+                                        ? isDarkMode ? 'bg-[#2c2c2e] text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'
+                                        : isDarkMode ? 'text-[#8e8e93] hover:text-white' : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                            >
+                                <span className="hidden sm:inline">{tab}</span>
+                                <span className="sm:hidden">{short}</span>
+                            </button>
+                        ))}
+                    </div>
 
-                <select
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
-                        isDarkMode
-                            ? 'bg-white/[0.06] border-white/[0.06] text-white'
-                            : 'bg-white border-gray-200 text-gray-700'
-                    }`}
-                >
-                    <option value="todos">All Types</option>
-                    {uniqueTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                    ))}
-                </select>
+                    {/* Divider */}
+                    <div className={`w-px h-6 ${isDarkMode ? 'bg-white/[0.1]' : 'bg-gray-300'}`} />
 
-                <select
-                    value={selectedDepartment}
-                    onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
-                        isDarkMode
-                            ? 'bg-white/[0.06] border-white/[0.06] text-white'
-                            : 'bg-white border-gray-200 text-gray-700'
-                    }`}
-                >
-                    <option value="todos">All Departments</option>
-                    {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
-                </select>
-                </div>
-                {/* ACTA BUTTONS */}
-                <div className="flex justify-end gap-2 flex-wrap">
+                    <select
+                        value={selectedType}
+                        onChange={(e) => setSelectedType(e.target.value)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
+                            isDarkMode
+                                ? 'bg-white/[0.06] border-white/[0.06] text-white'
+                                : 'bg-white border-gray-200 text-gray-700'
+                        }`}
+                    >
+                        <option value="todos">Tipo</option>
+                        {uniqueTypes.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
+                            isDarkMode
+                                ? 'bg-white/[0.06] border-white/[0.06] text-white'
+                                : 'bg-white border-gray-200 text-gray-700'
+                        }`}
+                    >
+                        <option value="todos">Depto.</option>
+                        {departments.map(dept => (
+                            <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))}
+                    </select>
+
+                    {/* Divider */}
+                    <div className={`w-px h-6 ${isDarkMode ? 'bg-white/[0.1]' : 'bg-gray-300'}`} />
+
+                    {/* ACTA BUTTONS */}
                     <button
                         onClick={() => {
                             if (equipmentsToDeliver.length === 0) return
                             setActaState({ actaType: 'entrega', equiposEntregados: equipmentsToDeliver, equiposRetirados: [], showModal: true })
                         }}
                         disabled={equipmentsToDeliver.length === 0}
-                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                        title={`Delivery (${equipmentsToDeliver.length})`}
+                        className={`px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap ${
                             equipmentsToDeliver.length > 0
                                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                                 : isDarkMode ? 'bg-white/[0.04] text-[#48484a] cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        Delivery ({equipmentsToDeliver.length})
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 flex-shrink-0"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <span className="hidden sm:inline">Delivery</span>
+                        {equipmentsToDeliver.length > 0 && <span className="bg-white/20 rounded px-1">{equipmentsToDeliver.length}</span>}
                     </button>
                     <button
                         onClick={() => {
@@ -743,13 +753,16 @@ export default function AllDevices() {
                             setActaState({ actaType: 'retiro', equiposEntregados: [], equiposRetirados: equipmentsToDeliver, showModal: true })
                         }}
                         disabled={equipmentsToDeliver.length === 0}
-                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                        title={`Pickup (${equipmentsToDeliver.length})`}
+                        className={`px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap ${
                             equipmentsToDeliver.length > 0
                                 ? 'bg-red-600 hover:bg-red-500 text-white'
                                 : isDarkMode ? 'bg-white/[0.04] text-[#48484a] cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        Pickup ({equipmentsToDeliver.length})
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 flex-shrink-0"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                        <span className="hidden sm:inline">Pickup</span>
+                        {equipmentsToDeliver.length > 0 && <span className="bg-white/20 rounded px-1">{equipmentsToDeliver.length}</span>}
                     </button>
                     <button
                         onClick={() => {
@@ -757,13 +770,16 @@ export default function AllDevices() {
                             setShowCambioSelector(true)
                         }}
                         disabled={equipmentsToDeliver.length === 0}
-                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                        title={`Swap (${equipmentsToDeliver.length})`}
+                        className={`px-2.5 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1 whitespace-nowrap ${
                             equipmentsToDeliver.length > 0
                                 ? 'bg-blue-600 hover:bg-blue-500 text-white'
                                 : isDarkMode ? 'bg-white/[0.04] text-[#48484a] cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        Swap ({equipmentsToDeliver.length})
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-3.5 h-3.5 flex-shrink-0"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                        <span className="hidden sm:inline">Swap</span>
+                        {equipmentsToDeliver.length > 0 && <span className="bg-white/20 rounded px-1">{equipmentsToDeliver.length}</span>}
                     </button>
                 </div>
             </div>

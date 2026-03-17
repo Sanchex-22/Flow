@@ -12,10 +12,10 @@ export class userServices {
     });
   }
 
-  async getAllUsers() {
+  async getAllUsers(companyCode: string) {
     try {
       const response = await this.axiosInstance.get(
-        `${API_URL}/user/admin/getAllUser`
+        `/api/users/full/${companyCode}`
       );
       return response.data;
     } catch (error) {

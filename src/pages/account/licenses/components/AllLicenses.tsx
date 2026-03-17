@@ -187,20 +187,20 @@ export default function AllLicenses() {
         onExport={exportToExcel}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`rounded-xl p-5 border ${cardBg}`}>
-          <p className={`text-sm ${textSub}`}>Total Licencias</p>
-          <p className={`text-3xl font-bold ${textMain}`}>{filteredLicenses.length}</p>
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
+          <p className={`text-xs ${textSub}`}>Total Licencias</p>
+          <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>{filteredLicenses.length}</p>
         </div>
-        <div className={`rounded-xl p-5 border ${cardBg}`}>
-          <p className={`text-sm text-yellow-500`}>Por Vencer (30 días)</p>
-          <p className="text-3xl font-bold text-yellow-500">
+        <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
+          <p className={`text-xs text-yellow-500`}>Por Vencer (30d)</p>
+          <p className="text-2xl sm:text-3xl font-bold text-yellow-500">
             {filteredLicenses.filter((l) => isExpiringSoon(l.expirationDate)).length}
           </p>
         </div>
-        <div className={`rounded-xl p-5 border ${cardBg}`}>
-          <p className={`text-sm text-red-500`}>Expiradas</p>
-          <p className="text-3xl font-bold text-red-500">
+        <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
+          <p className={`text-xs text-red-500`}>Expiradas</p>
+          <p className="text-2xl sm:text-3xl font-bold text-red-500">
             {filteredLicenses.filter((l) => isExpired(l.expirationDate)).length}
           </p>
         </div>
