@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { Edit2, Trash2, ChevronDown, ChevronUp, Plus, Building2, Users, Monitor, Wrench, FolderOpen, Globe, Phone, Mail, Hash, CheckCircle, XCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Edit2, Trash2, ChevronDown, ChevronUp, Plus, Building2, Users, Monitor, Wrench, FolderOpen, Phone, Mail, Hash, CheckCircle } from "lucide-react"
 import { useCompany } from "../../../../context/routerContext"
 import { useTheme } from "../../../../context/themeContext"
 import Loader from "../../../../components/loaders/loader"
@@ -55,7 +55,7 @@ export default function AllSettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [showDeleteDeptConfirm, setShowDeleteDeptConfirm] = useState<{ companyId: string; deptId: string } | null>(null)
   const { selectedCompany } = useCompany()
-  const { pageName } = usePageName()
+  // const { pageName } = usePageName()
 
   const cardBg = isDarkMode ? "bg-[#1e1e20] border-white/[0.07]" : "bg-white border-gray-100 shadow-sm"
   const textMain = isDarkMode ? "text-white" : "text-gray-900"
