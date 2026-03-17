@@ -2,6 +2,7 @@
 
 import useSWR from "swr"
 import { useParams } from "react-router-dom"
+import { useState } from "react"
 import { formatValue } from "../../../utils/formatNull"
 import { UsuarioFull } from "../../../utils/usuarioFull"
 import Loader from "../../../components/loaders/loader.tsx"
@@ -9,7 +10,7 @@ import { useTranslation } from "react-i18next"
 import { useTheme } from "../../../context/themeContext"
 import {
   User, Mail, Phone, Briefcase, Building2, Shield,
-  Calendar, Clock, Hash, CheckCircle, XCircle, Settings, Edit3
+  Calendar, Clock, Hash, CheckCircle, XCircle, Settings, Edit3, X, Save
 } from "lucide-react"
 
 const { VITE_API_URL } = import.meta.env
@@ -99,11 +100,60 @@ export default function ProfilePage({ userId: userIdProp }: ProfilePageProps) {
   const { isDarkMode } = useTheme()
   const params = useParams<{ id: string }>()
   const userId = params.id || userIdProp
+  const [editOpen, setEditOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editForm, setEditForm] = useState<Record<string, string>>({})
 
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     userId ? `${VITE_API_URL}/api/users/profile/${userId}` : null,
     fetcher
   )
+
+  const openEdit = (user: UsuarioFull) => {
+    setEditForm({
+      username: user.username || "",
+      email: user.email || "",
+      firstName: user.person?.firstName || "",
+      lastName: user.person?.lastName || "",
+      contactEmail: user.person?.contactEmail || "",
+      phoneNumber: user.person?.phoneNumber || "",
+      position: user.person?.position || "",
+      password: "",
+    })
+    setEditOpen(true)
+  }
+
+  const saveEdit = async () => {
+    if (!userId) return
+    setSaving(true)
+    try {
+      const body: Record<string, any> = { updatePerson: true }
+      if (editForm.username) body.username = editForm.username
+      if (editForm.email) body.email = editForm.email
+      if (editForm.password) body.password = editForm.password
+      body.firstName = editForm.firstName
+      body.lastName = editForm.lastName
+      body.contactEmail = editForm.contactEmail
+      body.phoneNumber = editForm.phoneNumber
+      body.position = editForm.position
+
+      const res = await fetch(`${VITE_API_URL}/api/users/edit/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwt") || ""}`,
+        },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) throw new Error("Error al guardar")
+      await mutate()
+      setEditOpen(false)
+    } catch {
+      alert("Error al guardar los cambios")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (isLoading) return <Loader />
 
@@ -145,11 +195,17 @@ export default function ProfilePage({ userId: userIdProp }: ProfilePageProps) {
               </div>
               {/* Buttons */}
               <div className="flex gap-2 sm:pb-2">
-                <button className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isDarkMode ? "bg-white/[0.06] hover:bg-white/[0.1] text-white/70" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
+                <button
+                  onClick={() => openEdit(user)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isDarkMode ? "bg-white/[0.06] hover:bg-white/[0.1] text-white/70" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}
+                >
                   <Edit3 className="w-4 h-4" />
                   {t("profile.edit")}
                 </button>
-                <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors">
+                <button
+                  onClick={() => openEdit(user)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
+                >
                   <Settings className="w-4 h-4" />
                   {t("profile.settings")}
                 </button>
@@ -263,6 +319,66 @@ export default function ProfilePage({ userId: userIdProp }: ProfilePageProps) {
           </ProfileCard>
         )}
       </div>
+
+      {/* ── Edit Modal ── */}
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setEditOpen(false)}>
+          <div
+            className={`w-full max-w-md rounded-2xl shadow-2xl border overflow-hidden ${isDarkMode ? "bg-[#1c1c1e] border-white/[0.08]" : "bg-white border-gray-100"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={`flex items-center justify-between px-5 py-4 border-b ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
+              <h2 className={`text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>{t("profile.edit")}</h2>
+              <button onClick={() => setEditOpen(false)} className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? "text-white/40 hover:text-white hover:bg-white/[0.06]" : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"}`}>
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-3 max-h-[65vh] overflow-y-auto">
+              {[
+                { key: "username", label: t("profile.username"), type: "text" },
+                { key: "email", label: t("profile.primaryEmail"), type: "email" },
+                { key: "firstName", label: t("profile.firstName"), type: "text" },
+                { key: "lastName", label: t("profile.lastName"), type: "text" },
+                { key: "contactEmail", label: t("profile.contactEmail"), type: "email" },
+                { key: "phoneNumber", label: t("profile.phone"), type: "text" },
+                { key: "position", label: t("profile.position"), type: "text" },
+                { key: "password", label: "Nueva contraseña (opcional)", type: "password" },
+              ].map(({ key, label, type }) => (
+                <div key={key}>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? "text-white/50" : "text-gray-500"}`}>{label}</label>
+                  <input
+                    type={type}
+                    value={editForm[key] || ""}
+                    onChange={(e) => setEditForm((f) => ({ ...f, [key]: e.target.value }))}
+                    placeholder={type === "password" ? "••••••••" : label}
+                    className={`w-full px-3 py-2 rounded-xl text-sm outline-none border transition-colors ${
+                      isDarkMode
+                        ? "bg-white/[0.06] border-white/[0.08] text-white placeholder-white/30 focus:border-blue-500"
+                        : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-blue-500"
+                    }`}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className={`flex gap-2 px-5 py-4 border-t ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
+              <button
+                onClick={() => setEditOpen(false)}
+                className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${isDarkMode ? "bg-white/[0.06] hover:bg-white/[0.1] text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={saving}
+                className="flex-1 py-2 rounded-xl text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
