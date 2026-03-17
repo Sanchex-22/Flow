@@ -243,7 +243,7 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
     return (
         <div className={`transition-colors ${
           isDarkMode
-            ? 'bg-slate-900 text-gray-100'
+            ? 'bg-[#1c1c1e] text-gray-100'
             : 'bg-gray-100 text-gray-900'
         }`}>
             <PagesHeader
@@ -255,7 +255,7 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
             {/* Stats Card */}
             <div className={`border rounded-xl p-6 mb-8 transition-colors ${
               isDarkMode
-                ? 'bg-slate-800 border-slate-700'
+                ? 'bg-[#2c2c2e] border-white/[0.08]'
                 : 'bg-white border-gray-200'
             }`}>
                 <div className="flex items-center justify-between">
@@ -298,12 +298,12 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className={`rounded-lg shadow-xl max-w-sm w-full mx-4 border transition-colors ${
                       isDarkMode
-                        ? 'bg-slate-800 border-slate-700'
+                        ? 'bg-[#2c2c2e] border-white/[0.08]'
                         : 'bg-white border-gray-200'
                     }`}>
                         <div className={`flex items-center justify-between p-6 border-b transition-colors ${
                           isDarkMode
-                            ? 'border-slate-700'
+                            ? 'border-white/[0.08]'
                             : 'border-gray-200'
                         }`}>
                             <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -336,7 +336,7 @@ const NetworkProvidersPage: React.FC<Props> = ({ }) => {
 
                         <div className={`flex gap-3 p-6 border-t transition-colors ${
                           isDarkMode
-                            ? 'border-slate-700 bg-slate-800'
+                            ? 'border-white/[0.08] bg-[#2c2c2e]'
                             : 'border-gray-200 bg-gray-50'
                         }`}>
                             <button

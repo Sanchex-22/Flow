@@ -47,29 +47,29 @@ const UpdateDevicesPage: React.FC = () => {
     );
 
     if (errorPersons) return (
-        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-gray-900 text-red-400" : "bg-gray-50 text-red-600"}`}>
+        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-[#1c1c1e] text-red-400" : "bg-gray-50 text-red-600"}`}>
             Error al cargar personas: {errorPersons.message}
         </div>
     );
     if (isLoadingPersons || !persons) return (
-        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-gray-900 text-gray-400" : "bg-gray-50 text-gray-600"}`}>
+        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-[#1c1c1e] text-gray-400" : "bg-gray-50 text-gray-600"}`}>
             Cargando colaboradores...
         </div>
     );
 
     if (errorDepartments) return (
-        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-gray-900 text-red-400" : "bg-gray-50 text-red-600"}`}>
+        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-[#1c1c1e] text-red-400" : "bg-gray-50 text-red-600"}`}>
             Error al cargar departamentos: {errorDepartments.message}
         </div>
     );
     if (isLoadingDepartments || !departments) return (
-        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-gray-900 text-gray-400" : "bg-gray-50 text-gray-600"}`}>
+        <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? "bg-[#1c1c1e] text-gray-400" : "bg-gray-50 text-gray-600"}`}>
             Cargando departamentos...
         </div>
     );
 
     return (
-        <div className={`relative min-h-screen font-inter transition-colors ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+        <div className={`relative min-h-screen font-inter transition-colors ${isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900"}`}>
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-lg md:text-3xl font-bold text-center mb-2">{renderPage}</h1>
                 <UpdateDevices

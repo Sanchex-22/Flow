@@ -1,452 +1,335 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMainRoutesForRole, getUserRoles } from "../../routes/routesConfig";
 import { UserProfile } from "../../context/userProfileContext";
 import Images from "../../assets";
-import { LogOut, Menu, X, Search, Bell, Sun, Moon } from "lucide-react";
+import { LogOut, Menu, X, Search, Bell, Sun, Moon, Globe, Ticket, Wrench, Monitor, CheckCheck, ExternalLink } from "lucide-react";
 import useUser from "../../hook/useUser";
 import CompanySelectorComponent from "../selector/CompanySelectorComponent";
 import { useCompany } from "../../context/routerContext";
 import SearchInput from "../selector/SearchInput";
 import { useSearch } from "../../context/searchContext";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useTheme } from "../../context/themeContext";
+import { useTranslation } from "react-i18next";
+import { useNotifications, AppNotification } from "../../context/notificationContext";
 
-interface CurrentPathname {
-  name: string;
-}
-
+interface CurrentPathname { name: string }
 interface AdminNavbarProps {
   currentPathname?: CurrentPathname;
   isLogged: boolean;
   profile: UserProfile | null;
 }
 
-const AdminNavbar: React.FC<AdminNavbarProps> = ({
-  profile,
-}) => {
+const typeIcon = (type: AppNotification["type"]) => {
+  if (type === "ticket") return <Ticket className="w-3.5 h-3.5" />
+  if (type === "maintenance") return <Wrench className="w-3.5 h-3.5" />
+  return <Monitor className="w-3.5 h-3.5" />
+}
+
+const typeBg = (type: AppNotification["type"], dark: boolean) => {
+  const map: Record<string, string> = {
+    ticket: dark ? "bg-blue-500/20 text-blue-400" : "bg-blue-100 text-blue-600",
+    maintenance: dark ? "bg-orange-500/20 text-orange-400" : "bg-orange-100 text-orange-600",
+    device: dark ? "bg-red-500/20 text-red-400" : "bg-red-100 text-red-600",
+    license: dark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600",
+    expense: dark ? "bg-green-500/20 text-green-400" : "bg-green-100 text-green-600",
+  }
+  return map[type] ?? (dark ? "bg-white/[0.06] text-white/50" : "bg-gray-100 text-gray-500")
+}
+
+const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
   const { logout } = useUser();
   const { selectedCompany } = useCompany();
-  const { isDarkMode, toggleTheme } = useTheme(); // Usar el contexto
+  const { isDarkMode, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const { setSearch } = useSearch();
+  const location = useLocation();
+  const AppName = import.meta.env.VITE_APP_NAME || "Flow IT";
+  const initials = profile?.username ? profile.username[0].toUpperCase() : "U";
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const { notifications, unreadCount, markAllRead, markRead } = useNotifications();
+
+  const toggleLanguage = () => {
+    const next = i18n.language === "en" ? "es" : "en";
+    i18n.changeLanguage(next);
+    localStorage.setItem("i18nextLng", next);
+  };
+
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
-  const { setSearch } = useSearch()
-  const location = useLocation()
-  const AppName = import.meta.env.VITE_APP_NAME || "IT";
-  
-  useEffect(() => {
-    setSearch("")
-  }, [location.pathname])
-  
-  const filteredNavLinks: { href: string; name: string; icon?: React.ReactNode }[] =
-    userRoles.flatMap((role: string) =>
-      getMainRoutesForRole(
-        role as "user" | "super_admin" | "admin" | "moderator"
-      ).map((route: any) => ({
-        href: typeof route === "string" ? route : route.href,
-        name: typeof route === "string" ? route : route.name,
-        icon: typeof route === "string"
-          ? undefined
-          : route.icon
-            ? <route.icon />
-            : undefined,
-      }))
-    ) || [];
+  const filteredNavLinks = userRoles.flatMap((role: string) =>
+    getMainRoutesForRole(role as "user" | "super_admin" | "admin" | "moderator").map((route: any) => ({
+      href: typeof route === "string" ? route : route.href,
+      name: typeof route === "string" ? route : route.name,
+      icon: typeof route !== "string" && route.icon ? <route.icon /> : undefined,
+    }))
+  );
+
+  useEffect(() => { setSearch("") }, [location.pathname]);
+  useEffect(() => { setNotifOpen(false) }, [location.pathname]);
 
   useEffect(() => {
-    const navbar = document.getElementById("navbar");
-
-    const handleScroll = () => {
-      if (window.scrollY > 0) {
-        navbar?.classList.add("scrolled");
-      } else {
-        navbar?.classList.remove("scrolled");
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-
-    const openButton = document?.getElementById("open-menu");
-    const side = document?.getElementById("sidebar");
-    const hiddenrelative = document?.getElementById("hidden-relative");
-
-    if (!openButton) return;
-    const openMenu = () => {
-      document.body.classList.add("overflow-hidden");
-      side?.classList.remove("invisible", "translate-x-full", "hidden");
-      hiddenrelative?.classList.remove("relative");
-    };
-    openButton.addEventListener("click", openMenu);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      openButton.removeEventListener("click", openMenu);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsMenuOpen(false);
-      }
-    };
+    if (isMenuOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    const handleEscape = (e: KeyboardEvent) => { if (e.key === "Escape") setIsMenuOpen(false); };
     document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", handleEscape);
-    };
+    return () => { document.body.style.overflow = ""; document.removeEventListener("keydown", handleEscape); };
   }, [isMenuOpen]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    if (notifOpen) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [notifOpen]);
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  const iconBtn = `p-2 rounded-lg transition-colors ${
+    isDarkMode
+      ? "text-[#8e8e93] hover:text-white hover:bg-white/[0.06]"
+      : "text-[#6e6e73] hover:text-gray-900 hover:bg-gray-100"
+  }`;
 
   return (
     <nav
       id="navbar"
-      className={`w-full z-20 top-0 transition-all duration-300 ${
+      className={`w-full z-20 top-0 transition-colors duration-300 ${
         isDarkMode
-          ? "bg-slate-900 border-b border-slate-800"
-          : "bg-white border-b border-gray-200"
+          ? "bg-[#1c1c1e]/90 backdrop-blur-xl border-b border-white/[0.06]"
+          : "bg-white/90 backdrop-blur-xl border-b border-gray-200/80"
       }`}
     >
-      <div className="w-full px-4 md:px-6 lg:px-8 py-3 md:py-0">
-        {/* Desktop Layout */}
-        <div className="hidden md:flex justify-between items-center h-16">
-          {/* Left Section */}
-          <div className="flex items-center gap-4 lg:gap-8">
-            <div className="flex items-center gap-2">
-              <img
-                src={Images?.logo || "#"}
-                alt="logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 bg-cover object-contain"
-              />
-              <span
-                className={`text-lg font-bold tracking-wider ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {AppName}
-              </span>
-            </div>
-          </div>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-4 lg:gap-6">
-            {/* Search Bar */}
-            <SearchInput/>
-
-            {/* Company Selector */}
-            <div className="flex items-center gap-2 w-56">
-              <CompanySelectorComponent isDarkMode={isDarkMode} />
-            </div>
-
-            {/* Notifications */}
-            <button
-              className={`relative p-2 transition-colors duration-300 ${
-                isDarkMode
-                  ? "text-slate-400 hover:text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors duration-300 ${
-                isDarkMode
-                  ? "text-slate-400 hover:text-white hover:bg-slate-800"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </button>
-
-          </div>
-        </div>
-
-        {/* Mobile Layout */}
-        <div className="md:hidden flex justify-between items-center h-14">
-          {/* Left - Logo */}
+      <div className="w-full px-4 md:px-6">
+        {/* ── Desktop ── */}
+        <div className="hidden md:flex justify-between items-center h-14">
           <div className="flex items-center gap-2">
-            <img
-              src={Images?.logo || "#"}
-              alt="logo"
-              width={36}
-              height={36}
-              className="w-9 h-9 bg-cover object-contain"
-            />
-            <span
-              className={`text-base font-bold truncate ${
-                isDarkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isDarkMode ? "bg-white/[0.08]" : "bg-gray-100"}`}>
+              <img src={Images?.logo || "#"} alt="logo" className="w-5 h-5 object-contain" />
+            </div>
+            <span className={`text-[15px] font-semibold tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}>
               {AppName}
             </span>
           </div>
 
-          {/* Right - Icons */}
+          <div className="flex items-center gap-1">
+            <div className="mr-2"><SearchInput /></div>
+            <div className="w-52 mr-2"><CompanySelectorComponent isDarkMode={isDarkMode} /></div>
+
+            {/* ── Notification Bell ── */}
+            <div ref={notifRef} className="relative">
+              <button
+                onClick={() => setNotifOpen((v) => !v)}
+                className={`relative ${iconBtn}`}
+                aria-label="Notifications"
+              >
+                <Bell className="w-[18px] h-[18px]" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className={`absolute right-0 top-full mt-2 w-80 rounded-2xl shadow-2xl border overflow-hidden z-50 ${
+                  isDarkMode ? "bg-[#1c1c1e] border-white/[0.08]" : "bg-white border-gray-100"
+                }`}>
+                  {/* Header */}
+                  <div className={`flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
+                    <span className={`text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+                      Notificaciones
+                      {unreadCount > 0 && <span className="ml-1.5 text-xs text-blue-500 font-medium">({unreadCount} nuevas)</span>}
+                    </span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllRead}
+                        className={`flex items-center gap-1 text-xs font-medium transition-colors ${isDarkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"}`}
+                      >
+                        <CheckCheck className="w-3.5 h-3.5" />
+                        Leer todo
+                      </button>
+                    )}
+                  </div>
+
+                  {/* List */}
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className={`text-center py-10 text-xs ${isDarkMode ? "text-white/30" : "text-gray-400"}`}>
+                        Sin notificaciones pendientes
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`flex items-start gap-3 px-4 py-3 border-b last:border-0 transition-colors cursor-pointer ${
+                            isDarkMode ? "border-white/[0.04] hover:bg-white/[0.03]" : "border-gray-50 hover:bg-gray-50"
+                          } ${!n.read ? (isDarkMode ? "bg-blue-500/[0.05]" : "bg-blue-50/60") : ""}`}
+                          onClick={() => { markRead(n.id); if (n.href) window.location.href = n.href; }}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${typeBg(n.type, isDarkMode)}`}>
+                            {typeIcon(n.type)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className={`text-xs truncate ${isDarkMode ? "text-white" : "text-gray-900"} ${!n.read ? "font-bold" : "font-medium"}`}>
+                              {n.title}
+                            </p>
+                            <p className={`text-xs mt-0.5 truncate ${isDarkMode ? "text-white/50" : "text-gray-500"}`}>
+                              {n.message}
+                            </p>
+                            <p className={`text-[10px] mt-1 ${isDarkMode ? "text-white/30" : "text-gray-400"}`}>
+                              {n.time}
+                            </p>
+                          </div>
+                          {!n.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  {notifications.length > 0 && (
+                    <div className={`px-4 py-2.5 border-t ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
+                      <Link
+                        to={`/${selectedCompany?.code}/tickets/all`}
+                        onClick={() => setNotifOpen(false)}
+                        className={`flex items-center justify-center gap-1.5 text-xs font-medium transition-colors ${isDarkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"}`}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Ver todos los tickets
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Language */}
+            <button
+              onClick={toggleLanguage}
+              className={`${iconBtn} flex items-center gap-1 text-xs font-semibold uppercase`}
+              title={i18n.language === "en" ? t("lang.es") : t("lang.en")}
+            >
+              <Globe className="w-[18px] h-[18px]" />
+              <span>{i18n.language}</span>
+            </button>
+
+            {/* Theme */}
+            <button onClick={toggleTheme} className={iconBtn} aria-label="Toggle theme">
+              {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
+
+            {/* User avatar */}
+            <Link
+              to={`/${selectedCompany?.code || "code"}/profile/${profile?.id || "1"}`}
+              className="ml-1 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold transition-opacity hover:opacity-80"
+              title={profile?.username || "Profile"}
+            >
+              {initials}
+            </Link>
+          </div>
+        </div>
+
+        {/* ── Mobile ── */}
+        <div className="md:hidden flex justify-between items-center h-12">
           <div className="flex items-center gap-2">
-            {/* Search Icon */}
-            <button
-              className={`p-2 transition-colors ${
-                isDarkMode
-                  ? "text-slate-400 hover:text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* Notifications */}
-            <button
-              className={`relative p-2 transition-colors ${
-                isDarkMode
-                  ? "text-slate-400 hover:text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
-                isDarkMode
-                  ? "text-slate-400 hover:text-white hover:bg-slate-800"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
+            <img src={Images?.logo || "#"} alt="logo" className="w-7 h-7 object-contain" />
+            <span className={`text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>{AppName}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setNotifOpen((v) => !v)} className={`relative ${iconBtn}`}>
+              <Bell className="w-[18px] h-[18px]" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-0.5 bg-red-500 rounded-full flex items-center justify-center text-white text-[8px] font-bold">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
               )}
             </button>
-
-            {/* Menu Button */}
+            <button onClick={toggleTheme} className={iconBtn}>
+              {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
             <button
-              id="open-menu"
-              onClick={toggleMenu}
-              className={`inline-flex items-center justify-center p-2 rounded-md transition-colors ${
-                isDarkMode
-                  ? "text-slate-400 hover:text-white hover:bg-slate-800"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
-              aria-expanded={isMenuOpen ? "true" : "false"}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className={`${iconBtn} p-2 rounded-md`}
+              aria-expanded={isMenuOpen}
             >
-              <span className="sr-only">
-                {isMenuOpen ? "Cerrar menú principal" : "Abrir menú principal"}
-              </span>
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Overlay */}
+      {/* ── Mobile overlay ── */}
       <div
-        className={`fixed inset-0 h-screen z-40 transition-opacity duration-300 ${
-          isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        } ${isDarkMode ? "bg-black/50" : "bg-black/30"}`}
-        onClick={closeMenu}
-        aria-hidden={!isMenuOpen}
-      ></div>
+        className={`fixed inset-0 h-screen z-40 transition-opacity duration-200 ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"} ${isDarkMode ? "bg-black/60" : "bg-black/30"}`}
+        onClick={() => setIsMenuOpen(false)}
+      />
 
-      {/* Mobile Menu Drawer */}
+      {/* ── Mobile drawer ── */}
       <div
-        className={`fixed top-0 right-0 h-screen w-full sm:w-80 shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        } ${isDarkMode ? "bg-slate-900" : "bg-white"}`}
+        className={`fixed top-0 right-0 h-screen w-80 shadow-2xl z-50 transform transition-transform duration-300 ease-out ${isMenuOpen ? "translate-x-0" : "translate-x-full"} ${isDarkMode ? "bg-[#1c1c1e]" : "bg-white"}`}
         role="dialog"
         aria-modal="true"
-        aria-label="Menú principal"
       >
-        {/* Mobile Menu Header */}
-        <div
-          className={`flex justify-between items-center p-4 h-16 ${
-            isDarkMode ? "border-b border-slate-800" : "border-b border-gray-200"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <img
-              src={Images?.logo || "#"}
-              alt="logo"
-              width={40}
-              height={40}
-              className="w-10 h-10"
-            />
-            <span
-              className={`font-bold tracking-wider ${
-                isDarkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
-              {AppName}
-            </span>
-          </div>
-          <button
-            onClick={closeMenu}
-            className={`p-2 rounded-md transition-colors ${
-              isDarkMode
-                ? "text-slate-400 hover:text-white hover:bg-slate-800"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-            aria-label="Cerrar menú"
-          >
-            <X className="w-6 h-6" />
-          </button>
+        <div className={`flex justify-between items-center px-5 h-14 border-b ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
+          <span className={`font-semibold text-[15px] ${isDarkMode ? "text-white" : "text-gray-900"}`}>{AppName}</span>
+          <button onClick={() => setIsMenuOpen(false)} className={iconBtn}><X className="w-5 h-5" /></button>
         </div>
 
-        {/* Mobile Menu Content */}
-        <div className="flex flex-col h-[calc(100vh-4rem)] overflow-y-auto">
-          {/* Company Selector Mobile */}
-          <div
-            className={`p-4 ${
-              isDarkMode ? "border-b border-slate-800" : "border-b border-gray-200"
-            }`}
-          >
+        <div className="flex flex-col h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <div className={`px-4 py-3 space-y-3 border-b ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
             <CompanySelectorComponent isDarkMode={isDarkMode} />
-          </div>
-
-          {/* Search Bar Mobile */}
-          <div
-            className={`p-4 ${
-              isDarkMode ? "border-b border-slate-800" : "border-b border-gray-200"
-            }`}
-          >
-            <div
-              className={`flex items-center rounded-full px-4 py-2 ${
-                isDarkMode
-                  ? "bg-slate-800 border border-slate-700"
-                  : "bg-gray-100 border border-gray-200"
-              }`}
-            >
-              <Search
-                className={`w-4 h-4 ${
-                  isDarkMode ? "text-slate-400" : "text-gray-400"
-                }`}
-              />
-              <input
-                type="text"
-                placeholder="Search"
-                className={`bg-transparent ml-2 outline-none text-sm w-full ${
-                  isDarkMode
-                    ? "text-white placeholder-slate-400"
-                    : "text-gray-700 placeholder-gray-500"
-                }`}
-              />
+            <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${isDarkMode ? "bg-white/[0.06] text-[#8e8e93]" : "bg-gray-100 text-gray-500"}`}>
+              <Search className="w-4 h-4 flex-shrink-0" />
+              <span>{t("common.search")}</span>
             </div>
           </div>
 
-          {/* Mobile Nav Links */}
-          <div className="px-2 py-3 space-y-1">
+          <div className="px-3 py-3 flex-1 space-y-0.5">
             {filteredNavLinks.length > 0 ? (
-              filteredNavLinks.map((link, index) => (
+              filteredNavLinks.map((link, i) => (
                 <a
-                  key={index}
-                  href={`/${selectedCompany?.code || 'code'}${link?.href}`}
-                  onClick={closeMenu}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-300 ${
-                    isDarkMode
-                      ? "text-slate-300 hover:bg-slate-800"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                  key={i}
+                  href={`/${selectedCompany?.code || "code"}${link.href}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-[13px] font-medium ${isDarkMode ? "text-[#8e8e93] hover:text-white hover:bg-white/[0.05]" : "text-[#6e6e73] hover:text-gray-900 hover:bg-gray-50"}`}
                 >
-                  {link.icon && (
-                    <span className={isDarkMode ? "text-slate-400" : "text-gray-600"}>
-                      {link.icon}
-                    </span>
-                  )}
-                  <span className="text-sm font-medium">{link.name}</span>
+                  {link.icon && <span className="w-4 h-4">{link.icon}</span>}
+                  {link.name}
                 </a>
               ))
             ) : (
-              <span
-                className={`text-sm px-4 py-2 ${
-                  isDarkMode ? "text-slate-400" : "text-gray-500"
-                }`}
-              >
-                No tienes acceso a ninguna ruta
-              </span>
+              <p className={`text-xs px-3 py-2 ${isDarkMode ? "text-[#636366]" : "text-gray-400"}`}>{t("nav.noAccess")}</p>
             )}
           </div>
 
-          {/* Divider */}
-          <hr
-            className={`my-2 ${isDarkMode ? "border-slate-800" : "border-gray-200"}`}
-          />
-
-          {/* Mobile Profile Section */}
-          <div className="px-2 py-3 space-y-2 flex-1">
-            <div className="flex items-center gap-3 px-2 py-2">
-              <img
-                src={Images?.logo || "#"}
-                alt="profile"
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-full bg-gray-200 object-cover"
-              />
+          <div className={`px-4 py-4 border-t space-y-1 ${isDarkMode ? "border-white/[0.06]" : "border-gray-100"}`}>
+            <div className="flex items-center gap-3 px-2 py-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                {initials}
+              </div>
               <div>
-                <p
-                  className={`text-sm font-medium ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {profile?.username || "user"}
-                </p>
-                <p
-                  className={`text-xs ${
-                    isDarkMode ? "text-slate-400" : "text-gray-500"
-                  }`}
-                >
-                  {profile?.roles || "user"}
-                </p>
+                <p className={`text-[13px] font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>{profile?.username || "user"}</p>
+                <p className={`text-xs ${isDarkMode ? "text-[#636366]" : "text-gray-400"}`}>{profile?.roles || "user"}</p>
               </div>
             </div>
-
-            <div className="px-2 pt-2 space-y-2 mt-4">
-              <button
-                onClick={() => {
-                  logout();
-                  closeMenu();
-                }}
-                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors duration-300 ${
-                  isDarkMode
-                    ? "text-red-400 hover:bg-red-900/30"
-                    : "text-red-600 hover:bg-red-50"
-                }`}
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm font-medium">Cerrar sesión</span>
-              </button>
-
-            </div>
+            <button
+              onClick={toggleLanguage}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${isDarkMode ? "text-[#8e8e93] hover:text-white hover:bg-white/[0.05]" : "text-[#6e6e73] hover:text-gray-900 hover:bg-gray-50"}`}
+            >
+              <Globe className="w-4 h-4" />
+              {i18n.language === "en" ? t("lang.es") : t("lang.en")}
+            </button>
+            <button
+              onClick={() => { logout(); setIsMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${isDarkMode ? "text-red-400 hover:bg-red-500/[0.08]" : "text-red-600 hover:bg-red-50"}`}
+            >
+              <LogOut className="w-4 h-4" />
+              {t("nav.logout")}
+            </button>
           </div>
         </div>
       </div>

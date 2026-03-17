@@ -123,12 +123,12 @@ export function UpdateDepartment() {
   return (
     <div className={`min-h-screen px-6 py-8 transition-colors ${
       isDarkMode
-        ? 'bg-gray-900 text-white'
+        ? 'bg-[#1c1c1e] text-white'
         : 'bg-gray-100 text-gray-900'
     }`}>
       <div className={`max-w-3xl mx-auto border rounded-xl p-6 space-y-6 transition-colors ${
         isDarkMode
-          ? 'bg-gray-800 border-gray-700'
+          ? 'bg-gray-800 border-white/[0.08]'
           : 'bg-white border-gray-200'
       }`}>
         {message && (

@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Edit, Trash2 } from 'lucide-react'
 import { useTheme } from '../../context/themeContext'
+import { useTranslation } from 'react-i18next'
 
 interface TablaProps<T extends { id: string }> {
     datos: T[]
@@ -17,7 +18,6 @@ interface TablaProps<T extends { id: string }> {
 
 export default function Tabla<T extends { id: string }>({
     datos,
-    // titulo,
     columnasPersonalizadas,
     onEditar,
     onEliminar,
@@ -26,248 +26,171 @@ export default function Tabla<T extends { id: string }>({
     showSelectForDelivery = false,
 }: TablaProps<T>) {
     const { isDarkMode } = useTheme()
+    const { t } = useTranslation()
     const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
 
     const handleRowSelect = (id: string) => {
         const newSelectedRows = new Set(selectedRows)
-        if (newSelectedRows.has(id)) {
-            newSelectedRows.delete(id)
-        } else {
-            newSelectedRows.add(id)
-        }
+        if (newSelectedRows.has(id)) newSelectedRows.delete(id)
+        else newSelectedRows.add(id)
         setSelectedRows(newSelectedRows)
-        
-        // ✅ Actualizar equipmentsToDeliver en tiempo real
         if (onSelectItemsForDelivery) {
-            const selectedItems = datos.filter(item => newSelectedRows.has(item.id))
-            onSelectItemsForDelivery(selectedItems)
+            onSelectItemsForDelivery(datos.filter(item => newSelectedRows.has(item.id)))
         }
     }
 
     const handleSelectAll = () => {
-        let newSelectedRows: Set<string>
-        if (selectedRows.size === datos.length && datos.length > 0) {
-            newSelectedRows = new Set()
-        } else {
-            newSelectedRows = new Set(datos.map(item => item.id))
-        }
+        const newSelectedRows =
+            selectedRows.size === datos.length && datos.length > 0
+                ? new Set<string>()
+                : new Set(datos.map(item => item.id))
         setSelectedRows(newSelectedRows)
-        
-        // ✅ Actualizar equipmentsToDeliver en tiempo real
         if (onSelectItemsForDelivery) {
-            const selectedItems = datos.filter(item => newSelectedRows.has(item.id))
-            onSelectItemsForDelivery(selectedItems)
+            onSelectItemsForDelivery(datos.filter(item => newSelectedRows.has(item.id)))
         }
     }
 
     if (!datos || datos.length === 0) {
         return (
-            <div
-                className={`p-4 rounded-lg border ${
-                    isDarkMode
-                        ? 'bg-gray-800 border-gray-700'
-                        : 'bg-white border-gray-200'
-                } text-center`}
-            >
-                <p
-                    className={`${
-                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}
-                >
-                    No hay datos disponibles.
-                </p>
+            <div className={`px-6 py-12 rounded-xl border text-center ${
+                isDarkMode
+                    ? 'bg-[#1c1c1e] border-white/[0.06] text-[#636366]'
+                    : 'bg-white border-gray-100 text-gray-400'
+            }`}>
+                <p className="text-[13px]">{t("common.noData")}</p>
             </div>
         )
     }
 
-    let nombresColumnas: string[]
-    if (columnasPersonalizadas) {
-        nombresColumnas = Object.keys(columnasPersonalizadas)
-    } else {
-        const primeraFila = datos[0]
-        nombresColumnas = Object.keys(primeraFila).filter(
-            (key) =>
-                ![
-                    'id',
-                    'companyId',
-                    'assignedToPersonId',
-                    'company',
-                    '_count',
-                ].includes(key) && typeof primeraFila[key as keyof T] !== 'object'
+    const nombresColumnas = columnasPersonalizadas
+        ? Object.keys(columnasPersonalizadas)
+        : Object.keys(datos[0]).filter(
+            key => !['id', 'companyId', 'assignedToPersonId', 'company', '_count'].includes(key)
+                && typeof datos[0][key as keyof T] !== 'object'
         )
-    }
 
     return (
-        <div
-            className={`overflow-hidden rounded-lg shadow-md transition-colors px-4 overflow-x-auto ${
-                isDarkMode ? 'bg-gray-800' : 'bg-white'
-            }`}
-        >
-            <table
-                className={`min-w-full divide-y ${
-                    isDarkMode ? 'divide-gray-700' : 'divide-gray-200'
-                }`}
-            >
-                <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
-                    <tr>
-                        {showSelectForDelivery && (
-                            <th scope="col" className="p-4 text-center">
-                                <input
-                                    type="checkbox"
-                                    className={`rounded ${
-                                        isDarkMode
-                                            ? 'bg-gray-600 border-gray-500 text-blue-600 focus:ring-blue-500'
-                                            : 'border-gray-300 text-blue-600 focus:ring-blue-500'
-                                    }`}
-                                    checked={
-                                        selectedRows.size === datos.length &&
-                                        datos.length > 0
-                                    }
-                                    onChange={handleSelectAll}
-                                />
-                            </th>
-                        )}
-                        {nombresColumnas.map((columna) => (
-                            <th
-                                key={columna}
-                                scope="col"
-                                className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                                    isDarkMode
-                                        ? 'text-gray-300'
-                                        : 'text-gray-500'
-                                }`}
-                            >
-                                {columna}
-                            </th>
-                        ))}
-                        {mostrarAcciones && (
-                            <th
-                                scope="col"
-                                className={`px-6 py-3 text-center text-xs font-medium uppercase tracking-wider ${
-                                    isDarkMode
-                                        ? 'text-gray-300'
-                                        : 'text-gray-500'
-                                }`}
-                            >
-                                Acciones
-                            </th>
-                        )}
-                    </tr>
-                </thead>
-                <tbody
-                    className={`divide-y ${
-                        isDarkMode ? 'divide-gray-700' : 'divide-gray-200'
-                    } ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-                >
-                    {datos.map((item) => (
-                        <tr
-                            key={item.id}
-                            className={`${
-                                selectedRows.has(item.id)
-                                    ? isDarkMode
-                                        ? 'bg-blue-900 bg-opacity-30'
-                                        : 'bg-blue-50'
-                                    : isDarkMode
-                                    ? 'hover:bg-gray-700'
-                                    : 'hover:bg-gray-50'
-                            } transition-colors`}
-                        >
+        <div className={`overflow-hidden rounded-xl border transition-colors ${
+            isDarkMode ? 'bg-[#1c1c1e] border-white/[0.06]' : 'bg-white border-gray-100 shadow-sm'
+        }`}>
+            <div className="overflow-x-auto">
+                <table className={`min-w-full divide-y ${
+                    isDarkMode ? 'divide-white/[0.06]' : 'divide-gray-100'
+                }`}>
+                    <thead className={isDarkMode ? 'bg-[#111113]' : 'bg-[#f9f9f9]'}>
+                        <tr>
                             {showSelectForDelivery && (
-                                <td className="p-4 text-center">
+                                <th scope="col" className="px-4 py-3 text-center w-10">
                                     <input
                                         type="checkbox"
-                                        className={`rounded ${
-                                            isDarkMode
-                                                ? 'bg-gray-600 border-gray-500 text-blue-600 focus:ring-blue-500'
-                                                : 'border-gray-300 text-blue-600 focus:ring-blue-500'
-                                        }`}
-                                        checked={selectedRows.has(item.id)}
-                                        onChange={() =>
-                                            handleRowSelect(item.id)
-                                        }
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        checked={selectedRows.size === datos.length && datos.length > 0}
+                                        onChange={handleSelectAll}
                                     />
-                                </td>
+                                </th>
                             )}
-                            {nombresColumnas.map((columna) => (
-                                <td
-                                    key={`${item.id}-${columna}`}
-                                    className={`px-6 py-4 whitespace-nowrap ${
-                                        isDarkMode
-                                            ? 'text-gray-300'
-                                            : 'text-gray-900'
+                            {nombresColumnas.map(col => (
+                                <th
+                                    key={col}
+                                    scope="col"
+                                    className={`px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider ${
+                                        isDarkMode ? 'text-[#636366]' : 'text-gray-400'
                                     }`}
                                 >
-                                    {columnasPersonalizadas &&
-                                    columnasPersonalizadas[columna]
-                                        ? columnasPersonalizadas[columna](
-                                              item
-                                          )
-                                        : typeof item[columna as keyof T] ===
-                                          'string' ||
-                                          typeof item[columna as keyof T] ===
-                                              'number'
-                                        ? (item[
-                                              columna as keyof T
-                                          ] as React.ReactNode)
-                                        : null}
-                                </td>
+                                    {col}
+                                </th>
                             ))}
                             {mostrarAcciones && (
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div className="flex justify-center space-x-2">
-                                        {onEditar && (
-                                            <button
-                                                onClick={() => onEditar(item)}
-                                                className={`p-2 rounded-full transition-colors ${
-                                                    isDarkMode
-                                                        ? 'text-blue-400 hover:bg-gray-700'
-                                                        : 'text-blue-600 hover:bg-gray-100'
-                                                }`}
-                                                title="Editar"
-                                            >
-                                                <Edit size={18} />
-                                            </button>
-                                        )}
-                                        {onEliminar && (
-                                            <button
-                                                onClick={() =>
-                                                    onEliminar(item)
-                                                }
-                                                className={`p-2 rounded-full transition-colors ${
-                                                    isDarkMode
-                                                        ? 'text-red-400 hover:bg-gray-700'
-                                                        : 'text-red-600 hover:bg-gray-100'
-                                                }`}
-                                                title="Eliminar"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
+                                <th scope="col" className={`px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider ${
+                                    isDarkMode ? 'text-[#636366]' : 'text-gray-400'
+                                }`}>
+                                    {t("common.actions")}
+                                </th>
                             )}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className={`divide-y ${
+                        isDarkMode ? 'divide-white/[0.04]' : 'divide-gray-50'
+                    }`}>
+                        {datos.map(item => (
+                            <tr
+                                key={item.id}
+                                className={`transition-colors ${
+                                    selectedRows.has(item.id)
+                                        ? isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'
+                                        : isDarkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50/50'
+                                }`}
+                            >
+                                {showSelectForDelivery && (
+                                    <td className="px-4 py-3 text-center">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            checked={selectedRows.has(item.id)}
+                                            onChange={() => handleRowSelect(item.id)}
+                                        />
+                                    </td>
+                                )}
+                                {nombresColumnas.map(col => (
+                                    <td
+                                        key={`${item.id}-${col}`}
+                                        className={`px-5 py-3.5 text-[13px] whitespace-nowrap ${
+                                            isDarkMode ? 'text-[#8e8e93]' : 'text-gray-700'
+                                        }`}
+                                    >
+                                        {columnasPersonalizadas?.[col]
+                                            ? columnasPersonalizadas[col](item)
+                                            : typeof item[col as keyof T] === 'string' || typeof item[col as keyof T] === 'number'
+                                            ? (item[col as keyof T] as React.ReactNode)
+                                            : null}
+                                    </td>
+                                ))}
+                                {mostrarAcciones && (
+                                    <td className="px-5 py-3.5 whitespace-nowrap">
+                                        <div className="flex justify-center gap-1">
+                                            {onEditar && (
+                                                <button
+                                                    onClick={() => onEditar(item)}
+                                                    className={`p-1.5 rounded-lg transition-colors ${
+                                                        isDarkMode
+                                                            ? 'text-[#636366] hover:text-blue-400 hover:bg-blue-500/10'
+                                                            : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                                                    }`}
+                                                    title="Edit"
+                                                >
+                                                    <Edit size={15} />
+                                                </button>
+                                            )}
+                                            {onEliminar && (
+                                                <button
+                                                    onClick={() => onEliminar(item)}
+                                                    className={`p-1.5 rounded-lg transition-colors ${
+                                                        isDarkMode
+                                                            ? 'text-[#636366] hover:text-red-400 hover:bg-red-500/10'
+                                                            : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                                    }`}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
             {showSelectForDelivery && (
-                <div
-                    className={`p-4 border-t flex justify-between items-center ${
-                        isDarkMode
-                            ? 'border-gray-700 bg-gray-800'
-                            : 'border-gray-200 bg-white'
-                    }`}
-                >
-                    <span
-                        className={`text-sm font-medium ${
-                            isDarkMode
-                                ? 'text-gray-300'
-                                : 'text-gray-700'
-                        }`}
-                    >
-                        {selectedRows.size} equipo{selectedRows.size !== 1 ? 's' : ''} seleccionado
-                        {selectedRows.size !== 1 ? 's' : ''}
+                <div className={`px-5 py-3 border-t flex items-center gap-2 ${
+                    isDarkMode ? 'border-white/[0.06]' : 'border-gray-100'
+                }`}>
+                    <span className={`text-[12px] font-medium ${
+                        isDarkMode ? 'text-[#636366]' : 'text-gray-400'
+                    }`}>
+                        {selectedRows.size} {t("common.selected")}
                     </span>
                 </div>
             )}

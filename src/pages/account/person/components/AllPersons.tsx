@@ -11,7 +11,10 @@ import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
 import { useTheme } from "../../../../context/themeContext"
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) =>
+    fetch(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+    }).then((res) => res.json())
 
 // ==================== PERSONS ====================
 export interface PersonFull {
@@ -232,7 +235,7 @@ export const AllPersons: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Total Personas</span>
@@ -241,7 +244,7 @@ export const AllPersons: React.FC = () => {
                 </div>
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Personas Activas</span>
@@ -250,7 +253,7 @@ export const AllPersons: React.FC = () => {
                 </div>
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Con Usuario</span>
@@ -259,7 +262,7 @@ export const AllPersons: React.FC = () => {
                 </div>
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
                     <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Departamentos</span>
@@ -288,7 +291,7 @@ export const AllPersons: React.FC = () => {
             </div>
 
             {filteredPersons?.length === 0 ? (
-                <div className={`p-8 text-center rounded-lg border ${isDarkMode ? "bg-gray-800 border-gray-700 text-gray-400" : "bg-gray-50 border-gray-200 text-gray-600"}`}>
+                <div className={`p-8 text-center rounded-lg border ${isDarkMode ? "bg-[#1c1c1e] border-white/[0.08] text-gray-400" : "bg-gray-50 border-gray-200 text-gray-600"}`}>
                     <p className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>No se encontraron personas</p>
                 </div>
             ) : (
@@ -305,7 +308,7 @@ export const AllPersons: React.FC = () => {
             {/* Delete Modal */}
             {deleteConfirmation.show && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className={`rounded-lg p-6 max-w-md w-full mx-4 border ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+                    <div className={`rounded-lg p-6 max-w-md w-full mx-4 border ${isDarkMode ? "bg-[#1c1c1e] border-white/[0.08]" : "bg-white border-gray-200"}`}>
                         <div className="flex items-center justify-between mb-4">
                             <h3 className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>Confirmar Eliminación</h3>
                             <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"}>

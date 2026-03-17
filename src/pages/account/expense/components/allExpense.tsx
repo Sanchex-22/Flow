@@ -79,7 +79,9 @@ export default function AllExpensePage() {
   const [selectedPersonFullName, setSelectedPersonFullName] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/annual-software-expense/getAll`)
+    fetch(`${API_URL}/api/annual-software-expense/getAll`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+    })
       .then((r) => r.json())
       .then((data: AnnualSoftwareExpense[]) => {
         setExpenses(data)

@@ -198,7 +198,7 @@ export default function AllSettingsPage() {
   if (error) {
     return (
       <div className={`min-h-screen p-8 transition-colors ${
-        isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+        isDarkMode ? 'bg-[#1c1c1e]' : 'bg-gray-50'
       }`}>
         <div className={`border rounded-lg p-6 transition-colors ${
           isDarkMode
@@ -219,7 +219,7 @@ export default function AllSettingsPage() {
   }
 
   return (
-    <div className={`transition-colors ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+    <div className={`transition-colors ${isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* Header */}
       <PagesHeader
         title={`Ajustes sobre la información de tu empresa`}
@@ -230,14 +230,14 @@ export default function AllSettingsPage() {
       {/* Table */}
       <div className={`overflow-x-auto rounded-lg border transition-colors ${
         isDarkMode
-          ? 'border-gray-700'
+          ? 'border-white/[0.08]'
           : 'border-gray-200'
       }`}>
         <table className="w-full">
           <thead>
             <tr className={`border-b transition-colors ${
               isDarkMode
-                ? 'bg-gray-800 border-gray-700'
+                ? 'bg-gray-800 border-white/[0.08]'
                 : 'bg-gray-200 border-gray-300'
             }`}>
               <th className={`px-6 py-3 text-left text-sm font-semibold ${
@@ -283,7 +283,7 @@ export default function AllSettingsPage() {
                         : isDarkMode
                         ? "hover:bg-gray-800/50"
                         : "hover:bg-gray-100"
-                    } ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
+                    } ${isDarkMode ? 'border-white/[0.08]' : 'border-gray-200'}`}
                   >
                     <td className={`px-6 py-4 text-sm font-medium ${
                       isDarkMode ? 'text-white' : 'text-gray-900'
@@ -363,7 +363,7 @@ export default function AllSettingsPage() {
                   {expandedRows.has(company.id) && (
                     <tr className={`border-b transition-colors ${
                       isDarkMode
-                        ? 'bg-gray-800/30 border-gray-700'
+                        ? 'bg-gray-800/30 border-white/[0.08]'
                         : 'bg-gray-100/30 border-gray-200'
                     }`}>
                       <td colSpan={8} className="px-6 py-4">
@@ -528,7 +528,7 @@ export default function AllSettingsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className={`rounded-lg p-6 max-w-sm w-full border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
+              ? 'bg-gray-800 border-white/[0.08]'
               : 'bg-white border-gray-200'
           }`}>
             <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -564,7 +564,7 @@ export default function AllSettingsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className={`rounded-lg p-6 max-w-sm w-full border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
+              ? 'bg-gray-800 border-white/[0.08]'
               : 'bg-white border-gray-200'
           }`}>
             <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>

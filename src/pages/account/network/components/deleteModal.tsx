@@ -20,7 +20,7 @@ const DeleteNetworkModal: React.FC<DeleteModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
+      <div className="bg-[#2c2c2e] border border-white/[0.08] rounded-xl shadow-xl max-w-md w-full p-6 animate-fadeIn">
 
         <h2 className="text-xl font-semibold text-white mb-4">
           Eliminar red

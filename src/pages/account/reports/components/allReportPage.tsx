@@ -11,7 +11,10 @@ import { usePageName } from "../../../../hook/usePageName"
 import { useTheme } from "../../../../context/themeContext" // Import useTheme
 
 const { VITE_API_URL } = import.meta.env
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) =>
+  fetch(url, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+  }).then((res) => res.json())
 
 // --- TIPOS DE DATOS ---
 export type Report = {
@@ -228,7 +231,7 @@ export default function AllReportsPage() {
   return (
     <div className={`transition-colors ${
       isDarkMode
-        ? 'bg-gray-900 text-white'
+        ? 'bg-[#1c1c1e] text-white'
         : 'bg-gray-100 text-gray-900'
     }`}>
       <PagesHeader 
@@ -245,7 +248,7 @@ export default function AllReportsPage() {
         {data && reportsData.map((reporte) => (
           <div key={reporte.id} className={`rounded-lg p-6 border flex flex-col justify-between transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
+              ? 'bg-gray-800 border-white/[0.08]'
               : 'bg-white border-gray-200 shadow'
           }`}>
             <div>

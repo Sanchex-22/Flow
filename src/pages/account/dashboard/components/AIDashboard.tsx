@@ -21,7 +21,9 @@ import { Package, Users, Monitor, CheckCircle2, DollarSign, Award, BarChart3, Al
 const { VITE_API_URL } = import.meta.env;
 
 const fetcher = (url: string) =>
-  fetch(url).then((res) => {
+  fetch(url, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+  }).then((res) => {
     if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
     return res.json();
   });

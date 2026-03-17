@@ -95,7 +95,7 @@ Responde en español, conciso, usa emojis cuando ayude.`;
                     }}
                 >
                     {/* Header */}
-                    <div className={`flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+                    <div className={`flex items-center justify-between px-4 py-3 border-b ${isDarkMode ? "bg-gray-800 border-white/[0.08]" : "bg-white border-gray-200"}`}>
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                                 <Sparkles size={13} className="text-white" />
@@ -125,7 +125,7 @@ Responde en español, conciso, usa emojis cuando ayude.`;
 
                     {/* Mensajes */}
                     <div
-                        className={`flex-1 overflow-y-auto p-4 space-y-3 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
+                        className={`flex-1 overflow-y-auto p-4 space-y-3 ${isDarkMode ? "bg-[#1c1c1e]" : "bg-gray-50"}`}
                         style={{ minHeight: 280, maxHeight: 380 }}
                     >
                         {messages.length === 0 && (
@@ -141,7 +141,7 @@ Responde en español, conciso, usa emojis cuando ayude.`;
                                         <button
                                             key={idx}
                                             onClick={() => { setInput(p); inputRef.current?.focus(); }}
-                                            className={`text-left text-xs px-3 py-2 rounded-xl border transition-colors ${isDarkMode ? "border-gray-700 hover:bg-gray-700 text-gray-300" : "border-gray-200 hover:bg-gray-100 text-gray-600"}`}
+                                            className={`text-left text-xs px-3 py-2 rounded-xl border transition-colors ${isDarkMode ? "border-white/[0.08] hover:bg-gray-700 text-gray-300" : "border-gray-200 hover:bg-gray-100 text-gray-600"}`}
                                         >
                                             {p}
                                         </button>
@@ -181,7 +181,7 @@ Responde en español, conciso, usa emojis cuando ayude.`;
                     </div>
 
                     {/* Input */}
-                    <div className={`p-3 border-t ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+                    <div className={`p-3 border-t ${isDarkMode ? "bg-gray-800 border-white/[0.08]" : "bg-white border-gray-200"}`}>
                         <div className={`flex items-end gap-2 rounded-xl border px-3 py-2 ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-300"}`}>
                             <textarea
                                 ref={inputRef}

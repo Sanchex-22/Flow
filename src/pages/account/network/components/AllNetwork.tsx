@@ -15,7 +15,10 @@ import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
 
 const { VITE_API_URL } = import.meta.env
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) =>
+    fetch(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+    }).then((res) => res.json())
 
 export enum NetworkDeviceStatus {
   ONLINE = "ONLINE",
@@ -364,7 +367,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
   return (
     <div className={`transition-colors ${
       isDarkMode
-        ? 'bg-slate-900 text-gray-100'
+        ? 'bg-[#1c1c1e] text-gray-100'
         : 'bg-gray-100 text-gray-900'
     }`}>
       {/* Header Section */}
@@ -374,7 +377,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className={`border rounded-xl p-6 transition-colors ${
           isDarkMode
-            ? 'bg-slate-800 border-slate-700'
+            ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between">
@@ -392,7 +395,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
 
         <div className={`border rounded-xl p-6 transition-colors ${
           isDarkMode
-            ? 'bg-slate-800 border-slate-700'
+            ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between">
@@ -410,7 +413,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
 
         <div className={`border rounded-xl p-6 transition-colors ${
           isDarkMode
-            ? 'bg-slate-800 border-slate-700'
+            ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between">
@@ -428,7 +431,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
 
         <div className={`border rounded-xl p-6 transition-colors ${
           isDarkMode
-            ? 'bg-slate-800 border-slate-700'
+            ? 'bg-[#2c2c2e] border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between">

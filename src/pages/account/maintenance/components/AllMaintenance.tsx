@@ -121,6 +121,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     try {
       const res = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany?.id}/${selectedMaintenance.id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
       })
       if (!res.ok) throw new Error("Error al eliminar conexión")
 
@@ -139,7 +140,9 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     const fetchMaintenances = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany.id}/all`);
+        const response = await fetch(`${VITE_API_URL}/api/maintenances/${selectedCompany.id}/all`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+        });
         if (!response.ok) {
           throw new Error("Error al obtener los datos de mantenimiento");
         }
@@ -386,7 +389,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
   return (
     <div className={`transition-colors ${
       isDarkMode
-        ? 'bg-gray-900 text-white'
+        ? 'bg-[#1c1c1e] text-white'
         : 'bg-gray-100 text-gray-900'
     }`}>
 
@@ -401,7 +404,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
+            ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between mb-2">
@@ -430,7 +433,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
 
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
+            ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between mb-2">
@@ -461,7 +464,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
 
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
+            ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between mb-2">
@@ -491,7 +494,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
 
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
+            ? 'bg-gray-800 border-white/[0.08]'
             : 'bg-white border-gray-200'
         }`}>
           <div className="flex items-center justify-between mb-2">

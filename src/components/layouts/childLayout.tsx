@@ -45,17 +45,17 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         <SpeedInsights />
         {publicRoute ? (
           <div id="page-content" className={`z-10 h-screen overflow-y-auto transition-colors duration-300 ${
-            isDarkMode 
-              ? "bg-slate-900 text-white" 
+            isDarkMode
+              ? "bg-[#1c1c1e] text-white"
               : "bg-white text-gray-900"
           }`}>
             {children}
           </div>
         ) : (
           <div className={`flex flex-col h-screen overflow-hidden transition-colors duration-300 ${
-            isDarkMode 
-              ? "bg-slate-900 text-white" 
-              : "bg-gray-50 text-gray-900"
+            isDarkMode
+              ? "bg-[#1c1c1e] text-white"
+              : "bg-[#f5f5f7] text-gray-900"
           }`}>
             {/* Navbar */}
             <div className="flex-shrink-0">
@@ -80,7 +80,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
               </div>
 
               {/* Page content */}
-              <div id="page-content" className="flex-1 overflow-y-auto w-full">
+              <div id="page-content" className="flex-1 overflow-y-auto w-full px-6 py-5">
                 {children}
               </div>
             </div>

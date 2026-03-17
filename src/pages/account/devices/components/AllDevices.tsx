@@ -15,7 +15,10 @@ import CambioSelectorModal from "./CambioSelectorModal"
 import DeliveryActaGenerator from "./DeliveryPDFGenerator"
 
 const { VITE_API_URL } = import.meta.env
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) =>
+    fetch(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+    }).then((res) => res.json())
 
 export interface CreateEquipmentData {
     id: string
@@ -455,9 +458,9 @@ export default function AllDevices() {
     if (error || !data) {
         return (
             <div className={`min-h-screen flex items-center justify-center transition-colors ${
-                isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
+                isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-[#f5f5f7] text-gray-900'
             }`}>
-                <span>Error al cargar los dispositivos.</span>
+                <span className="text-[13px] text-gray-400">Error loading devices.</span>
             </div>
         )
     }
@@ -606,56 +609,56 @@ export default function AllDevices() {
     }
 
     return (
-        <div className={`transition-colors ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+        <div className={`transition-colors ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
 
             {notification.show && (
-                <div className={`fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white max-w-sm z-50 transition-transform transform ${notification.show ? 'translate-x-0' : 'translate-x-full'} ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-                    <p className="font-bold">{notification.type === 'success' ? 'Éxito' : 'Error'}</p>
-                    <p>{notification.message}</p>
+                <div className={`fixed top-4 right-4 px-4 py-3 rounded-xl shadow-xl text-white text-[13px] max-w-sm z-50 transition-all ${notification.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`}>
+                    <p className="font-medium">{notification.message}</p>
                 </div>
             )}
 
             {deleteConfirmation.show && (
-                <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-                    <div className={`rounded-lg p-8 shadow-2xl max-w-md w-full border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4">
+                    <div className={`rounded-2xl p-6 shadow-2xl max-w-sm w-full border transition-colors ${isDarkMode ? 'bg-[#1c1c1e] border-white/[0.08]' : 'bg-white border-gray-100'}`}>
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                Confirmar Eliminación
+                            <h2 className={`text-[15px] font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                Delete Device
                             </h2>
                             <button
                                 onClick={closeDeleteConfirmation}
                                 disabled={deleteConfirmation.isDeleting}
-                                className={`transition-colors ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-[#636366] hover:text-white hover:bg-white/[0.06]' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                             >
-                                <X size={20} />
+                                <X size={16} />
                             </button>
                         </div>
-                        <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            ¿Estás seguro de que quieres eliminar el dispositivo{" "}
-                            <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                {deleteConfirmation.equipo?.model} ({deleteConfirmation.equipo?.serialNumber})
-                            </span>?
+                        <p className={`text-[13px] mb-5 ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-600'}`}>
+                            Are you sure you want to delete{" "}
+                            <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {deleteConfirmation.equipo?.model}
+                            </span>
+                            {" "}({deleteConfirmation.equipo?.serialNumber})?
                         </p>
-                        <div className="flex justify-end space-x-4">
+                        <div className="flex gap-2">
                             <button
                                 onClick={closeDeleteConfirmation}
                                 disabled={deleteConfirmation.isDeleting}
-                                className={`px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'}`}
+                                className={`flex-1 py-2 rounded-xl text-[13px] font-medium transition-colors disabled:opacity-50 ${isDarkMode ? 'bg-white/[0.06] hover:bg-white/[0.1] text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                             >
-                                Cancelar
+                                Cancel
                             </button>
                             <button
                                 onClick={deleteEquipment}
                                 disabled={deleteConfirmation.isDeleting}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                                className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-xl text-[13px] font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {deleteConfirmation.isDeleting && (
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
                                 )}
-                                {deleteConfirmation.isDeleting ? 'Eliminando...' : 'Sí, eliminar'}
+                                {deleteConfirmation.isDeleting ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
                     </div>
@@ -670,17 +673,17 @@ export default function AllDevices() {
             />
 
             {/* TABS Y FILTROS */}
-            <div className="mb-3 flex justify-between items-center flex-wrap gap-3">
-                <div className="flex flex-col md:flex-row gap-3 items-start md:items-center flex-wrap">
-                <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-gray-800' : 'bg-gray-200'}`}>
+            <div className="mb-4 flex justify-between items-center flex-wrap gap-3">
+                <div className="flex flex-col md:flex-row gap-2 items-start md:items-center flex-wrap">
+                <div className={`flex p-1 rounded-lg w-fit transition-colors ${isDarkMode ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
                     {['Todos los Equipos', 'Asignaciones', 'Garantías'].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                            className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${
                                 activeTab === tab
-                                    ? isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'
-                                    : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
+                                    ? isDarkMode ? 'bg-[#2c2c2e] text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'
+                                    : isDarkMode ? 'text-[#8e8e93] hover:text-white' : 'text-gray-500 hover:text-gray-900'
                             }`}
                         >
                             {tab}
@@ -691,104 +694,76 @@ export default function AllDevices() {
                 <select
                     value={selectedType}
                     onChange={(e) => setSelectedType(e.target.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
                         isDarkMode
-                            ? 'bg-gray-800 border border-gray-700 text-white'
-                            : 'bg-white border border-gray-300 text-gray-900'
+                            ? 'bg-white/[0.06] border-white/[0.06] text-white'
+                            : 'bg-white border-gray-200 text-gray-700'
                     }`}
                 >
-                    <option value="todos">🖥️ Todos</option>
+                    <option value="todos">All Types</option>
                     {uniqueTypes.map(type => (
-                        <option key={type} value={type}>
-                            🖥️ {type}
-                        </option>
+                        <option key={type} value={type}>{type}</option>
                     ))}
                 </select>
 
                 <select
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors border ${
                         isDarkMode
-                            ? 'bg-gray-800 border border-gray-700 text-white'
-                            : 'bg-white border border-gray-300 text-gray-900'
+                            ? 'bg-white/[0.06] border-white/[0.06] text-white'
+                            : 'bg-white border-gray-200 text-gray-700'
                     }`}
                 >
-                    <option value="todos">📍 Todos</option>
+                    <option value="todos">All Departments</option>
                     {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>
-                            📍 {dept.name}
-                        </option>
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
                 </select>
                 </div>
-                {/* BOTONES GENERAR ACTA */}
-                <div className="flex justify-end gap-3 flex-wrap">
-                    {/* Botón ENTREGA */}
+                {/* ACTA BUTTONS */}
+                <div className="flex justify-end gap-2 flex-wrap">
                     <button
                         onClick={() => {
-                            if (equipmentsToDeliver.length === 0) {
-                                alert("Por favor, selecciona al menos un equipo para entregar")
-                                return
-                            }
-                            setActaState({
-                                actaType: 'entrega',
-                                equiposEntregados: equipmentsToDeliver,
-                                equiposRetirados: [],
-                                showModal: true
-                            })
+                            if (equipmentsToDeliver.length === 0) return
+                            setActaState({ actaType: 'entrega', equiposEntregados: equipmentsToDeliver, equiposRetirados: [], showModal: true })
                         }}
                         disabled={equipmentsToDeliver.length === 0}
-                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                             equipmentsToDeliver.length > 0
-                                ? 'bg-green-600 hover:bg-green-700 text-white'
-                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                : isDarkMode ? 'bg-white/[0.04] text-[#48484a] cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        📤 Acta de Entrega ({equipmentsToDeliver.length})
+                        Delivery ({equipmentsToDeliver.length})
                     </button>
-
-                    {/* Botón RETIRO */}
                     <button
                         onClick={() => {
-                            if (equipmentsToDeliver.length === 0) {
-                                alert("Por favor, selecciona al menos un equipo para retirar")
-                                return
-                            }
-                            setActaState({
-                                actaType: 'retiro',
-                                equiposEntregados: [],
-                                equiposRetirados: equipmentsToDeliver,
-                                showModal: true
-                            })
+                            if (equipmentsToDeliver.length === 0) return
+                            setActaState({ actaType: 'retiro', equiposEntregados: [], equiposRetirados: equipmentsToDeliver, showModal: true })
                         }}
                         disabled={equipmentsToDeliver.length === 0}
-                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                             equipmentsToDeliver.length > 0
-                                ? 'bg-red-600 hover:bg-red-700 text-white'
-                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                                ? 'bg-red-600 hover:bg-red-500 text-white'
+                                : isDarkMode ? 'bg-white/[0.04] text-[#48484a] cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        📥 Acta de Retiro ({equipmentsToDeliver.length})
+                        Pickup ({equipmentsToDeliver.length})
                     </button>
-
-                    {/* Botón CAMBIO */}
                     <button
                         onClick={() => {
-                            if (equipmentsToDeliver.length === 0) {
-                                alert("Por favor, selecciona equipos para el cambio")
-                                return
-                            }
+                            if (equipmentsToDeliver.length === 0) return
                             setShowCambioSelector(true)
                         }}
                         disabled={equipmentsToDeliver.length === 0}
-                        className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
+                        className={`px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
                             equipmentsToDeliver.length > 0
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-gray-300 text-gray-700 cursor-not-allowed'
+                                ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                                : isDarkMode ? 'bg-white/[0.04] text-[#48484a] cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         }`}
                     >
-                        🔄 Acta de Cambio ({equipmentsToDeliver.length})
+                        Swap ({equipmentsToDeliver.length})
                     </button>
                 </div>
             </div>

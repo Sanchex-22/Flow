@@ -36,7 +36,7 @@ const SearchInput: React.FC = () => {
     <div
       className={`hidden xl:flex items-center rounded-full px-4 py-2 w-64 transition-colors duration-300 ${
         isDarkMode
-          ? "bg-slate-800 border border-slate-700"
+          ? "bg-[#2c2c2e] border border-white/[0.08]"
           : "bg-gray-100 border border-gray-200"
       } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
     >

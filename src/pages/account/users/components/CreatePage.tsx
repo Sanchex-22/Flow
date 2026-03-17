@@ -63,7 +63,7 @@ const CreateUserPage: React.FC = () => {
 
     if (error) {
         return (
-            <div className={`min-h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}>
+            <div className={`min-h-screen ${isDarkMode ? "bg-[#1c1c1e]" : "bg-gray-100"}`}>
                 <div className="bg-red-900/30 border border-red-600 rounded-lg p-6 text-red-300">
                     <p className="font-semibold mb-2">Error al cargar departamentos</p>
                     <p>{error.message}</p>
@@ -74,7 +74,7 @@ const CreateUserPage: React.FC = () => {
 
     if (!departments) {
         return (
-            <div className={`min-h-screen p-6 ${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}>
+            <div className={`min-h-screen p-6 ${isDarkMode ? "bg-[#1c1c1e]" : "bg-gray-100"}`}>
                 <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-6 text-yellow-300">
                     <p>No hay departamentos disponibles</p>
                 </div>
@@ -83,7 +83,7 @@ const CreateUserPage: React.FC = () => {
     }
 
     return (
-        <div className={`min-h-screen transition-colors duration-200 ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+        <div className={`min-h-screen transition-colors duration-200 ${isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900"}`}>
             <div className="">
                 <div className="flex justify-between items-start mb-8">
                     <div>

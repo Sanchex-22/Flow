@@ -59,7 +59,7 @@ const UpdateNetworkProviderPage: React.FC<Props> = ({ }) => {
 
 
     return (
-        <div className="relative p-6 bg-gray-900 min-h-screen font-inter text-white">
+        <div className="relative p-6 bg-[#1c1c1e] min-h-screen font-inter text-white">
             {/* Contenedor principal del formulario */}
             <div className="max-w-4xl mx-auto py-12">
                 <h1 className="text-3xl font-bold text-center mb-2">{renderPage}</h1>

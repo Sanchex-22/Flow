@@ -103,7 +103,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
 
     const inputClass = `w-full rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm ${
       isDarkMode
-        ? 'bg-gray-900 border border-gray-600 text-white'
+        ? 'bg-[#1c1c1e] border border-gray-600 text-white'
         : 'bg-white border border-gray-300 text-gray-900'
     }`;
     
@@ -129,7 +129,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
       return colors[color] || colors.blue;
     };
 
-    const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
+    const borderColor = isDarkMode ? 'border-white/[0.08]' : 'border-gray-200';
 
     return (
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -281,7 +281,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                               key={index} 
                               className={`p-4 rounded-lg border space-y-4 relative transition-colors ${
                                 isDarkMode
-                                  ? 'bg-gray-800/40 border-gray-700'
+                                  ? 'bg-gray-800/40 border-white/[0.08]'
                                   : 'bg-gray-100 border-gray-300'
                               }`}
                             >
@@ -360,7 +360,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                                         id={`active-${index}`}
                                         className={`w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer ${
                                           isDarkMode
-                                            ? 'bg-gray-900 border-gray-600'
+                                            ? 'bg-[#1c1c1e] border-gray-600'
                                             : 'bg-white border-gray-300'
                                         }`}
                                         checked={deduction.isActive}
@@ -385,7 +385,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
 
             <div className={`flex justify-end gap-4 border-t pt-6 transition-colors ${
               isDarkMode
-                ? 'border-gray-800'
+                ? 'border-white/[0.06]'
                 : 'border-gray-200'
             }`}>
                 <button

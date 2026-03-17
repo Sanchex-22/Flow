@@ -18,13 +18,13 @@ const NetworkPage: React.FC<SubRoutesProps> = () => {
   return (
     <div className={`min-h-screen px-6 py-4 transition-colors ${
       isDarkMode
-        ? 'bg-slate-900 text-gray-100'
+        ? 'bg-[#1c1c1e] text-gray-100'
         : 'bg-gray-100 text-gray-900'
     }`}>
       {/* Barra de navegación/switch */}
       <nav className={`border-b mb-4 py-2 transition-colors ${
         isDarkMode
-          ? 'border-slate-700'
+          ? 'border-white/[0.08]'
           : 'border-gray-300'
       }`}>
         <ul className="flex gap-4 py-2">

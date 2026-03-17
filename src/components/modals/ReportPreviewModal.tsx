@@ -119,9 +119,9 @@ const ReportPreviewModal: React.FC<ReportPreviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+      <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-white/[0.08]">
         {/* Header */}
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-6 flex justify-between items-center">
+        <div className="sticky top-0 bg-[#1c1c1e] border-b border-white/[0.08] p-6 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-white">Vista Previa del Reporte</h2>
             <p className="text-gray-400 text-sm mt-1">Empresa: {companyName}</p>
@@ -232,7 +232,7 @@ const ReportPreviewModal: React.FC<ReportPreviewModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-700 p-6 flex justify-end space-x-3">
+        <div className="sticky bottom-0 bg-[#1c1c1e] border-t border-white/[0.08] p-6 flex justify-end space-x-3">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"

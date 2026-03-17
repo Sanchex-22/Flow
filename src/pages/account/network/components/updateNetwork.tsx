@@ -225,7 +225,7 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-slate-800 border border-slate-700 rounded-xl p-8 space-y-6"
+      className="bg-[#2c2c2e] border border-white/[0.08] rounded-xl p-8 space-y-6"
     >
       {error && (
         <div className="p-4 bg-red-900 border border-red-700 rounded-lg text-red-200">

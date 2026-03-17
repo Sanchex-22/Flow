@@ -20,8 +20,8 @@ export function DeleteConfirmationModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-xl border border-gray-700 w-full max-w-md">
+    <div className="fixed inset-0 bg-[#1c1c1e] bg-opacity-75 flex items-center justify-center z-50">
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl border border-white/[0.08] w-full max-w-md">
         <h3 className="text-xl font-bold mb-4 text-white">Confirmar Eliminación</h3>
         <p className="text-gray-300 mb-6">
           ¿Estás seguro de que quieres eliminar el ticket "

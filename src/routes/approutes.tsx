@@ -50,6 +50,14 @@ import PersonPage from "../pages/account/person/page";
 import { AllPersons } from "../pages/account/person/components/AllPersons";
 import CreatePersonPage from "../pages/account/person/components/UpdatePerson";
 import AIDashboard from "../pages/account/dashboard/components/AIDashboard";
+import LicensesPage from "../pages/account/licenses/page";
+import AllLicenses from "../pages/account/licenses/components/AllLicenses";
+import UpdateLicense from "../pages/account/licenses/components/UpdateLicense";
+import DocumentsPage from "../pages/account/documents/page";
+import AllDocuments from "../pages/account/documents/components/AllDocuments";
+import UpdateDocument from "../pages/account/documents/components/UpdateDocument";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import SetupCompanyPage from "../pages/auth/SetupCompanyPage";
 
 // Tipado de usuario
 export interface User {
@@ -109,6 +117,12 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         }
       />
       <Route path="/home" element={<Navigate to="/" replace />} />
+
+      {/* Password recovery — public */}
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+      {/* First-run setup — only for super_admin when no companies exist */}
+      <Route path="/setup" element={<SetupCompanyPage />} />
 
       <Route
         path="/login"
@@ -238,7 +252,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
             >
               <DevicesPage
                 subroutes={
-                  routesConfig.find((route) => route.name === "devices")
+                  routesConfig.find((route) => route.name === "Devices")
                     ?.subroutes || []
                 }
               />
@@ -316,7 +330,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
               <MaintenancePage
                 currentPathname={pathnameLocation}
                 subroutes={
-                  routesConfig.find((route) => route.name === "maintenance")
+                  routesConfig.find((route) => route.name === "Maintenance")
                     ?.subroutes || []
                 }
               />
@@ -425,7 +439,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
             >
               <ReportsPage
                 subroutes={
-                  routesConfig.find((route) => route.name === "reports")
+                  routesConfig.find((route) => route.name === "Reports")
                     ?.subroutes || []
                 }
               />
@@ -582,6 +596,80 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
           </ProtectedRoute>
         }
       >
+      </Route>
+
+      <Route
+        path={`/:${code}/licenses/*`}
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="Licenses"
+              description="Software Licenses"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <LicensesPage
+                subroutes={
+                  routesConfig.find((route) => route.name === "Licenses")
+                    ?.subroutes || []
+                }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<AllLicenses />} />
+        <Route path="create" element={<UpdateLicense />} />
+        <Route path="edit/:id" element={<UpdateLicense />} />
+      </Route>
+
+      <Route
+        path={`/:${code}/documents/*`}
+        element={
+          <ProtectedRoute
+            isLogged={isLogged}
+            auth={user}
+            allowedRoles={[
+              authRoles.user,
+              authRoles.admin,
+              authRoles.moderator,
+              authRoles.super_admin,
+            ]}
+          >
+            <EnvolveLayout
+              title="Documents"
+              description="Documents"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <DocumentsPage
+                subroutes={
+                  routesConfig.find((route) => route.name === "Documents")
+                    ?.subroutes || []
+                }
+              />
+            </EnvolveLayout>
+          </ProtectedRoute>
+        }
+      >
+        <Route path="all" element={<AllDocuments />} />
+        <Route path="create" element={<UpdateDocument />} />
+        <Route path="edit/:id" element={<UpdateDocument />} />
       </Route>
 
       <Route

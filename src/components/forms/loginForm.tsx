@@ -2,9 +2,12 @@
 
 import type React from "react"
 import { Eye, EyeOff } from "lucide-react"
-
+import { Link } from "react-router-dom"
 import useUser from "../../hook/useUser"
 import { useCompany } from "../../context/routerContext"
+import { useTranslation } from "react-i18next"
+
+const { VITE_API_URL } = import.meta.env
 
 interface LoginFormProps {
   pending: boolean
@@ -13,6 +16,7 @@ interface LoginFormProps {
   setShowPassword: (value: boolean) => void
   error: Error | null
   setError: (error: Error | null) => void
+  dark?: boolean
 }
 
 export default function LoginForm({
@@ -22,9 +26,11 @@ export default function LoginForm({
   setShowPassword,
   error,
   setError,
+  dark = false,
 }: LoginFormProps) {
   const { selectedCompany } = useCompany()
   const { login } = useUser()
+  const { t } = useTranslation()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -34,88 +40,112 @@ export default function LoginForm({
     const password = formData.get("password")?.toString()
 
     if (!email || !password) {
-      setError(new Error("Todos los campos son obligatorios."))
+      setError(new Error(t("login.required")))
       setPending(false)
       return
     }
 
     try {
       await login({ email, password })
+
+      // Check first-run setup: if super_admin and no companies exist → setup flow
+      try {
+        const statusRes = await fetch(`${VITE_API_URL}/api/system/setup-status`)
+        const status = await statusRes.json()
+        if (status.needsSetup) {
+          window.location.href = "/setup"
+          return
+        }
+      } catch {
+        // If status check fails, continue to normal flow
+      }
+
       window.location.href = `/${selectedCompany?.code || "code"}/select-company`
-    } catch (error) {
-      setError(new Error(error instanceof Error ? error.message : "Error al iniciar sesión."))
+    } catch (err) {
+      setError(new Error(err instanceof Error ? err.message : t("login.error")))
     } finally {
       setPending(false)
     }
   }
 
+  // Adaptive styles: dark = panel on black bg, light = card on white bg
+  const inputBase = dark
+    ? "w-full px-4 py-3 bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder-[#6e6e73] focus:outline-none focus:border-blue-500 focus:bg-white/[0.08] transition text-sm"
+    : "w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition text-sm"
+
+  const labelBase = dark ? "block text-xs font-medium text-[#86868b] mb-1.5 uppercase tracking-wider" : "block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wider"
+
+  const eyeBtn = dark ? "absolute right-4 top-1/2 -translate-y-1/2 text-[#6e6e73] hover:text-white transition" : "absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition"
+
+  const submitBtn = dark
+    ? "w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-blue-900 disabled:text-blue-700 text-white font-semibold py-3 rounded-xl transition text-sm tracking-wide"
+    : "w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 rounded-xl transition text-sm"
+
+  const forgotLink = dark ? "text-xs text-[#86868b] hover:text-white transition" : "text-xs text-blue-600 hover:text-blue-700 transition"
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
       {/* Email */}
       <div>
+        <label htmlFor="email" className={labelBase}>{t("login.email")}</label>
         <input
           type="email"
           required
-          placeholder="Email"
+          placeholder="you@company.com"
           id="email"
           name="email"
-          className="w-full px-4 py-3 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-gray-200 transition"
+          autoComplete="email"
+          className={inputBase}
         />
       </div>
 
-      {/* Contraseña */}
-      <div className="relative">
-        <input
-          type={showPassword ? "text" : "password"}
-          required
-          placeholder="Contraseña"
-          id="password"
-          name="password"
-          className="w-full px-4 py-3 bg-gray-100 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-gray-200 transition pr-12"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-purple-600 hover:text-purple-700 transition"
-        >
-          {showPassword ? (
-            <EyeOff size={20} />
-          ) : (
-            <Eye size={20} />
-          )}
-        </button>
+      {/* Password */}
+      <div>
+        <label htmlFor="password" className={labelBase}>{t("login.password")}</label>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            required
+            placeholder="••••••••"
+            id="password"
+            name="password"
+            autoComplete="current-password"
+            className={`${inputBase} pr-12`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className={eyeBtn}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
       </div>
 
-      {/* Checkbox Mostrar contraseña */}
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          checked={showPassword}
-          onChange={() => setShowPassword(!showPassword)}
-          className="w-4 h-4 rounded border-gray-300"
-          id="showPassword"
-        />
-        <label htmlFor="showPassword" className="ml-2 text-sm text-gray-600 cursor-pointer">
-          Mostrar contraseña
-        </label>
+      {/* Forgot password */}
+      <div className="flex justify-end -mt-2">
+        <Link to="/forgot-password" className={forgotLink}>
+          {t("login.forgotPassword")}
+        </Link>
       </div>
 
-      {/* Error message */}
+      {/* Error */}
       {error && (
-        <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 text-sm">
+        <div className={`p-3 rounded-xl text-sm ${dark ? "bg-red-500/10 border border-red-500/20 text-red-400" : "bg-red-50 border border-red-200 text-red-600"}`}>
           {error.message}
         </div>
       )}
 
-      {/* Botón Sign In */}
+      {/* Submit */}
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold py-3 rounded-lg transition duration-300 mt-2"
+        className={submitBtn}
       >
-        {pending ? "Iniciando sesión..." : "Iniciar Sesión"}
+        {pending ? t("login.loading") : t("login.submit")}
       </button>
-
 
     </form>
   )

@@ -80,8 +80,8 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ conexiones }) => {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl mb-8">
-      <div className="p-6 border-b border-slate-700">
+    <div className="bg-[#2c2c2e] border border-white/[0.08] rounded-xl mb-8">
+      <div className="p-6 border-b border-white/[0.08]">
         <h2 className="text-xl font-semibold text-white mb-2">Topología de Red</h2>
         <p className="text-gray-400 text-sm mb-4">
           Visualización de las redes WiFi conectadas • Rueda del mouse para zoom • Arrastra para mover
@@ -115,7 +115,7 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ conexiones }) => {
         <svg
           ref={svgRef}
           viewBox="0 0 1200 800"
-          className="w-full h-[600px] bg-slate-900 border border-slate-600 rounded-lg cursor-grab active:cursor-grabbing"
+          className="w-full h-[600px] bg-[#1c1c1e] border border-slate-600 rounded-lg cursor-grab active:cursor-grabbing"
           style={{ background: "radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)" }}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}

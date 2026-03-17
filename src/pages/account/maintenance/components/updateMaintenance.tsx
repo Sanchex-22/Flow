@@ -59,7 +59,7 @@ const UpdateMaintenancePage: React.FC<Props> = ({ }) => {
 
 
     return (
-        <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
+        <div className={`min-h-screen ${isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-gray-100 text-gray-900'}`}>
             {/* Contenedor principal del formulario */}
             <div className="max-w-4xl mx-auto ">
                 <UpdateMaintenanceForm

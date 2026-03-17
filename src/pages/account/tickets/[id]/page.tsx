@@ -173,7 +173,7 @@ export default function EditTicketPage() {
 
   if (loading || !ticket) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#1c1c1e] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
           <p className="text-slate-400">Cargando ticket...</p>
@@ -201,7 +201,7 @@ export default function EditTicketPage() {
   }
 
   return (
-    <div className="bg-slate-900">
+    <div className="bg-[#1c1c1e]">
       {notification && (
         <Notification message={notification?.message} type={notification?.type} onClose={() => setNotification(null)} />
       )}
@@ -226,7 +226,7 @@ export default function EditTicketPage() {
                     type="text"
                     value={ticket?.title || ""}
                     onChange={(e) => handleChange("title", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Título del ticket"
                     required
                   />
@@ -237,7 +237,7 @@ export default function EditTicketPage() {
                     value={ticket?.description || ""}
                     onChange={(e) => handleChange("description", e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                     placeholder="Descripción detallada del ticket"
                     required
                   />
@@ -248,7 +248,7 @@ export default function EditTicketPage() {
                     value={ticket?.comment || ""}
                     onChange={(e) => handleChange("comment", e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                     placeholder="Comentarios adicionales"
                   />
                 </FormField>
@@ -258,7 +258,7 @@ export default function EditTicketPage() {
                     type="text"
                     value={ticket?.img || ""}
                     onChange={(e) => handleChange("img", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="https://..."
                   />
                 </FormField>
@@ -272,7 +272,7 @@ export default function EditTicketPage() {
                   <select
                     value={ticket?.priority}
                     onChange={(e) => handleChange("priority", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
                   >
                     <option value="trivial">⚪ Trivial</option>
                     <option value="low">🟢 Baja</option>
@@ -286,7 +286,7 @@ export default function EditTicketPage() {
                   <select
                     value={ticket?.type}
                     onChange={(e) => handleChange("type", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
                   >
                     <option value="ticket">Ticket</option>
                     <option value="vacations">Vacaciones</option>
@@ -298,7 +298,7 @@ export default function EditTicketPage() {
                   <select
                     value={ticket?.status}
                     onChange={(e) => handleChange("status", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer md:col-span-2"
+                    className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer md:col-span-2"
                   >
                     <option value="open">Abierto</option>
                     <option value="pending">Pendiente</option>
@@ -320,7 +320,7 @@ export default function EditTicketPage() {
                       type="date"
                       value={ticket?.startDate?.substring(0, 10) || ""}
                       onChange={(e) => handleChange("startDate", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </FormField>
 
@@ -329,7 +329,7 @@ export default function EditTicketPage() {
                       type="date"
                       value={ticket?.endDate?.substring(0, 10) || ""}
                       onChange={(e) => handleChange("endDate", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </FormField>
                 </div>
@@ -340,7 +340,7 @@ export default function EditTicketPage() {
                       type="number"
                       value={ticket?.requestDays ?? ""}
                       onChange={(e) => handleChange("requestDays", Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       placeholder="0"
                     />
                   </FormField>
@@ -350,7 +350,7 @@ export default function EditTicketPage() {
                       type="number"
                       value={ticket?.approvedDays ?? ""}
                       onChange={(e) => handleChange("approvedDays", Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       placeholder="0"
                     />
                   </FormField>
@@ -364,7 +364,7 @@ export default function EditTicketPage() {
                 <select
                   value={ticket?.sendToId || ""}
                   onChange={e => handleChange("sendToId", e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#2c2c2e] border border-white/[0.08] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
                   disabled={loadingUsers}
                 >
                   <option value="">Sin asignar</option>
@@ -473,7 +473,7 @@ function FormSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 md:p-6">
+    <div className="bg-[#2c2c2e] border border-white/[0.08] rounded-lg p-4 md:p-6">
       <div className="mb-4 md:mb-6">
         <h2 className="text-base md:text-lg font-semibold text-white mb-1">{title}</h2>
         {description && <p className="text-xs md:text-sm text-slate-400">{description}</p>}

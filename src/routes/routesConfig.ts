@@ -1,9 +1,9 @@
 
 import { LucideBookUser, TicketIcon } from "lucide-react";
-import { DashboardIcon, DevicesIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
+import { DashboardIcon, DevicesIcon, DocumentIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
-import { FaMoneyBill } from "react-icons/fa";
+import { FaMoneyBill, FaKey } from "react-icons/fa";
 
 const routesConfig = [
   {
@@ -21,7 +21,7 @@ const routesConfig = [
     href: "/inventory/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "View Certificates", href: "/inventory/view" },
+      { name: "All Inventory", href: "/inventory/all" },
     ]
   },
 
@@ -51,7 +51,7 @@ const routesConfig = [
     href: "/network/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "All Clients", href: "/network/all" },
+      { name: "All Network", href: "/network/all" },
     ]
   },
   {
@@ -81,7 +81,7 @@ const routesConfig = [
     href: "/reports/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "Sales Reports", href: "/reports/all" },
+      { name: "IT Reports", href: "/reports/all" },
     ]
   },
   {
@@ -101,6 +101,26 @@ const routesConfig = [
     subroutes: [
       { name: "Expenses", href: "/expenses/all" },
       { name: "Expense Detail", href: "/expenses/edit" },
+    ]
+  },
+  {
+    icon: FaKey,
+    name: "Licenses",
+    href: "/licenses/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "All Licenses", href: "/licenses/all" },
+      { name: "Create License", href: "/licenses/create" },
+    ]
+  },
+  {
+    icon: DocumentIcon,
+    name: "Documents",
+    href: "/documents/all",
+    roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
+    subroutes: [
+      { name: "All Documents", href: "/documents/all" },
+      { name: "Upload Document", href: "/documents/create" },
     ]
   },
   {

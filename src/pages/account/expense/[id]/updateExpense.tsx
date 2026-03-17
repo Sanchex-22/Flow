@@ -926,7 +926,7 @@ export default function ExpenseDetailPage() {
                 <tr
                   className={`border-b ${
                     isDarkMode
-                      ? "text-gray-400 border-gray-700"
+                      ? "text-gray-400 border-white/[0.08]"
                       : "text-gray-600 border-gray-300"
                   }`}
                 >
@@ -942,7 +942,7 @@ export default function ExpenseDetailPage() {
                     key={person.id}
                     className={`border-b transition-colors ${
                       isDarkMode
-                        ? "border-gray-700 hover:bg-gray-700/50"
+                        ? "border-white/[0.08] hover:bg-gray-700/50"
                         : "border-gray-300 hover:bg-gray-50"
                     }`}
                   >
@@ -992,7 +992,7 @@ export default function ExpenseDetailPage() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div
             className={`rounded-xl w-full max-w-4xl p-6 space-y-4 transition-colors max-h-[90vh] overflow-y-auto ${
-              isDarkMode ? "bg-gray-900" : "bg-white"
+              isDarkMode ? "bg-[#1c1c1e]" : "bg-white"
             }`}
           >
             <h2
@@ -1006,7 +1006,7 @@ export default function ExpenseDetailPage() {
             <div
               className={`rounded-lg overflow-x-auto border ${
                 isDarkMode
-                  ? "border-gray-700 bg-gray-800"
+                  ? "border-white/[0.08] bg-gray-800"
                   : "border-gray-300 bg-gray-50"
               }`}
             >
@@ -1064,7 +1064,7 @@ export default function ExpenseDetailPage() {
                       key={person.id}
                       className={`border-b transition-colors ${
                         isDarkMode
-                          ? `border-gray-700 ${
+                          ? `border-white/[0.08] ${
                               idx % 2 === 0
                                 ? "bg-gray-800 hover:bg-gray-700"
                                 : "bg-gray-800/50 hover:bg-gray-700"
@@ -1119,7 +1119,7 @@ export default function ExpenseDetailPage() {
                 onClick={() => setShowAssignPersonModal(false)}
                 className={`px-4 py-2 border rounded-lg transition-colors ${
                   isDarkMode
-                    ? "border-gray-700 text-white hover:bg-gray-800"
+                    ? "border-white/[0.08] text-white hover:bg-gray-800"
                     : "border-gray-300 text-gray-900 hover:bg-gray-100"
                 }`}
               >

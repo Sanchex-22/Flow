@@ -71,7 +71,7 @@ const CreatePersonPage: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white p-6 flex items-center justify-center">
+            <div className="min-h-screen bg-[#1c1c1e] text-white p-6 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
             </div>
         );
@@ -79,7 +79,7 @@ const CreatePersonPage: React.FC = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white p-6">
+            <div className="min-h-screen bg-[#1c1c1e] text-white p-6">
                 <div className="bg-red-900/30 border border-red-600 rounded-lg p-6 text-red-300">
                     <p className="font-semibold mb-2">Error al cargar departamentos</p>
                     <p>{error.message}</p>
@@ -90,7 +90,7 @@ const CreatePersonPage: React.FC = () => {
 
     if (!departments) {
         return (
-            <div className="min-h-screen bg-gray-900 text-white p-6">
+            <div className="min-h-screen bg-[#1c1c1e] text-white p-6">
                 <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-6 text-yellow-300">
                     <p>No hay departamentos disponibles</p>
                 </div>
@@ -99,7 +99,7 @@ const CreatePersonPage: React.FC = () => {
     }
 
     return (
-        <div className={`relative min-h-screen font-inter transition-colors ${isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"}`}>
+        <div className={`relative min-h-screen font-inter transition-colors ${isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900"}`}>
             <UpdatePersonForm
                 userID={personID}
                 departments={departments}

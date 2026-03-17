@@ -39,10 +39,10 @@ export default function AllInventory() {
   const { isDarkMode } = useTheme();
 
   // --- Clases dinámicas reutilizables ---
-  const pageBg = isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900";
-  const cardBg = isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200";
-  const cardBg750 = isDarkMode ? "bg-gray-750 border-gray-700" : "bg-gray-50 border-gray-200";
-  const innerBg = isDarkMode ? "bg-gray-900" : "bg-gray-100";
+  const pageBg = isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900";
+  const cardBg = isDarkMode ? "bg-gray-800 border-white/[0.08]" : "bg-white border-gray-200";
+  const cardBg750 = isDarkMode ? "bg-gray-750 border-white/[0.08]" : "bg-gray-50 border-gray-200";
+  const innerBg = isDarkMode ? "bg-[#1c1c1e]" : "bg-gray-100";
   const labelClass = isDarkMode ? "text-gray-300" : "text-gray-700";
   const subTextClass = isDarkMode ? "text-gray-400" : "text-gray-500";
   const inputClass = isDarkMode
@@ -54,7 +54,7 @@ export default function AllInventory() {
   const cancelBtnClass = isDarkMode
     ? "px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white font-medium"
     : "px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800 font-medium";
-  const dividerClass = isDarkMode ? "border-gray-700" : "border-gray-200";
+  const dividerClass = isDarkMode ? "border-white/[0.08]" : "border-gray-200";
 
   const [inventory, setInventory] = useState<CreateEquipmentData[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -472,37 +472,37 @@ export default function AllInventory() {
 
       {/* KPIs PRINCIPALES */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-3">
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
           <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((enUso / totalEquipos) * 100).toFixed(0) : 0}%</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
           <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((disponibles / totalEquipos) * 100).toFixed(0) : 0}%</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activos</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>{activos}</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mant.</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{enMantenimiento}</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dañados</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{dañados}</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>{garantiasPorVencer}</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
           <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
             ${(totalCost >= 1000000 ? (totalCost / 1000000).toFixed(1) + 'M' : (totalCost >= 1000 ? (totalCost / 1000).toFixed(1) + 'k' : totalCost.toFixed(0)))}
@@ -512,12 +512,12 @@ export default function AllInventory() {
 
       {/* ANÁLISIS POR USUARIO */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
           <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{userStats.max[1]}</div>
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>📍 Top Deptos</span>
           {topDepts.slice(0, 3).map((dept, idx) => (
             <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -525,7 +525,7 @@ export default function AllInventory() {
             </div>
           ))}
         </div>
-        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>🖥️ Tipos</span>
           {typeStats.slice(0, 3).map((type, idx) => (
             <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -542,7 +542,7 @@ export default function AllInventory() {
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDarkMode
-              ? 'bg-gray-800 border border-gray-700 text-white'
+              ? 'bg-gray-800 border border-white/[0.08] text-white'
               : 'bg-white border border-gray-300 text-gray-900'
             }`}
         >
@@ -559,7 +559,7 @@ export default function AllInventory() {
           value={selectedDepartment}
           onChange={(e) => setSelectedDepartment(e.target.value)}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDarkMode
-              ? 'bg-gray-800 border border-gray-700 text-white'
+              ? 'bg-gray-800 border border-white/[0.08] text-white'
               : 'bg-white border border-gray-300 text-gray-900'
             }`}
         >

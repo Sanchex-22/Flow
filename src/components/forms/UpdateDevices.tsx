@@ -105,8 +105,8 @@ const UpdateDevices: React.FC<Props> = ({ persons, departments, selectedCompany,
     const [generatedPlateNumber, setGeneratedPlateNumber] = useState<string | null>(null);
 
     // --- Clases dinámicas reutilizables ---
-    const pageBg = isDarkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900";
-    const cardBg = isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200";
+    const pageBg = isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900";
+    const cardBg = isDarkMode ? "bg-gray-800 border-white/[0.08]" : "bg-white border-gray-200";
     const labelClass = isDarkMode ? "text-gray-300" : "text-gray-700";
     const inputClass = isDarkMode
         ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"

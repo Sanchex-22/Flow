@@ -25,7 +25,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   const variantClasses = {
     primary: `bg-blue-600 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 
               disabled:bg-gray-300 disabled:cursor-not-allowed`,
-    secondary: `bg-gray-900 text-white hover:bg-gray-800 focus:ring-4 focus:ring-gray-200 
+    secondary: `bg-[#1c1c1e] text-white hover:bg-gray-800 focus:ring-4 focus:ring-gray-200 
                 disabled:bg-gray-300 disabled:cursor-not-allowed`,
   }
 

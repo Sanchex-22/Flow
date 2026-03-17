@@ -258,7 +258,7 @@ export default function UpdateExpensePage() {
         <div
           className={`border rounded-2xl p-6 space-y-5 transition-colors ${
             isDarkMode
-              ? 'bg-gray-900 border-gray-800'
+              ? 'bg-[#1c1c1e] border-white/[0.06]'
               : 'bg-gray-50 border-gray-200'
           }`}
         >
@@ -270,7 +270,7 @@ export default function UpdateExpensePage() {
                 placeholder="Nombre de la aplicación"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white placeholder-gray-500 focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
                 }`}
                 value={form.applicationName}
@@ -286,7 +286,7 @@ export default function UpdateExpensePage() {
                 placeholder="Proveedor"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white placeholder-gray-500 focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
                 }`}
                 value={form.provider}
@@ -302,7 +302,7 @@ export default function UpdateExpensePage() {
                 id="category"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
                 }`}
                 value={form.category}
@@ -328,7 +328,7 @@ export default function UpdateExpensePage() {
                 id="status"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
                 }`}
                 value={form.status}
@@ -352,7 +352,7 @@ export default function UpdateExpensePage() {
                 placeholder="Costo anual"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white placeholder-gray-500 focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
                 }`}
                 value={form.annualCost}
@@ -407,7 +407,7 @@ export default function UpdateExpensePage() {
                 type="date"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
                 }`}
                 value={form.renewalDate}
@@ -423,7 +423,7 @@ export default function UpdateExpensePage() {
                 id="paymentFrequency"
                 className={`rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                   isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-white focus:ring-blue-500'
+                    ? 'bg-gray-800 border-white/[0.08] text-white focus:ring-blue-500'
                     : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-400'
                 }`}
                 value={form.paymentFrequency}
@@ -451,7 +451,7 @@ export default function UpdateExpensePage() {
               placeholder="Notas adicionales"
               className={`w-full rounded-lg p-3 border transition-colors focus:outline-none focus:ring-2 ${
                 isDarkMode
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-blue-500'
+                  ? 'bg-gray-800 border-white/[0.08] text-white placeholder-gray-500 focus:ring-blue-500'
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-400'
               }`}
               value={form.additionalNotes}
@@ -462,7 +462,7 @@ export default function UpdateExpensePage() {
           </div>
 
           {/* Sección de asignación de personas */}
-          <div className="pt-4 border-t border-gray-700">
+          <div className="pt-4 border-t border-white/[0.08]">
             <h3 className="text-lg font-semibold mb-3">
               Asignar Personas ({form.assignedPersonIds.length} seleccionadas)
             </h3>
@@ -473,7 +473,7 @@ export default function UpdateExpensePage() {
               <div 
                 className={`rounded-lg border p-4 max-h-64 overflow-y-auto ${
                   isDarkMode
-                    ? 'border-gray-700 bg-gray-800'
+                    ? 'border-white/[0.08] bg-gray-800'
                     : 'border-gray-300 bg-gray-50'
                 }`}
               >
@@ -529,7 +529,7 @@ export default function UpdateExpensePage() {
               onClick={() => navigate(-1)}
               className={`px-6 py-2.5 border rounded-lg font-medium transition-colors ${
                 isDarkMode
-                  ? 'border-gray-700 text-white hover:bg-gray-800'
+                  ? 'border-white/[0.08] text-white hover:bg-gray-800'
                   : 'border-gray-300 text-gray-900 hover:bg-gray-100'
               }`}
             >

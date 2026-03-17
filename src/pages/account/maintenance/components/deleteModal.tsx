@@ -23,7 +23,7 @@ export default function DeleteConfirmationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 max-w-md w-full mx-4">
+      <div className="bg-[#2c2c2e] border border-white/[0.08] rounded-xl p-6 max-w-md w-full mx-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full bg-red-900/20 flex items-center justify-center">
             <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -35,7 +35,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
   );
 
   // Clases dinámicas
-  const modalBg = isDarkMode ? 'bg-gray-900' : 'bg-white';
+  const modalBg = isDarkMode ? 'bg-[#1c1c1e]' : 'bg-white';
   const textClass = isDarkMode ? 'text-gray-100' : 'text-gray-900';
   const subTextClass = isDarkMode ? 'text-gray-400' : 'text-gray-600';
   const inputClass = isDarkMode
@@ -360,7 +360,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         className={`${modalBg} rounded-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto transition-colors`}
       >
         {/* Header */}
-        <div className="p-4 sm:p-6 border-b border-gray-700 sticky top-0 z-10 bg-inherit">
+        <div className="p-4 sm:p-6 border-b border-white/[0.08] sticky top-0 z-10 bg-inherit">
           <div className="flex justify-between items-start gap-3">
             <div className="flex-1 min-w-0">
               <h2 className={`text-xl sm:text-2xl font-bold ${textClass} truncate`}>
@@ -569,7 +569,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
           ) : (
             <div
               className={`rounded-lg p-4 sm:p-6 border text-center ${
-                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-300'
+                isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-gray-50 border-gray-300'
               }`}
             >
               <svg className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 ${subTextClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -635,7 +635,7 @@ const CameraScannerModal: React.FC<CameraScannerModalProps> = ({
         {/* Footer */}
         <div
           className={`p-4 sm:p-6 border-t ${
-            isDarkMode ? 'border-gray-700' : 'border-gray-200'
+            isDarkMode ? 'border-white/[0.08]' : 'border-gray-200'
           } flex flex-col sm:flex-row justify-end gap-3 sticky bottom-0 bg-inherit`}
         >
           <button 

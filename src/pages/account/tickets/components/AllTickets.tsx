@@ -12,7 +12,10 @@ import { X } from "lucide-react"
 import * as XLSX from 'xlsx'
 import { useTheme } from "../../../../context/themeContext"
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) =>
+  fetch(url, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+  }).then((res) => res.json())
 
 // ==================== USERS ====================
 export interface UsuarioFull {
@@ -198,8 +201,8 @@ export const AllUsers: React.FC = () => {
   return (
     <div className={`transition-colors ${
       isDarkMode
-        ? 'bg-slate-900 text-gray-100'
-        : 'bg-gray-100 text-gray-900'
+        ? 'bg-[#1c1c1e] text-gray-100'
+        : 'bg-[#f5f5f7] text-gray-900'
     }`}>
       <PagesHeader
         title={pageName}
@@ -211,32 +214,32 @@ export const AllUsers: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className={`rounded-lg p-6 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Total Usuarios</span>
           <div className="text-3xl font-bold mb-1">{totalUsers}</div>
           <div className="text-sm text-gray-400">Registrados en el sistema</div>
         </div>
           <div className={`rounded-lg p-6 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Usuarios Activos</span>
           <div className="text-3xl font-bold mb-1">{activeUsers}</div>
           <div className="text-sm text-gray-400">Con acceso al sistema</div>
         </div>
           <div className={`rounded-lg p-6 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Con Equipos</span>
           <div className="text-3xl font-bold mb-1">{usersWithEquipment}</div>
           <div className="text-sm text-gray-400">Tienen equipos asignados</div>
         </div>
           <div className={`rounded-lg p-6 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>          <span className="text-gray-400 text-sm">Departamentos</span>
           <div className="text-3xl font-bold mb-1">{departments}</div>
           <div className="text-sm text-gray-400">Diferentes áreas</div>
@@ -246,12 +249,12 @@ export const AllUsers: React.FC = () => {
       {/* Users List */}
       <div className={`rounded-lg border mb-8 transition-colors ${
         isDarkMode
-          ? 'bg-gray-800 border-gray-700'
-          : 'bg-white border-gray-200'
+          ? 'bg-[#1c1c1e] border-white/[0.08]'
+          : 'bg-white border-gray-100'
       }`}>
         <div className={`p-6 border-b transition-colors ${
           isDarkMode
-            ? 'border-gray-700'
+            ? 'border-white/[0.08]'
             : 'border-gray-200'
         }`}>
           <h2 className={`text-xl font-bold mb-2 transition-colors ${
@@ -269,7 +272,7 @@ export const AllUsers: React.FC = () => {
             <select
               className={`border rounded-lg px-4 py-2 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
                 isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600'
+                  ? 'bg-white/[0.06] border-white/[0.06] text-white hover:bg-white/[0.1]'
                   : 'bg-gray-100 border-gray-300 text-gray-900 hover:bg-gray-200'
               }`}
               value={statusFilter}
@@ -313,8 +316,8 @@ export const AllUsers: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className={`rounded-lg p-6 max-w-md w-full mx-4 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-medium transition-colors ${
@@ -339,7 +342,7 @@ export const AllUsers: React.FC = () => {
               }`}>¿Estás seguro de que deseas eliminar al usuario:</p>
               <div className={`rounded-lg p-3 border transition-colors ${
                 isDarkMode
-                  ? 'bg-gray-700 border-gray-600'
+                  ? 'bg-white/[0.06] border-white/[0.06]'
                   : 'bg-gray-100 border-gray-300'
               }`}>
                 <div className="flex items-center space-x-3">
@@ -365,7 +368,7 @@ export const AllUsers: React.FC = () => {
             <div className="flex space-x-3">
               <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                 isDarkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white'
+                  ? 'bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-50 text-white'
                   : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-800'
               }`}>
                 Cancelar
@@ -461,7 +464,9 @@ export const AllTickets: React.FC = () => {
     const fetchTickets = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/companies/tickets/${selectedCompany.id}/all`)
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/companies/tickets/${selectedCompany.id}/all`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+        })
 
         if (!res.ok) throw new Error(`Error al cargar tickets: ${res.status}`)
 
@@ -499,7 +504,7 @@ export const AllTickets: React.FC = () => {
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/companies/tickets/${selectedCompany.id}/${deleteConfirmation.ticket.id}`,
-        { method: "DELETE" }
+        { method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` } }
       )
 
       if (!res.ok) throw new Error("Error al eliminar ticket")
@@ -560,8 +565,8 @@ export const AllTickets: React.FC = () => {
     return (
       <div className={`min-h-screen p-6 flex items-center justify-center transition-colors ${
         isDarkMode
-          ? 'bg-gray-900 text-white'
-          : 'bg-gray-100 text-gray-900'
+          ? 'bg-[#1c1c1e] text-white'
+          : 'bg-[#f5f5f7] text-gray-900'
       }`}>
         <p className={`text-xl transition-colors ${
           isDarkMode
@@ -612,8 +617,8 @@ export const AllTickets: React.FC = () => {
   return (
     <div className={`transition-colors ${
       isDarkMode
-        ? 'bg-gray-900 text-white'
-        : 'bg-gray-100 text-gray-900'
+        ? 'bg-[#1c1c1e] text-white'
+        : 'bg-[#f5f5f7] text-gray-900'
     }`}>
       <PagesHeader
         title={pageName}
@@ -626,8 +631,8 @@ export const AllTickets: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
-            : 'bg-white border-gray-200'
+            ? 'bg-[#1c1c1e] border-white/[0.08]'
+            : 'bg-white border-gray-100'
         }`}>
           <span className="text-gray-400 text-sm">Total Tickets</span>
           <div className="text-3xl font-bold mb-1">{totalTickets}</div>
@@ -635,8 +640,8 @@ export const AllTickets: React.FC = () => {
         </div>
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
-            : 'bg-white border-gray-200'
+            ? 'bg-[#1c1c1e] border-white/[0.08]'
+            : 'bg-white border-gray-100'
         }`}>
           <span className="text-gray-400 text-sm">Pendientes</span>
           <div className="text-3xl font-bold mb-1">{pendientes}</div>
@@ -644,8 +649,8 @@ export const AllTickets: React.FC = () => {
         </div>
         <div className={`rounded-lg p-6 border transition-colors ${
           isDarkMode
-            ? 'bg-gray-800 border-gray-700'
-            : 'bg-white border-gray-200'
+            ? 'bg-[#1c1c1e] border-white/[0.08]'
+            : 'bg-white border-gray-100'
         }`}>
           <span className="text-gray-400 text-sm">Completados</span>
           <div className="text-3xl font-bold mb-1">{completados}</div>
@@ -657,7 +662,7 @@ export const AllTickets: React.FC = () => {
       <div className="mb-6">
         <div className={`flex space-x-1 p-1 rounded-lg w-fit transition-colors ${
           isDarkMode
-            ? 'bg-gray-800'
+            ? 'bg-white/[0.06]'
             : 'bg-gray-200'
         }`}>
           {["Todos", "Pendientes", "Completados"].map((tab) => (
@@ -667,10 +672,10 @@ export const AllTickets: React.FC = () => {
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 activeTab === tab
                   ? isDarkMode
-                    ? 'bg-gray-700 text-white'
+                    ? 'bg-[#2c2c2e] text-white'
                     : 'bg-blue-600 text-white'
                   : isDarkMode
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                    ? 'text-[#8e8e93] hover:text-white hover:bg-white/[0.06]'
                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-300'
               }`}
             >
@@ -712,8 +717,8 @@ export const AllTickets: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className={`rounded-lg p-6 max-w-md w-full mx-4 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-medium transition-colors ${
@@ -744,7 +749,7 @@ export const AllTickets: React.FC = () => {
             <div className="flex space-x-3">
               <button onClick={closeDeleteModal} disabled={deleteConfirmation.isDeleting} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                 isDarkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white'
+                  ? 'bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-50 text-white'
                   : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-800'
               }`}>
                 Cancelar
@@ -769,8 +774,8 @@ export const AllTickets: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className={`rounded-lg p-6 max-w-md w-full mx-4 border transition-colors ${
             isDarkMode
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-200'
+              ? 'bg-[#1c1c1e] border-white/[0.08]'
+              : 'bg-white border-gray-100'
           }`}>
             <h3 className={`text-lg font-medium mb-4 transition-colors ${
               isDarkMode
@@ -785,7 +790,7 @@ export const AllTickets: React.FC = () => {
             <div className="mt-6 flex gap-3">
               <button onClick={() => setIsCreateModalOpen(false)} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                 isDarkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                  ? 'bg-white/[0.06] hover:bg-white/[0.1] text-white'
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
               }`}>
                 Cerrar

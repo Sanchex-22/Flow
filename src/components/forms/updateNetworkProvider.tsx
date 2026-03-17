@@ -205,9 +205,9 @@ const NetworkProviderForm: React.FC<Props> = ({ NetworkProviderID, selectedCompa
 
     // Renderizado del formulario
     return (
-        <div className="min-h-screen bg-slate-900">
+        <div className="min-h-screen bg-[#1c1c1e]">
             <div className="max-w-4xl mx-auto py-8">
-                <div className="bg-slate-800 border border-slate-700 rounded-lg">
+                <div className="bg-[#2c2c2e] border border-white/[0.08] rounded-lg">
                     <div className="p-6">
                         <h2 className="text-2xl font-semibold text-white mb-6">
                             {isEditMode ? "Editar Proveedor de Red" : "Crear Nuevo Proveedor de Red"}
@@ -295,7 +295,7 @@ const NetworkProviderForm: React.FC<Props> = ({ NetworkProviderID, selectedCompa
                                 </div>
                             </div>
 
-                            <div className="flex justify-end pt-6 border-t border-slate-700">
+                            <div className="flex justify-end pt-6 border-t border-white/[0.08]">
                                 <button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-8 py-2 min-w-[200px] rounded-md font-medium transition-colors flex items-center justify-center">
                                     {isLoading ? (
                                         <>

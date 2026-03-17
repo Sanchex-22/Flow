@@ -11,7 +11,10 @@ import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
 import { useTheme } from "../../../../context/themeContext"
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) =>
+    fetch(url, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
+    }).then((res) => res.json())
 
 // ==================== USERS ====================
 export interface UsuarioFull {
@@ -211,8 +214,8 @@ export const AllUsers: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
-                    : 'bg-white border-gray-200'
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
+                    : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Total Usuarios</span>
                     <div className="text-3xl font-bold mb-1">{totalUsers}</div>
@@ -220,8 +223,8 @@ export const AllUsers: React.FC = () => {
                 </div>
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
-                    : 'bg-white border-gray-200'
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
+                    : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Usuarios Activos</span>
                     <div className="text-3xl font-bold mb-1">{activeUsers}</div>
@@ -229,8 +232,8 @@ export const AllUsers: React.FC = () => {
                 </div>
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
-                    : 'bg-white border-gray-200'
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
+                    : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Con Equipos</span>
                     <div className="text-3xl font-bold mb-1">{usersWithEquipment}</div>
@@ -238,8 +241,8 @@ export const AllUsers: React.FC = () => {
                 </div>
                 <div className={`rounded-lg p-6 border transition-colors ${
                     isDarkMode 
-                    ? 'bg-gray-800 border-gray-700' 
-                    : 'bg-white border-gray-200'
+                    ? 'bg-[#1c1c1e] border-white/[0.08]' 
+                    : 'bg-white border-gray-100'
                 }`}>
                     <span className="text-gray-400 text-sm">Departamentos</span>
                     <div className="text-3xl font-bold mb-1">{departments}</div>
@@ -251,7 +254,11 @@ export const AllUsers: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <select
-                    className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`border rounded-lg px-3 py-1.5 text-[12px] font-medium appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    isDarkMode
+                        ? 'bg-white/[0.06] border-white/[0.06] text-white hover:bg-white/[0.1]'
+                        : 'bg-white border-gray-100 text-gray-700 hover:bg-gray-50'
+                }`}
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -291,7 +298,7 @@ export const AllUsers: React.FC = () => {
 
                         <div className="mb-6">
                             <p className="text-gray-300 mb-2">¿Estás seguro de que deseas eliminar al usuario:</p>
-                            <div className="bg-gray-700 rounded-lg p-3 border border-gray-600">
+                            <div className="bg-white/[0.04] rounded-lg p-3 border border-white/[0.06]">
                                 <div className="flex items-center space-x-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(deleteConfirmation.user?.username || "")}`}>
                                         {deleteConfirmation.user?.username?.charAt(0).toUpperCase()}
@@ -305,7 +312,7 @@ export const AllUsers: React.FC = () => {
                         </div>
 
                         <div className="flex space-x-3">
-                            <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white rounded-lg">
+                            <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-50 text-white rounded-xl text-[13px] font-medium">
                                 Cancelar
                             </button>
                             <button onClick={deleteUser} disabled={deleteConfirmation.isDeleting} className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg">
