@@ -137,10 +137,10 @@ const es = {
     "action.importing": "Importando...",
 
     // Common labels
-    "common.loading": "Cargando...",
+    "common.loading2": "Cargando...",
     "common.saving": "Guardando...",
     "common.deleting": "Eliminando...",
-    "common.noData": "No hay datos disponibles.",
+    "common.noData2": "No hay datos disponibles.",
     "common.actions": "Acciones",
     "common.status": "Estado",
     "common.date": "Fecha",

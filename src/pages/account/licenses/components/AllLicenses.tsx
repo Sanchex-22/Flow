@@ -32,7 +32,7 @@ export default function AllLicenses() {
   const navigate = useNavigate()
   const { isDarkMode } = useTheme()
   const { selectedCompany } = useCompany()
-  const { pageName } = usePageName()
+  usePageName()
   const { search } = useSearch()
 
   const [licenses, setLicenses] = useState<License[]>([])

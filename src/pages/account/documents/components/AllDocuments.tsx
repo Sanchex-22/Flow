@@ -38,7 +38,7 @@ export default function AllDocuments() {
   const navigate = useNavigate()
   const { isDarkMode } = useTheme()
   const { selectedCompany } = useCompany()
-  const { pageName } = usePageName()
+  usePageName()
   const { search } = useSearch()
 
   const [documents, setDocuments] = useState<Document[]>([])

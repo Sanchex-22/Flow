@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, ReactNode } from "react"
 import useSWR from "swr"
 import { useCompany } from "./routerContext"
 
