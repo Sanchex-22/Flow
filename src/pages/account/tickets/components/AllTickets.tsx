@@ -82,7 +82,7 @@ export const AllUsers: React.FC = () => {
     const { isDarkMode } = useTheme()
   const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
   const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
-  usePageName()
+  const pageName = usePageName()
   const { search } = useSearch()
   const [statusFilter, setStatusFilter] = useState("Todos")
   const [notification, setNotification] = useState<Notification>({ type: "success", message: "", show: false })

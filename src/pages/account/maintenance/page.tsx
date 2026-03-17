@@ -1,8 +1,6 @@
 "use client"
 
 import { Outlet } from "react-router-dom"
-import { useTheme } from "../../../context/themeContext";
-
 interface CurrentPathname {
   name: string;
 }
@@ -15,7 +13,6 @@ interface SubRoutesProps {
   }[]
 }
 const MaintenancePage:React.FC<SubRoutesProps> = () => {
-  const { isDarkMode, } = useTheme();
   return (
     <div className="flex-1 flex flex-col min-w-0">
       <Outlet />
