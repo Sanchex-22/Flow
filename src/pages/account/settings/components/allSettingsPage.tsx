@@ -6,7 +6,7 @@ import { useCompany } from "../../../../context/routerContext"
 import { useTheme } from "../../../../context/themeContext"
 import Loader from "../../../../components/loaders/loader"
 import PagesHeader from "../../../../components/headers/pagesHeader"
-import { usePageName } from "../../../../hook/usePageName"
+// import { usePageName } from "../../../../hook/usePageName"
 import { useSearch } from "../../../../context/searchContext"
 
 const VITE_API_URL = import.meta.env?.VITE_API_URL || "http://localhost:3000"
