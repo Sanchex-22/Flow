@@ -10,6 +10,7 @@ import PagesHeader from "../../../../components/headers/pagesHeader"
 import Loader from "../../../../components/loaders/loader"
 import SimpleTable from "../../../../components/tables/SimpleTable"
 import { FileText, File, Image } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 const { VITE_API_URL } = import.meta.env
 
@@ -37,6 +38,7 @@ const getFileIcon = (fileType?: string) => {
 export default function AllDocuments() {
   const navigate = useNavigate()
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
   const { selectedCompany } = useCompany()
   usePageName()
   const { search } = useSearch()
@@ -68,7 +70,7 @@ export default function AllDocuments() {
           : data
         setDocuments(filtered)
       })
-      .catch(() => setError("Error al cargar los documentos"))
+      .catch(() => setError(t("error.loadData")))
       .finally(() => setLoading(false))
   }
 
@@ -83,16 +85,16 @@ export default function AllDocuments() {
       setDocuments((prev) => prev.filter((d) => d.id !== deleteId))
       setDeleteId(null)
     } catch {
-      alert("Error al eliminar el documento")
+      alert(t("error.deleteData"))
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const categories = ["Todos", ...Array.from(new Set(documents.map((d) => d.category || "Sin categoría")))]
+  const categories = ["Todos", ...Array.from(new Set(documents.map((d) => d.category || t("documents.noCategory"))))]
 
   const filteredDocuments = documents.filter((d) => {
-    const matchesCategory = activeCategory === "Todos" || (d.category || "Sin categoría") === activeCategory
+    const matchesCategory = activeCategory === "Todos" || (d.category || t("documents.noCategory")) === activeCategory
     const matchesSearch =
       !search ||
       d.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -102,12 +104,12 @@ export default function AllDocuments() {
   })
 
   const columns = [
-    { key: "title", label: "Título" },
-    { key: "category", label: "Categoría" },
-    { key: "equipment", label: "Equipo" },
-    { key: "date", label: "Fecha" },
-    { key: "fileType", label: "Tipo" },
-    { key: "actions", label: "Acciones" },
+    { key: "title", label: t("common.name") },
+    { key: "category", label: t("common.type") },
+    { key: "equipment", label: t("documents.equipment") },
+    { key: "date", label: t("common.date") },
+    { key: "fileType", label: t("documents.fileType") },
+    { key: "actions", label: t("common.actions") },
   ]
 
   const tableRows = filteredDocuments.map((d) => ({
@@ -119,7 +121,7 @@ export default function AllDocuments() {
     ),
     category: (
       <span className={`px-2 py-1 rounded text-xs font-medium ${isDarkMode ? "bg-gray-700 text-gray-300" : "bg-gray-100 text-gray-700"}`}>
-        {d.category || "Sin categoría"}
+        {d.category || t("documents.noCategory")}
       </span>
     ),
     equipment: d.equipment
@@ -136,20 +138,20 @@ export default function AllDocuments() {
             rel="noopener noreferrer"
             className="text-green-500 hover:text-green-700 text-xs font-medium"
           >
-            Ver
+            {t("action.view")}
           </a>
         )}
         <button
           onClick={() => navigate(`/${selectedCompany?.code}/documents/edit/${d.id}`)}
           className="text-blue-500 hover:text-blue-700 text-xs font-medium"
         >
-          Editar
+          {t("action.edit")}
         </button>
         <button
           onClick={() => setDeleteId(d.id)}
           className="text-red-500 hover:text-red-700 text-xs font-medium"
         >
-          Eliminar
+          {t("action.delete")}
         </button>
       </div>
     ),
@@ -161,22 +163,22 @@ export default function AllDocuments() {
   return (
     <div className="space-y-4">
       <PagesHeader
-        title="Documentos"
-        description={selectedCompany ? `Documentos de ${selectedCompany.name}` : "Todos los documentos"}
+        title={t("documents.title")}
+        description={selectedCompany ? `${t("documents.title")} - ${selectedCompany.name}` : t("documents.all")}
         showCreate
       />
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
-          <p className={`text-xs ${textSub}`}>Total Documentos</p>
+          <p className={`text-xs ${textSub}`}>{t("documents.totalDocuments")}</p>
           <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>{filteredDocuments.length}</p>
         </div>
         <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
-          <p className={`text-xs ${textSub}`}>Categorías</p>
+          <p className={`text-xs ${textSub}`}>{t("documents.categories")}</p>
           <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>{categories.length - 1}</p>
         </div>
         <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
-          <p className={`text-xs ${textSub}`}>Con Equipo</p>
+          <p className={`text-xs ${textSub}`}>{t("documents.withEquipment")}</p>
           <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>
             {filteredDocuments.filter((d) => d.equipmentId).length}
           </p>
@@ -196,7 +198,7 @@ export default function AllDocuments() {
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            {cat}
+            {cat === "Todos" ? t("common.all") : cat}
           </button>
         ))}
       </div>
@@ -212,21 +214,21 @@ export default function AllDocuments() {
             className={`rounded-xl p-6 w-full max-w-sm shadow-xl ${cardBg}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className={`text-lg font-bold mb-2 ${textMain}`}>¿Eliminar documento?</h3>
-            <p className={`text-sm mb-4 ${textSub}`}>Esta acción no se puede deshacer.</p>
+            <h3 className={`text-lg font-bold mb-2 ${textMain}`}>{t("documents.deleteConfirm")}</h3>
+            <p className={`text-sm mb-4 ${textSub}`}>{t("common.cannotUndo")}</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteId(null)}
                 className={`px-4 py-2 rounded-lg text-sm ${isDarkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}`}
               >
-                Cancelar
+                {t("action.cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="px-4 py-2 rounded-lg text-sm bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
               >
-                {isDeleting ? "Eliminando..." : "Eliminar"}
+                {isDeleting ? t("common.deleting") : t("action.delete")}
               </button>
             </div>
           </div>

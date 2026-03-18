@@ -272,6 +272,7 @@ const en = {
     "persons.position": "Position",
     "persons.totalPersons": "Total Persons",
     "persons.withDevice": "With Device",
+    "persons.noDepartment": "No department",
     "persons.deleteConfirm": "Delete person?",
 
     // Tickets
@@ -311,6 +312,12 @@ const en = {
     "expenses.totalExpenses": "Total Expenses",
     "expenses.annualTotal": "Annual Total",
     "expenses.deleteConfirm": "Delete expense?",
+    "expenses.application": "Application",
+    "expenses.costPerUser": "Cost",
+    "expenses.downloadExcel": "Download Excel",
+    "expenses.downloadPDF": "Download PDF",
+    "expenses.unknownPerson": "Unknown Person",
+    "expenses.tableHint": "The table shows the cost per user for each application. Click on a collaborator's name to see their expense breakdown. Values showing '-' indicate that the person is not assigned to that application.",
 
     // Licenses
     "licenses.title": "Software Licenses",
@@ -362,13 +369,41 @@ const en = {
     "inventory.unitPrice": "Unit Price",
     "inventory.totalValue": "Total Value",
     "inventory.deleteConfirm": "Delete inventory item?",
+    "inventory.inUse": "In Use",
+    "inventory.available": "Available",
+    "inventory.maintenance": "Maintenance",
+    "inventory.damaged": "Damaged",
+    "inventory.warranties": "Warranties",
+    "inventory.cost": "Cost",
+    "inventory.mostEquipment": "Most Equipment",
+    "inventory.topDepts": "Top Depts",
+    "inventory.types": "Types",
+    "inventory.allTypes": "All Types",
+    "inventory.allDepartments": "All Departments",
+    "inventory.noEquipment": "No equipment yet. You can add one or import a CSV.",
+    "inventory.noCompany": "Company code not found.",
+    "inventory.importComplete": "Import Complete",
+    "inventory.importWithErrors": "Import with Errors",
+    "inventory.totalRows": "Total Rows",
+    "inventory.inserted": "Inserted",
+    "inventory.skipped": "Skipped",
+    "inventory.errors": "Errors",
+    "inventory.skippedRecords": "Skipped Records",
+    "inventory.errorRecords": "Error Records",
+    "inventory.insertedRecords": "Inserted Records",
+    "inventory.row": "Row",
+    "inventory.importingMessage": "Please wait while we process your CSV file...",
+    "inventory.equipmentDeleted": "Equipment deleted successfully",
+    "inventory.equipmentCreated": "Equipment created successfully",
+    "inventory.noLocation": "No location assigned",
 
     // Settings
     "settings.title": "Settings",
     "settings.language": "Language",
     "settings.theme": "Theme",
-    "settings.darkMode": "Dark Mode",
-    "settings.lightMode": "Light Mode",
+    "settings.darkMode": "Dark",
+    "settings.lightMode": "Light",
+    "settings.systemMode": "System",
     "settings.profile": "Profile",
     "settings.company": "Company",
 
@@ -386,6 +421,55 @@ const en = {
     "lang.en": "English",
     "lang.es": "Spanish",
     "lang.switch": "Switch language",
+
+    // Sidebar group labels
+    "nav.group.general":        "General",
+    "nav.group.infrastructure": "Infrastructure",
+    "nav.group.resources":      "Resources",
+    "nav.group.finance":        "Finance",
+    "nav.group.documentation":  "Documentation",
+    "nav.group.support":        "Support",
+    "nav.group.system":         "System",
+
+    // Settings nav tabs
+    "settings.tab.general":     "General",
+    "settings.tab.users":       "Users",
+    "settings.tab.companies":   "Companies",
+    "settings.tab.departments": "Departments",
+    "settings.breadcrumb":      "Configuration",
+    "settings.system":          "System",
+    "settings.appearance":      "Appearance",
+
+    // Network (additional)
+    "network.providers": "Providers",
+    "network.decommissioned": "Decommissioned",
+    "network.unknown": "Unknown",
+    "network.allStatuses": "All statuses",
+    "network.noNetworks": "No networks registered",
+
+    // Maintenance (additional)
+    "maintenance.thisMonth": "This month",
+    "maintenance.requireAttention": "Require attention",
+    "maintenance.totalCost": "Total Cost",
+
+    // Companies
+    "companies.loadError": "Error loading companies",
+    "companies.registered": "registered",
+    "companies.new": "New company",
+    "companies.noCompanies": "No companies found",
+    "companies.users": "users",
+    "companies.equipments": "devices",
+    "companies.maintenances": "maint.",
+    "companies.depts": "depts",
+    "companies.add": "Add",
+    "companies.noDepartments": "No departments",
+    "companies.deleteCompany": "Delete company",
+
+    // Departments
+    "departments.loadError": "Error loading departments",
+    "departments.new": "New department",
+    "departments.noDepartments": "No departments found",
+    "departments.deleteDepartment": "Delete department",
   },
 };
 

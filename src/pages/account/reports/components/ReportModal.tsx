@@ -1,173 +1,191 @@
-import React from 'react';
-import * as XLSX from 'xlsx';
-import { Report } from "./allReportPage"; // Asegúrate de que la ruta sea correcta
+import React from "react"
+import * as XLSX from "xlsx"
+import { Report } from "./allReportPage"
+import { X, Download, FileText } from "lucide-react"
 
 interface ReportModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  report: Report | null;
+  isOpen: boolean
+  onClose: () => void
+  report: Report | null
+  isDarkMode?: boolean
 }
 
-// --- LÓGICA DE FORMATEO (SEPARADA PARA REUTILIZAR) ---
-
-/**
- * Convierte un valor de celda a un TEXTO PLANO para exportar.
- * Esta es la función clave para que el Excel coincida con la tabla.
- */
+// --- CELL FORMATTING ---
 const formatCellForExport = (data: any): string | number => {
-  if (data === null || data === undefined) {
-    return "N/A";
-  }
-
-  if (typeof data === 'object') {
-    if (data.person?.fullName) return data.person.fullName;
-    if (data.username) return data.username;
-    if (data.name) return data.name;
-
+  if (data === null || data === undefined) return "N/A"
+  if (typeof data === "object") {
+    if (data.person?.fullName) return data.person.fullName
+    if (data.username) return data.username
+    if (data.name) return data.name
     if (data.serialNumber && data.type) {
-      const description = [data.type, data.brand, data.model].filter(Boolean).join(' ');
-      return `${description} (SN: ${data.serialNumber})`;
+      const desc = [data.type, data.brand, data.model].filter(Boolean).join(" ")
+      return `${desc} (SN: ${data.serialNumber})`
     }
-    
-    // Fallback para objetos desconocidos: convertirlos a JSON
-    return JSON.stringify(data);
+    return JSON.stringify(data)
   }
-
-  const isIsoDate = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(data);
-  if (isIsoDate) {
-    return new Date(data).toLocaleString();
+  if (typeof data === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(data)) {
+    return new Date(data).toLocaleString()
   }
+  if (typeof data === "boolean") return data ? "Sí" : "No"
+  return data
+}
 
-  if (typeof data === 'boolean') {
-    return data ? "Sí" : "No";
-  }
-
-  return data; // Devuelve números y otros tipos directamente
-};
-
-/**
- * Convierte un valor de celda a JSX para renderizar en la tabla del modal.
- */
-const renderCellForDisplay = (data: any): React.ReactNode => {
-  const formattedText = formatCellForExport(data);
-
-  if (typeof formattedText === 'string' && formattedText.startsWith('{')) {
-    // Si el texto formateado es un JSON (el fallback), lo mostramos en un <pre>
+const renderCellForDisplay = (data: any, isDark: boolean): React.ReactNode => {
+  const formatted = formatCellForExport(data)
+  if (typeof formatted === "string" && formatted.startsWith("{")) {
     return (
-      <pre className="text-xs bg-gray-700 p-2 rounded max-w-xs overflow-x-auto">
-        {JSON.stringify(JSON.parse(formattedText), null, 2)}
+      <pre className={`text-[11px] p-1.5 rounded-lg max-w-[200px] overflow-x-auto ${
+        isDark ? "bg-white/[0.06] text-white/60" : "bg-gray-50 text-gray-600"
+      }`}>
+        {JSON.stringify(JSON.parse(formatted), null, 2)}
       </pre>
-    );
+    )
   }
+  if (data === null || data === undefined) {
+    return <span className={isDark ? "text-white/25" : "text-gray-300"}>—</span>
+  }
+  if (typeof data === "boolean") {
+    return data
+      ? <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isDark ? "bg-green-500/15 text-green-400" : "bg-green-50 text-green-700"}`}>Sí</span>
+      : <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isDark ? "bg-red-500/15 text-red-400" : "bg-red-50 text-red-600"}`}>No</span>
+  }
+  return <span className={isDark ? "text-white/80" : "text-gray-700"}>{formatted}</span>
+}
 
-  if (data === null || data === undefined) return <span className="text-gray-500">N/A</span>;
-  if (typeof data === 'boolean') return data ? 
-      <span className="text-green-400 font-semibold">Sí</span> : 
-      <span className="text-red-400 font-semibold">No</span>;
+// --- COMPONENT ---
+const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, report, isDarkMode = true }) => {
+  if (!isOpen || !report) return null
 
-  return formattedText;
-};
+  const hasData = report.apiData?.length > 0
+  const headers = hasData ? Object.keys(report.apiData[0]) : []
 
+  const modalBg   = isDarkMode ? "bg-[#1c1c1e]"  : "bg-white"
+  const headerBg  = isDarkMode ? "bg-[#2c2c2e]"  : "bg-gray-50"
+  const border    = isDarkMode ? "border-white/[0.08]" : "border-gray-200"
+  const textMain  = isDarkMode ? "text-white"     : "text-gray-900"
+  const textSub   = isDarkMode ? "text-white/50"  : "text-gray-500"
+  const theadBg   = isDarkMode ? "bg-[#2c2c2e]"  : "bg-gray-50"
+  const theadText = isDarkMode ? "text-white/40"  : "text-gray-400"
+  const rowHover  = isDarkMode ? "hover:bg-white/[0.03]" : "hover:bg-gray-50"
+  const rowDivide = isDarkMode ? "border-white/[0.05]" : "border-gray-100"
 
-// --- COMPONENTE PRINCIPAL ---
-
-const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, report }) => {
-  if (!isOpen || !report) return null;
-
-  const hasData = report.apiData && report.apiData.length > 0;
-  const headers = hasData ? Object.keys(report.apiData[0]) : [];
-
-  const handleDownloadExcel = () => {
-    if (!report || !hasData) return;
-
-    // 1. PROCESAR los datos ANTES de pasarlos a la biblioteca XLSX
-    const processedData = report.apiData.map(row => {
-      const newRow: { [key: string]: string | number } = {};
-      // Iteramos sobre las llaves/headers para mantener el orden
-      headers.forEach(header => {
-        newRow[header] = formatCellForExport(row[header]);
-      });
-      return newRow;
-    });
-
-    // 2. Usar los datos ya procesados para crear la hoja
-    const worksheet = XLSX.utils.json_to_sheet(processedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Datos");
-    XLSX.writeFile(workbook, `${report.reportKey || 'reporte'}.xlsx`);
-  };
+  const handleDownload = () => {
+    if (!report || !hasData) return
+    const processed = report.apiData.map((row) => {
+      const newRow: Record<string, string | number> = {}
+      headers.forEach((h) => { newRow[h] = formatCellForExport(row[h]) })
+      return newRow
+    })
+    const ws = XLSX.utils.json_to_sheet(processed)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Datos")
+    XLSX.writeFile(wb, `${report.reportKey || "reporte"}.xlsx`)
+  }
 
   return (
-    // Contenedor principal (overlay/backdrop)
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ease-in-out ${
-        isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black bg-opacity-70" />
+      {/* Backdrop */}
+      <div className={`absolute inset-0 transition-opacity ${isDarkMode ? "bg-black/70" : "bg-black/40"} backdrop-blur-sm`} />
 
-      {/* Panel del Modal */}
+      {/* Panel */}
       <div
-        className={`bg-gray-800 rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col transform transition-all duration-300 ease-in-out ${
-          isOpen ? 'scale-100' : 'scale-95'
-        }`}
+        className={`relative w-full sm:max-w-5xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-t-2xl sm:rounded-2xl border shadow-2xl overflow-hidden ${modalBg} ${border}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
-          <div>
-            <h2 className="text-xl font-bold text-white">{report.titulo}</h2>
-            <p className="text-sm text-gray-400">{report.descripcion}</p>
+        <div className={`flex items-start gap-3 px-4 sm:px-6 py-4 border-b flex-shrink-0 ${headerBg} ${border}`}>
+          <div className="flex-1 min-w-0">
+            <h2 className={`text-base sm:text-lg font-semibold truncate ${textMain}`}>{report.titulo}</h2>
+            <p className={`text-xs sm:text-sm mt-0.5 ${textSub}`}>{report.descripcion}</p>
           </div>
-          <div className="flex items-center space-x-2">
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Download button */}
             <button
-              onClick={handleDownloadExcel}
+              onClick={handleDownload}
               disabled={!hasData}
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors ${
+                hasData
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : isDarkMode
+                    ? "bg-white/[0.06] text-white/30 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span className="text-sm font-medium">Descargar Excel</span>
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Descargar</span>
             </button>
-            <button onClick={onClose} className="p-2 text-gray-400 rounded-full hover:bg-gray-700 hover:text-white transition">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-xl transition-colors ${
+                isDarkMode
+                  ? "text-white/40 hover:text-white hover:bg-white/[0.08]"
+                  : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Contenido con scroll */}
-        <div className="p-6 overflow-auto">
+        {/* Record count strip */}
+        {hasData && (
+          <div className={`px-4 sm:px-6 py-2 border-b flex items-center gap-2 flex-shrink-0 ${border} ${isDarkMode ? "bg-[#2c2c2e]/50" : "bg-gray-50/80"}`}>
+            <FileText className={`w-3.5 h-3.5 ${textSub}`} />
+            <span className={`text-xs ${textSub}`}>{report.apiData.length} registros · {headers.length} columnas</span>
+          </div>
+        )}
+
+        {/* Table / empty */}
+        <div className="flex-1 overflow-auto">
           {hasData ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left text-gray-300">
-                <thead className="text-xs text-gray-400 uppercase bg-gray-700/50 sticky top-0">
-                  <tr>
-                    {headers.map(header => <th key={header} className="px-6 py-3 whitespace-nowrap">{header}</th>)}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {report.apiData.map((row, index) => (
-                    <tr key={index} className="hover:bg-gray-700/50">
-                      {headers.map(header => (
-                        <td key={header} className="px-6 py-4 align-top">
-                          {/* Ahora usamos la nueva función de renderizado */}
-                          {renderCellForDisplay(row[header])}
-                        </td>
-                      ))}
-                    </tr>
+            <table className="min-w-full text-sm border-collapse">
+              <thead className={`${theadBg} sticky top-0 z-10`}>
+                <tr>
+                  <th className={`px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider w-12 border-b ${theadText} ${border}`}>
+                    #
+                  </th>
+                  {headers.map((h) => (
+                    <th
+                      key={h}
+                      className={`px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap border-b ${theadText} ${border}`}
+                    >
+                      {h}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                {report.apiData.map((row, i) => (
+                  <tr key={i} className={`border-b transition-colors ${rowHover} ${rowDivide}`}>
+                    <td className={`px-4 py-3 text-[11px] font-mono ${textSub}`}>{i + 1}</td>
+                    {headers.map((h) => (
+                      <td key={h} className="px-4 py-3 align-top text-xs sm:text-sm">
+                        {renderCellForDisplay(row[h], isDarkMode)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <p className="text-center text-gray-400 py-10">No hay datos disponibles para este reporte.</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDarkMode ? "bg-white/[0.06]" : "bg-gray-50"}`}>
+                <FileText className={`w-6 h-6 ${isDarkMode ? "text-white/25" : "text-gray-400"}`} />
+              </div>
+              <p className={`text-sm font-medium ${textMain}`}>Sin datos disponibles</p>
+              <p className={`text-xs ${textSub}`}>Este reporte no tiene registros para mostrar</p>
+            </div>
           )}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ReportModal;
+export default ReportModal

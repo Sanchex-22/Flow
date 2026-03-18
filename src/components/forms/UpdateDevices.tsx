@@ -106,26 +106,26 @@ const UpdateDevices: React.FC<Props> = ({ persons, departments, selectedCompany,
 
     // --- Clases dinámicas reutilizables ---
     const pageBg = isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900";
-    const cardBg = isDarkMode ? "bg-gray-800 border-white/[0.08]" : "bg-white border-gray-200";
+    const cardBg = isDarkMode ? "bg-[#2c2c2e] border-white/[0.08]" : "bg-white border-gray-200";
     const labelClass = isDarkMode ? "text-gray-300" : "text-gray-700";
     const inputClass = isDarkMode
-        ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ? "w-full px-4 py-2 bg-[#3a3a3c] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         : "w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500";
     const inputErrorClass = isDarkMode
-        ? "w-full px-4 py-2 bg-gray-700 border border-red-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+        ? "w-full px-4 py-2 bg-[#3a3a3c] border border-red-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-500"
         : "w-full px-4 py-2 bg-gray-50 border border-red-500 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500";
     const selectClass = isDarkMode
-        ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+        ? "w-full px-4 py-2 bg-[#3a3a3c] border border-white/[0.08] rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
         : "w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 appearance-none cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10";
     const selectErrorClass = isDarkMode
-        ? "w-full px-4 py-2 bg-gray-700 border border-red-500 rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10"
+        ? "w-full px-4 py-2 bg-[#3a3a3c] border border-red-500 rounded-lg text-white appearance-none cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10"
         : "w-full px-4 py-2 bg-gray-50 border border-red-500 rounded-lg text-gray-900 appearance-none cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 pr-10";
     const readOnlyClass = isDarkMode
-        ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed opacity-60"
+        ? "w-full px-4 py-2 bg-[#3a3a3c] border border-white/[0.08] rounded-lg text-white/50 cursor-not-allowed opacity-60"
         : "w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 cursor-not-allowed opacity-60";
-    const subTextClass = isDarkMode ? "text-gray-400" : "text-gray-500";
+    const subTextClass = isDarkMode ? "text-white/50" : "text-gray-500";
     const cancelBtnClass = isDarkMode
-        ? "px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+        ? "px-6 py-2 bg-[#3a3a3c] hover:bg-gray-600 text-white rounded-lg transition-colors"
         : "px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors";
 
     const [formData, setFormData] = useState<CreateEquipmentData>({

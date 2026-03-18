@@ -11,6 +11,7 @@ import PagesHeader from "../../../../components/headers/pagesHeader"
 import { usePageName } from "../../../../hook/usePageName"
 import { useSearch } from "../../../../context/searchContext"
 import Tabla from "../../../../components/tables/Table"
+import { useTranslation } from "react-i18next"
 const { VITE_API_URL } = import.meta.env
 
 interface CurrentPathname {
@@ -60,6 +61,7 @@ interface MaintenanceBackend {
 
 const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("Todos")
   const { search } = useSearch();
   const [maintenanceData, setMaintenanceData] = useState<MaintenanceFrontend[]>([])
@@ -324,7 +326,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
     "ID": (item: MaintenanceFrontend) => (
       <span className="text-sm font-medium">{item.id.substring(0, 8)}...</span>
     ),
-    "equipo": (item: MaintenanceFrontend) => (
+    [t("common.name")]: (item: MaintenanceFrontend) => (
       <div>
         <div className="font-medium text-sm">{item.equipo}</div>
         <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -332,10 +334,10 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
         </div>
       </div>
     ),
-    "tipo": (item: MaintenanceFrontend) => (
+    [t("maintenance.type")]: (item: MaintenanceFrontend) => (
       <span className="text-sm">{item.tipo}</span>
     ),
-    "estado": (item: MaintenanceFrontend) => (
+    [t("common.status")]: (item: MaintenanceFrontend) => (
       <div className="flex items-center space-x-2">
         {getStatusIcon(item.estado)}
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item.estado)}`}>
@@ -343,18 +345,18 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
         </span>
       </div>
     ),
-    "prioridad": (item: MaintenanceFrontend) => (
+    [t("maintenance.priority")]: (item: MaintenanceFrontend) => (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(item.prioridad)}`}>
         {item.prioridad}
       </span>
     ),
-    "tecnico": (item: MaintenanceFrontend) => (
+    [t("maintenance.technician")]: (item: MaintenanceFrontend) => (
       <span className="text-sm">{item.tecnico}</span>
     ),
-    "fecha": (item: MaintenanceFrontend) => (
+    [t("maintenance.scheduledDate")]: (item: MaintenanceFrontend) => (
       <span className="text-sm">{item.fecha}</span>
     ),
-    "costo": (item: MaintenanceFrontend) => (
+    [t("maintenance.cost")]: (item: MaintenanceFrontend) => (
       <span className="text-sm font-medium">{item.costo}</span>
     ),
   };
@@ -409,7 +411,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
         }`}>
           <div className="flex items-center justify-between mb-2">
             <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Total Mantenimientos
+              {t("maintenance.totalMaintenance")}
             </span>
             <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <svg
@@ -427,7 +429,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
             {totalMantenimientos}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Este mes
+            {t("maintenance.thisMonth")}
           </div>
         </div>
 
@@ -438,7 +440,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
         }`}>
           <div className="flex items-center justify-between mb-2">
             <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Pendientes
+              {t("maintenance.pendingCount")}
             </span>
             <div className={`w-6 h-6 ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
               <svg
@@ -458,7 +460,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
             {pendientes}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Requieren atención
+            {t("maintenance.requireAttention")}
           </div>
         </div>
 
@@ -469,7 +471,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
         }`}>
           <div className="flex items-center justify-between mb-2">
             <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Completados
+              {t("maintenance.completedCount")}
             </span>
             <div className={`w-6 h-6 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
               <svg
@@ -488,7 +490,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
             {completados}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Este mes
+            {t("maintenance.thisMonth")}
           </div>
         </div>
 
@@ -499,7 +501,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
         }`}>
           <div className="flex items-center justify-between mb-2">
             <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Costo Total
+              {t("maintenance.totalCost")}
             </span>
             <div className={`w-6 h-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <svg
@@ -518,7 +520,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
             ${costoTotal.toFixed(2)}
           </div>
           <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Este mes
+            {t("maintenance.thisMonth")}
           </div>
         </div>
       </div>
@@ -530,12 +532,16 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
             ? 'bg-gray-800'
             : 'bg-gray-200'
         }`}>
-          {["Todos", "Pendientes", "Completados"].map((tab) => (
+          {[
+            { value: "Todos", label: t("common.all") },
+            { value: "Pendientes", label: t("maintenance.pending") },
+            { value: "Completados", label: t("maintenance.completed") },
+          ].map(({ value, label }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={value}
+              onClick={() => setActiveTab(value)}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === tab
+                activeTab === value
                   ? isDarkMode
                     ? 'bg-gray-700 text-white'
                     : 'bg-white text-gray-900'
@@ -544,7 +550,7 @@ const AllMaintenance: React.FC<SubRoutesProps> = ({}) => {
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-300'
               }`}
             >
-              {tab}
+              {label}
             </button>
           ))}
         </div>

@@ -46,6 +46,21 @@ i18n.use(initReactI18next).init({
   }
 });
 
+// ── Apply appConfig at boot ────────────────────────────────────────────────
+import appConfig from "./utils/appConfig"
+
+// <title>
+document.title = appConfig.name
+
+// Favicon override (only if VITE_APP_FAVICON_URL is set)
+if (appConfig.faviconUrl) {
+  const link = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
+    ?? Object.assign(document.createElement("link"), { rel: "icon", type: "image/png" })
+  link.href = appConfig.faviconUrl
+  document.head.appendChild(link)
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );

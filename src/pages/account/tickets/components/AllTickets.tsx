@@ -12,6 +12,7 @@ import { X, Ticket, Clock, CheckCircle2, AlertCircle } from "lucide-react"
 import * as XLSX from 'xlsx'
 import { useTheme } from "../../../../context/themeContext"
 import useUserProfile from "../../../../hook/userUserProfile"
+import { useTranslation } from "react-i18next"
 
 const fetcher = (url: string) =>
   fetch(url, {
@@ -80,6 +81,7 @@ const getStatusBadge = (user: UsuarioFull) => {
 
 export const AllUsers: React.FC = () => {
     const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
   const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
   const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
   const { pageName } = usePageName()
@@ -121,15 +123,15 @@ export const AllUsers: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || "Error al eliminar el usuario")
+        throw new Error(errorData.message || t("error.deleteData"))
       }
 
       mutate(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`)
-      showNotification("success", `Usuario ${deleteConfirmation.user.person.fullName} eliminado exitosamente`)
+      showNotification("success", `${deleteConfirmation.user.person.fullName} - ${t("common.success")}`)
       closeDeleteConfirmation()
     } catch (error: any) {
-      console.error("Error al eliminar usuario:", error)
-      showNotification("error", error.message || "Error inesperado al eliminar el usuario")
+      console.error("Error deleting user:", error)
+      showNotification("error", error.message || t("error.deleteData"))
       setDeleteConfirmation((prev) => ({ ...prev, isDeleting: false }))
     }
   }
@@ -157,7 +159,7 @@ export const AllUsers: React.FC = () => {
   }, [data, search, statusFilter])
 
   const columnConfig = {
-    "fullName": (item: UsuarioFull) => (
+    [t("users.title")]: (item: UsuarioFull) => (
       <div className="flex items-center space-x-3">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(item?.person?.fullName)}`}>
           {item?.person?.fullName.charAt(0).toUpperCase()}
@@ -168,7 +170,7 @@ export const AllUsers: React.FC = () => {
         </div>
       </div>
     ),
-    "email": (item: UsuarioFull) => (
+    [t("users.email")]: (item: UsuarioFull) => (
       <div className="text-sm">
         <div className="flex items-center space-x-1 mb-1">
           <span>{item.email}</span>
@@ -178,21 +180,21 @@ export const AllUsers: React.FC = () => {
         </div>
       </div>
     ),
-    "department": (item: UsuarioFull) => (
+    [t("persons.department")]: (item: UsuarioFull) => (
       <div>
-        <div className="font-medium text-sm">{item.person?.department?.name || "Sin departamento"}</div>
+        <div className="font-medium text-sm">{item.person?.department?.name || t("persons.noDepartment")}</div>
         <div className="text-xs text-gray-400">{item.person?.position}</div>
       </div>
     ),
-    "isActive": (item: UsuarioFull) => (
+    [t("common.status")]: (item: UsuarioFull) => (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item)}`}>
-        {item.isActive ? "Activo" : "Inactivo"}
+        {item.isActive ? t("common.active") : t("common.inactive")}
       </span>
     ),
   }
 
   if (isLoading) return <Loader />
-  if (error || !data) return <div className="text-center p-8 text-red-500">Error al cargar usuarios</div>
+  if (error || !data) return <div className="text-center p-8 text-red-500">{t("error.loadData")}</div>
 
   const totalUsers = data?.length || 0
   const activeUsers = data?.filter((u) => u.isActive).length || 0
@@ -207,7 +209,7 @@ export const AllUsers: React.FC = () => {
     }`}>
       <PagesHeader
         title={pageName}
-        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")}
         showCreate
       />
 
@@ -217,33 +219,33 @@ export const AllUsers: React.FC = () => {
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
-          }`}>          <span className="text-gray-400 text-sm">Total Usuarios</span>
+          }`}>          <span className="text-gray-400 text-sm">{t("users.totalUsers")}</span>
           <div className="text-2xl sm:text-3xl font-bold mb-1">{totalUsers}</div>
-          <div className="text-sm text-gray-400">Registrados en el sistema</div>
+          <div className="text-sm text-gray-400">{t("common.total")}</div>
         </div>
           <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
-          }`}>          <span className="text-gray-400 text-sm">Usuarios Activos</span>
+          }`}>          <span className="text-gray-400 text-sm">{t("common.active")}</span>
           <div className="text-2xl sm:text-3xl font-bold mb-1">{activeUsers}</div>
-          <div className="text-sm text-gray-400">Con acceso al sistema</div>
+          <div className="text-sm text-gray-400">{t("common.total")}</div>
         </div>
           <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
-          }`}>          <span className="text-gray-400 text-sm">Con Equipos</span>
+          }`}>          <span className="text-gray-400 text-sm">{t("persons.withDevice")}</span>
           <div className="text-2xl sm:text-3xl font-bold mb-1">{usersWithEquipment}</div>
-          <div className="text-sm text-gray-400">Tienen equipos asignados</div>
+          <div className="text-sm text-gray-400">{t("devices.assigned")}</div>
         </div>
           <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
             isDarkMode
               ? 'bg-[#1c1c1e] border-white/[0.08]'
               : 'bg-white border-gray-100'
-          }`}>          <span className="text-gray-400 text-sm">Departamentos</span>
+          }`}>          <span className="text-gray-400 text-sm">{t("persons.department")}</span>
           <div className="text-2xl sm:text-3xl font-bold mb-1">{departments}</div>
-          <div className="text-sm text-gray-400">Diferentes áreas</div>
+          <div className="text-sm text-gray-400">{t("common.total")}</div>
         </div>
       </div>
 
@@ -262,12 +264,12 @@ export const AllUsers: React.FC = () => {
             isDarkMode
               ? 'text-white'
               : 'text-gray-900'
-          }`}>Lista de Usuarios</h2>
+          }`}>{t("users.all")}</h2>
           <p className={`text-sm mb-6 transition-colors ${
             isDarkMode
               ? 'text-gray-400'
               : 'text-gray-500'
-          }`}>{filteredUsers?.length} de {data?.length || 0} usuarios encontrados</p>
+          }`}>{filteredUsers?.length} / {data?.length || 0}</p>
 
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <select
@@ -279,11 +281,11 @@ export const AllUsers: React.FC = () => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option>Todos</option>
-              <option>Activos</option>
-              <option>Inactivos</option>
-              <option>Con Equipos</option>
-              <option>Sin Equipos</option>
+              <option value="Todos">{t("common.all")}</option>
+              <option value="Activos">{t("common.active")}</option>
+              <option value="Inactivos">{t("common.inactive")}</option>
+              <option value="Con Equipos">Con Equipos</option>
+              <option value="Sin Equipos">Sin Equipos</option>
             </select>
           </div>
 
@@ -297,7 +299,7 @@ export const AllUsers: React.FC = () => {
                 isDarkMode
                   ? 'text-white'
                   : 'text-gray-900'
-              }`}>No se encontraron usuarios</p>
+              }`}>{t("common.noData")}</p>
             </div>
           ) : (
             <Tabla
@@ -325,7 +327,7 @@ export const AllUsers: React.FC = () => {
                 isDarkMode
                   ? 'text-white'
                   : 'text-gray-900'
-              }`}>Confirmar Eliminación</h3>
+              }`}>{t("common.confirmDelete")}</h3>
               <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={`transition-colors ${
                 isDarkMode
                   ? 'text-gray-400 hover:text-white'
@@ -340,7 +342,7 @@ export const AllUsers: React.FC = () => {
                 isDarkMode
                   ? 'text-gray-300'
                   : 'text-gray-700'
-              }`}>¿Estás seguro de que deseas eliminar al usuario:</p>
+              }`}>{t("users.deleteConfirm")}</p>
               <div className={`rounded-lg p-3 border transition-colors ${
                 isDarkMode
                   ? 'bg-white/[0.06] border-white/[0.06]'
@@ -372,10 +374,10 @@ export const AllUsers: React.FC = () => {
                   ? 'bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-50 text-white'
                   : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-800'
               }`}>
-                Cancelar
+                {t("action.cancel")}
               </button>
               <button onClick={deleteUser} disabled={deleteConfirmation.isDeleting} className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg">
-                {deleteConfirmation.isDeleting ? "Eliminando..." : "Eliminar"}
+                {deleteConfirmation.isDeleting ? t("common.deleting") : t("action.delete")}
               </button>
             </div>
           </div>
@@ -435,6 +437,7 @@ interface TicketDeleteConfirmation {
 
 export const AllTickets: React.FC = () => {
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
   const { search } = useSearch()
   const { selectedCompany } = useCompany()
   usePageName()
@@ -471,7 +474,7 @@ export const AllTickets: React.FC = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` },
         })
 
-        if (!res.ok) throw new Error(`Error al cargar tickets: ${res.status}`)
+        if (!res.ok) throw new Error(`${t("error.loadData")}: ${res.status}`)
 
         let fetchedTickets = await res.json()
         if (fetchedTickets.ticket) fetchedTickets = Array.isArray(fetchedTickets.ticket) ? fetchedTickets.ticket : [fetchedTickets.ticket]
@@ -486,8 +489,8 @@ export const AllTickets: React.FC = () => {
 
         setTickets(fetchedTickets)
       } catch (error) {
-        console.error("Error al cargar tickets:", error)
-        showNotification("Error al cargar tickets", 'error')
+        console.error("Error loading tickets:", error)
+        showNotification(t("error.loadData"), 'error')
       } finally {
         setLoading(false)
       }
@@ -510,14 +513,14 @@ export const AllTickets: React.FC = () => {
         { method: "DELETE", headers: { Authorization: `Bearer ${localStorage.getItem("jwt") || ""}` } }
       )
 
-      if (!res.ok) throw new Error("Error al eliminar ticket")
+      if (!res.ok) throw new Error(t("error.deleteData"))
 
-      setTickets(tickets.filter((t) => t.id !== deleteConfirmation.ticket!.id))
-      showNotification(`Ticket #${deleteConfirmation.ticket.ticketNumber || deleteConfirmation.ticket.id} eliminado`, 'success')
+      setTickets(tickets.filter((tk) => tk.id !== deleteConfirmation.ticket!.id))
+      showNotification(`Ticket #${deleteConfirmation.ticket.ticketNumber || deleteConfirmation.ticket.id} - ${t("common.success")}`, 'success')
       closeDeleteModal()
     } catch (error) {
-      console.error("Error eliminando ticket:", error)
-      showNotification("Error al eliminar el ticket", 'error')
+      console.error("Error deleting ticket:", error)
+      showNotification(t("error.deleteData"), 'error')
       setDeleteConfirmation((prev) => ({ ...prev, isDeleting: false }))
     }
   }
@@ -543,23 +546,23 @@ export const AllTickets: React.FC = () => {
     "#": (item: Ticket) => (
       <span className="text-sm font-mono font-medium text-blue-400">#{item.ticketNumber || item.id.slice(0, 6)}</span>
     ),
-    "Título": (item: Ticket) => (
+    [t("tickets.subject")]: (item: Ticket) => (
       <div>
         <div className="font-medium text-sm">{item.title}</div>
         <div className="text-xs text-gray-400">{item.description?.substring(0, 50)}...</div>
       </div>
     ),
-    "Estado": (item: Ticket) => (
+    [t("tickets.status")]: (item: Ticket) => (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeTicket(item.status)}`}>
         {item.status}
       </span>
     ),
-    "Prioridad": (item: Ticket) => (
+    [t("tickets.priority")]: (item: Ticket) => (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(item.priority)}`}>
         {item.priority}
       </span>
     ),
-    "Fecha": (item: Ticket) => (
+    [t("common.date")]: (item: Ticket) => (
       <span className="text-sm">{item.createdAt?.toLocaleDateString()}</span>
     ),
   }
@@ -575,7 +578,7 @@ export const AllTickets: React.FC = () => {
           isDarkMode
             ? 'text-gray-400'
             : 'text-gray-600'
-        }`}>Selecciona una compañía para ver los tickets</p>
+        }`}>{t("error.selectCompany")}</p>
       </div>
     )
   }
@@ -586,28 +589,28 @@ export const AllTickets: React.FC = () => {
 
   const exportToExcel = () => {
     if (tickets.length === 0) {
-      showNotification("No hay tickets para exportar", 'error')
+      showNotification(t("common.noData"), 'error')
       return
     }
 
     try {
       const dataToExport = tickets.map((ticket) => ({
         '# Ticket': ticket.ticketNumber || ticket.id,
-        'Título': ticket.title,
-        'Descripción': ticket.description,
-        'Estado': ticket.status,
-        'Prioridad': ticket.priority,
-        'Fecha Creación': ticket.createdAt?.toLocaleDateString(),
+        [t("tickets.subject")]: ticket.title,
+        [t("common.description")]: ticket.description,
+        [t("common.status")]: ticket.status,
+        [t("tickets.priority")]: ticket.priority,
+        [t("common.date")]: ticket.createdAt?.toLocaleDateString(),
       }))
 
       const worksheet = XLSX.utils.json_to_sheet(dataToExport)
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Tickets")
       XLSX.writeFile(workbook, "tickets_exportados.xlsx")
-      showNotification("Tickets exportados con éxito", 'success')
+      showNotification(t("common.success"), 'success')
     } catch (error) {
-      console.error("Error al exportar:", error)
-      showNotification("Error al exportar tickets", 'error')
+      console.error("Error exporting:", error)
+      showNotification(t("common.error"), 'error')
     }
   }
 
@@ -628,10 +631,10 @@ export const AllTickets: React.FC = () => {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className={`text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Tickets de Soporte
+              {t("tickets.title")}
             </h1>
             <p className={`text-[13px] mt-1 ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>
-              {selectedCompany?.name} · {totalTickets} tickets registrados
+              {selectedCompany?.name} · {totalTickets} {t("tickets.totalTickets").toLowerCase()}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -640,10 +643,10 @@ export const AllTickets: React.FC = () => {
                 ? 'bg-white/[0.06] hover:bg-white/[0.1] text-[#8e8e93] hover:text-white border border-white/[0.06]'
                 : 'bg-white hover:bg-gray-50 text-[#6e6e73] hover:text-gray-900 border border-gray-200'
             }`}>
-              <span className="text-xs">↓</span> Exportar
+              <span className="text-xs">↓</span> {t("action.export")}
             </button>
             <a href="create" className="flex items-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white transition-colors whitespace-nowrap">
-              + Crear Ticket
+              + {t("tickets.create")}
             </a>
           </div>
         </div>
@@ -662,7 +665,7 @@ export const AllTickets: React.FC = () => {
             </div>
           </div>
           <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalTickets}</div>
-          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Tickets registrados</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>{t("tickets.totalTickets")}</div>
         </div>
 
         {/* Pendientes */}
@@ -670,13 +673,13 @@ export const AllTickets: React.FC = () => {
           isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
         }`}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Pendientes</span>
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>{t("maintenance.pending")}</span>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-yellow-500/10' : 'bg-yellow-50'}`}>
               <Clock className="w-4 h-4 text-yellow-500" />
             </div>
           </div>
           <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{pendientes}</div>
-          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Requieren atención</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>{t("maintenance.pendingCount")}</div>
         </div>
 
         {/* Completados */}
@@ -684,13 +687,13 @@ export const AllTickets: React.FC = () => {
           isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
         }`}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Completados</span>
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>{t("maintenance.completed")}</span>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-green-500/10' : 'bg-green-50'}`}>
               <CheckCircle2 className="w-4 h-4 text-green-500" />
             </div>
           </div>
           <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{completados}</div>
-          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Finalizados</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>{t("maintenance.completedCount")}</div>
         </div>
 
         {/* Urgentes */}
@@ -698,13 +701,13 @@ export const AllTickets: React.FC = () => {
           isDarkMode ? 'bg-[#2c2c2e] border-white/[0.08]' : 'bg-white border-gray-100'
         }`}>
           <div className="flex items-center justify-between mb-3">
-            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>Urgentes</span>
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>{t("tickets.critical")}</span>
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-red-500/10' : 'bg-red-50'}`}>
               <AlertCircle className="w-4 h-4 text-red-500" />
             </div>
           </div>
           <div className={`text-2xl sm:text-3xl font-bold mb-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{urgentes}</div>
-          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>Prioridad urgente</div>
+          <div className={`text-xs ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>{t("tickets.critical")}</div>
         </div>
       </div>
 
@@ -718,25 +721,25 @@ export const AllTickets: React.FC = () => {
         }`}>
           <div>
             <h2 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Lista de Tickets
+              {t("tickets.all")}
             </h2>
             <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-[#636366]' : 'text-gray-400'}`}>
-              {filteredTickets.length} de {totalTickets} tickets
+              {filteredTickets.length} / {totalTickets}
             </p>
           </div>
 
           {/* Tabs inline */}
           <div className={`flex space-x-1 p-1 rounded-lg ${isDarkMode ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
             {[
-              { label: "Todos", count: totalTickets },
-              { label: "Pendientes", count: pendientes },
-              { label: "Completados", count: completados },
+              { value: "Todos", label: t("common.all"), count: totalTickets },
+              { value: "Pendientes", label: t("maintenance.pending"), count: pendientes },
+              { value: "Completados", label: t("maintenance.completed"), count: completados },
             ].map((tab) => (
               <button
-                key={tab.label}
-                onClick={() => setActiveTab(tab.label)}
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5 ${
-                  activeTab === tab.label
+                  activeTab === tab.value
                     ? isDarkMode
                       ? 'bg-[#3a3a3c] text-white'
                       : 'bg-white text-gray-900 shadow-sm'
@@ -747,7 +750,7 @@ export const AllTickets: React.FC = () => {
               >
                 {tab.label}
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                  activeTab === tab.label
+                  activeTab === tab.value
                     ? 'bg-blue-600 text-white'
                     : isDarkMode ? 'bg-white/[0.08] text-[#8e8e93]' : 'bg-gray-200 text-gray-500'
                 }`}>
@@ -763,13 +766,13 @@ export const AllTickets: React.FC = () => {
           {loading ? (
             <div className={`p-12 text-center ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>
               <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-3" />
-              <p className="text-sm">Cargando tickets...</p>
+              <p className="text-sm">{t("common.loading")}</p>
             </div>
           ) : filteredTickets.length === 0 ? (
             <div className={`p-12 text-center ${isDarkMode ? 'text-[#8e8e93]' : 'text-gray-500'}`}>
               <Ticket className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-medium">No hay tickets disponibles</p>
-              <p className="text-xs mt-1 opacity-60">Prueba cambiando el filtro o crea un nuevo ticket</p>
+              <p className="text-sm font-medium">{t("common.noData")}</p>
+              <p className="text-xs mt-1 opacity-60">{t("action.filter")}</p>
             </div>
           ) : (
             <Tabla
@@ -797,7 +800,7 @@ export const AllTickets: React.FC = () => {
                 isDarkMode
                   ? 'text-white'
                   : 'text-gray-900'
-              }`}>Confirmar Eliminación</h3>
+              }`}>{t("common.confirmDelete")}</h3>
               <button onClick={closeDeleteModal} disabled={deleteConfirmation.isDeleting} className={`transition-colors ${
                 isDarkMode
                   ? 'text-gray-400 hover:text-white'
@@ -811,7 +814,7 @@ export const AllTickets: React.FC = () => {
               isDarkMode
                 ? 'text-gray-300'
                 : 'text-gray-700'
-            }`}>¿Estás seguro de eliminar el ticket?</p>
+            }`}>{t("tickets.deleteConfirm")}</p>
             <p className={`font-semibold mb-6 transition-colors ${
               isDarkMode
                 ? 'text-white'
@@ -824,10 +827,10 @@ export const AllTickets: React.FC = () => {
                   ? 'bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-50 text-white'
                   : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-300 text-gray-800'
               }`}>
-                Cancelar
+                {t("action.cancel")}
               </button>
               <button onClick={handleDeleteConfirm} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg">
-                {deleteConfirmation.isDeleting ? "Eliminando..." : "Eliminar"}
+                {deleteConfirmation.isDeleting ? t("common.deleting") : t("action.delete")}
               </button>
             </div>
           </div>
@@ -853,19 +856,19 @@ export const AllTickets: React.FC = () => {
               isDarkMode
                 ? 'text-white'
                 : 'text-gray-900'
-            }`}>Crear Nuevo Ticket</h3>
+            }`}>{t("tickets.create")}</h3>
             <p className={`text-sm transition-colors ${
               isDarkMode
                 ? 'text-gray-400'
                 : 'text-gray-500'
-            }`}>Modal de creación de tickets</p>
+            }`}>{t("tickets.create")}</p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => setIsCreateModalOpen(false)} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                 isDarkMode
                   ? 'bg-white/[0.06] hover:bg-white/[0.1] text-white'
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
               }`}>
-                Cerrar
+                {t("action.cancel")}
               </button>
             </div>
           </div>

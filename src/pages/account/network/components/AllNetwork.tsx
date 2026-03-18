@@ -13,6 +13,7 @@ import Tabla from "../../../../components/tables/Table"
 import { Eye, EyeOff, Network, CheckCircle, Router, AlertCircle } from "lucide-react"
 import { usePageName } from "../../../../hook/usePageName"
 import PagesHeader from "../../../../components/headers/pagesHeader"
+import { useTranslation } from "react-i18next"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) =>
@@ -175,6 +176,7 @@ const PasswordField: React.FC<{ password: string }> = ({ password }) => {
 
 const AllNetwork: React.FC<Props> = ({ }) => {
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
   const { search } = useSearch()
   const { pageName } = usePageName()
   const [filterStatus, setFilterStatus] = useState("TODOS")
@@ -269,11 +271,11 @@ const AllNetwork: React.FC<Props> = ({ }) => {
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-      ONLINE: "En línea",
-      OFFLINE: "Desconectado",
-      MAINTENANCE: "Mantenimiento",
-      DECOMMISSIONED: "Desactivado",
-      UNKNOWN: "Desconocido",
+      ONLINE: t("network.online"),
+      OFFLINE: t("network.offline"),
+      MAINTENANCE: t("maintenance.title"),
+      DECOMMISSIONED: t("network.decommissioned"),
+      UNKNOWN: t("network.unknown"),
     }
     return labels[status] || status
   }
@@ -292,7 +294,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
   }
 
   const columnConfig = {
-    "nombre": (item: FrontendNetworkConnection) => (
+    [t("common.name")]: (item: FrontendNetworkConnection) => (
       <div>
         <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {item.nombre}
@@ -302,10 +304,10 @@ const AllNetwork: React.FC<Props> = ({ }) => {
         </p>
       </div>
     ),
-    "password": (item: FrontendNetworkConnection) => (
+    "Password": (item: FrontendNetworkConnection) => (
       <PasswordField password={item.password} />
     ),
-    "ip": (item: FrontendNetworkConnection) => (
+    [t("network.ipAddress")]: (item: FrontendNetworkConnection) => (
       <div>
         <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {item.ip}
@@ -315,12 +317,12 @@ const AllNetwork: React.FC<Props> = ({ }) => {
         </p>
       </div>
     ),
-    "gw": (item: FrontendNetworkConnection) => (
+    [t("network.macAddress")]: (item: FrontendNetworkConnection) => (
       <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
         {item.gw}
       </p>
     ),
-    "velocidadBajada": (item: FrontendNetworkConnection) => (
+    [t("common.description")]: (item: FrontendNetworkConnection) => (
       <div className="text-sm">
         <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>
           ↓ {item.velocidadBajada} Mbps
@@ -330,7 +332,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
         </p>
       </div>
     ),
-    "proveedor": (item: FrontendNetworkConnection) => (
+    [t("expenses.vendor")]: (item: FrontendNetworkConnection) => (
       <div>
         <p className={`text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {item.proveedor}
@@ -340,7 +342,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
         </p>
       </div>
     ),
-    "estado": (item: FrontendNetworkConnection) => (
+    [t("common.status")]: (item: FrontendNetworkConnection) => (
       <div className="flex items-center gap-2">
         {getStatusIcon(item.estado)}
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(item.estado)}`}>
@@ -348,7 +350,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
         </span>
       </div>
     ),
-    "ubicacion": (item: FrontendNetworkConnection) => (
+    [t("devices.location")]: (item: FrontendNetworkConnection) => (
       <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
         {item.ubicacion}
       </p>
@@ -383,7 +385,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Total Redes
+                {t("network.totalDevices")}
               </p>
               <p className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 {totalRedes}
@@ -401,7 +403,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                En Línea
+                {t("network.online")}
               </p>
               <p className={`text-2xl font-semibold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
                 {enLinea}
@@ -419,7 +421,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Proveedores
+                {t("network.providers")}
               </p>
               <p className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 {proveedores}
@@ -437,7 +439,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Desconectadas
+                {t("network.offline")}
               </p>
               <p className={`text-2xl font-semibold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
                 {desconectadas}
@@ -459,7 +461,7 @@ const AllNetwork: React.FC<Props> = ({ }) => {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
         >
-          <option value="TODOS">Todos los estados</option>
+          <option value="TODOS">{t("network.allStatuses")}</option>
           {Object.values(NetworkDeviceStatus).map((status) => (
             <option key={status} value={status}>
               {getStatusLabel(status)}
@@ -470,12 +472,12 @@ const AllNetwork: React.FC<Props> = ({ }) => {
 
       {filteredConexiones.length === 0 ? (
         <div className={`p-8 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          <p>No hay redes registradas</p>
+          <p>{t("network.noNetworks")}</p>
         </div>
       ) : (
         <Tabla
           datos={filteredConexiones}
-          titulo={`${pageName || "Redes"} List`}
+          titulo={`${pageName || t("network.title")} List`}
           columnasPersonalizadas={columnConfig}
           onEditar={(item) => window.location.href = `edit/${item.id}`}
           onEliminar={openDeleteModal}

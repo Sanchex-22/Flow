@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Mail, KeyRound, Eye, EyeOff, CheckCircle } from "lucide-react";
-import Images from "../../assets";
+import appConfig from "../../utils/appConfig";
+import { useAppLogo } from "../../utils/useAppLogo";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -65,7 +66,8 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const appName = import.meta.env.VITE_APP_NAME || "Flow IT";
+  const logoSrc = useAppLogo();
+  const appName = appConfig.name;
 
   return (
     <div className="min-h-screen bg-[#1c1c1e] flex items-center justify-center relative overflow-hidden">

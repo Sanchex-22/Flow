@@ -46,6 +46,8 @@ import UpdateCompany from "../pages/account/settings/components/updateCompany";
 import SettingsPage from "../pages/account/settings/page";
 import AllSettingsPage from "../pages/account/settings/components/allSettingsPage";
 import { UpdateDepartment } from "../pages/account/settings/components/updateDepartment";
+import AllCompaniesPage from "../pages/account/settings/components/AllCompaniesPage";
+import AllDepartmentsPage from "../pages/account/settings/components/AllDepartmentsPage";
 import PersonPage from "../pages/account/person/page";
 import { AllPersons } from "../pages/account/person/components/AllPersons";
 import CreatePersonPage from "../pages/account/person/components/UpdatePerson";
@@ -344,42 +346,6 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/users/*`}
-        element={
-          <ProtectedRoute
-            isLogged={isLogged}
-            auth={user}
-            allowedRoles={[
-              authRoles.user,
-              authRoles.admin,
-              authRoles.moderator,
-              authRoles.super_admin,
-            ]}
-          >
-            <EnvolveLayout
-              title="users"
-              description="users"
-              isLogged={isLogged}
-              profile={profile}
-              currentPathname={pathnameLocation}
-              publicRoute={false}
-            >
-              <UsersPage
-                subroutes={
-                  routesConfig.find((route) => route.name === "Users")
-                    ?.subroutes || []
-                }
-              />
-            </EnvolveLayout>
-          </ProtectedRoute>
-        }
-      >
-        <Route path="all" element={<AllUsers />} />
-        <Route path="create" element={<CreateUserPage />} />
-        <Route path="edit/:id" element={<CreateUserPage />} />
-      </Route>
-
-      <Route
         path={`/:${code}/persons/*`}
         element={
           <ProtectedRoute
@@ -557,10 +523,18 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         }
       >
         <Route path="all" element={<AllSettingsPage />} />
+        {/* Companies */}
+        <Route path="companies" element={<AllCompaniesPage />} />
         <Route path="create" element={<UpdateCompany />} />
         <Route path="edit/:id" element={<UpdateCompany />} />
+        {/* Departments */}
+        <Route path="departments" element={<AllDepartmentsPage />} />
         <Route path="departments/edit" element={<UpdateDepartment />} />
         <Route path="departments/create" element={<UpdateDepartment />} />
+        {/* Users */}
+        <Route path="users/all" element={<AllUsers />} />
+        <Route path="users/create" element={<CreateUserPage />} />
+        <Route path="users/edit/:id" element={<CreateUserPage />} />
       </Route>
 
       <Route

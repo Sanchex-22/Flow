@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Building2, CheckCircle, ArrowRight } from "lucide-react";
-import Images from "../../assets";
+import appConfig from "../../utils/appConfig";
+import { useAppLogo } from "../../utils/useAppLogo";
 import useUserProfile from "../../hook/userUserProfile";
 
 const { VITE_API_URL } = import.meta.env;
@@ -24,7 +25,8 @@ export default function SetupCompanyPage() {
   const [done, setDone] = useState(false);
   const [createdCompany, setCreatedCompany] = useState<{ code: string; name: string } | null>(null);
 
-  const appName = import.meta.env.VITE_APP_NAME || "Flow IT";
+  const logoSrc = useAppLogo();
+  const appName = appConfig.name;
 
   // Redirect non-super-admin users
   useEffect(() => {

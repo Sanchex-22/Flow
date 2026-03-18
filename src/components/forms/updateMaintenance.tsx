@@ -214,7 +214,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
 
     // --- CLASES DINÁMICAS (LIGHT/DARK MODE) ---
     const bgClasses = isDarkMode 
-        ? "bg-gray-800 border-gray-700" 
+        ? "bg-[#2c2c2e] border-white/[0.08]" 
         : "bg-white border-gray-200";
     
     const textClasses = isDarkMode 
@@ -226,11 +226,11 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
         : "text-gray-700";
     
     const inputClasses = isDarkMode
-        ? "w-full bg-gray-700/50 border border-gray-600 text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 placeholder-gray-400"
+        ? "w-full bg-[#3a3a3c]/50 border border-white/[0.08] text-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 placeholder-gray-400"
         : "w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 placeholder-gray-500";
     
     const inputDisabledClasses = isDarkMode
-        ? "w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed"
+        ? "w-full px-4 py-2 bg-[#3a3a3c] border border-white/[0.08] rounded-lg text-white/50 cursor-not-allowed"
         : "w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600 cursor-not-allowed";
     
     const errorClasses = isDarkMode
@@ -252,7 +252,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
         : `${buttonClasses} bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300`;
     
     const secondaryButtonClasses = isDarkMode
-        ? `${buttonClasses} bg-gray-600 hover:bg-gray-700`
+        ? `${buttonClasses} bg-gray-600 hover:bg-[#3a3a3c]`
         : `${buttonClasses} bg-gray-400 hover:bg-gray-500`;
 
     // --- RENDERIZADO DEL COMPONENTE ---
@@ -270,7 +270,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
                 <h2 className={`text-2xl font-bold ${textClasses}`}>
                     {isEditMode ? 'Editar Mantenimiento' : 'Registrar Nuevo Mantenimiento'}
                 </h2>
-                <p className={isDarkMode ? "text-gray-400 text-sm" : "text-gray-600 text-sm"}>
+                <p className={isDarkMode ? "text-white/50 text-sm" : "text-gray-600 text-sm"}>
                     {isEditMode ? `Editando el registro ID: ${maintenanceId}` : 'Complete los detalles del mantenimiento'}
                 </p>
             </div>

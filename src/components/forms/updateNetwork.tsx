@@ -241,24 +241,24 @@ const UpdateNetworkForm: React.FC<Props> = ({ selectedCompany, networkID }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label htmlFor="name" className="text-slate-300 block text-sm font-medium">Nombre del Dispositivo <span className="text-red-400">*</span></label>
-                                        <input id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: Router Principal" />
+                                        <input id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: Router Principal" />
                                     </div>
 
                                     <div className="space-y-2">
                                         <label htmlFor="ipAddress" className="text-slate-300 block text-sm font-medium">Dirección IP <span className="text-red-400">*</span></label>
-                                        <input id="ipAddress" name="ipAddress" value={formData.ipAddress} onChange={handleChange} required className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="192.168.1.1" />
+                                        <input id="ipAddress" name="ipAddress" value={formData.ipAddress} onChange={handleChange} required className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="192.168.1.1" />
                                     </div>
 
                                     <div className="space-y-2">
                                         <label className="text-slate-300 block text-sm font-medium">Empresa <span className="text-red-400">*</span></label>
-                                        <input disabled value={selectedCompany?.name || "Empresa no seleccionada"} className="w-full bg-slate-700 border border-slate-600 text-slate-400 rounded-md px-3 py-2 cursor-not-allowed" />
+                                        <input disabled value={selectedCompany?.name || "Empresa no seleccionada"} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white/50 rounded-md px-3 py-2 cursor-not-allowed" />
                                         {errors.companyId && <p className="text-red-400 text-sm">{errors.companyId}</p>}
                                     </div>
 
                                     <div className="space-y-2">
                                         <label htmlFor="deviceType" className="text-slate-300 block text-sm font-medium">Tipo de Dispositivo <span className="text-red-400">*</span></label>
-                                        <select id="deviceType" name="deviceType" value={formData.deviceType} onChange={handleSelectChange} className="w-full bg-slate-700 border border-slate-600 text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2">
-                                            {deviceTypes.map((type) => (<option key={type} value={type} className="bg-slate-700">{type}</option>))}
+                                        <select id="deviceType" name="deviceType" value={formData.deviceType} onChange={handleSelectChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2">
+                                            {deviceTypes.map((type) => (<option key={type} value={type} className="bg-[#3a3a3c]">{type}</option>))}
                                         </select>
                                     </div>
                                 </div>
@@ -266,58 +266,58 @@ const UpdateNetworkForm: React.FC<Props> = ({ selectedCompany, networkID }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <div className="space-y-2">
                                         <label htmlFor="macAddress" className="text-slate-300 block text-sm font-medium">Dirección MAC</label>
-                                        <input id="macAddress" name="macAddress" value={formData.macAddress} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="00:1B:44:11:3A:B7" />
+                                        <input id="macAddress" name="macAddress" value={formData.macAddress} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="00:1B:44:11:3A:B7" />
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="serialNumber" className="text-slate-300 block text-sm font-medium">Número de Serie</label>
-                                        <input id="serialNumber" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="RT-2024-001" />
+                                        <input id="serialNumber" name="serialNumber" value={formData.serialNumber} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="RT-2024-001" />
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="brand" className="text-slate-300 block text-sm font-medium">Marca</label>
-                                        <input id="brand" name="brand" value={formData.brand} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Cisco" />
+                                        <input id="brand" name="brand" value={formData.brand} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Cisco" />
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="model" className="text-slate-300 block text-sm font-medium">Modelo</label>
-                                        <input id="model" name="model" value={formData.model} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="RX-5000" />
+                                        <input id="model" name="model" value={formData.model} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="RX-5000" />
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="status" className="text-slate-300 block text-sm font-medium">Estado</label>
-                                        <select id="status" name="status" value={formData.status} onChange={handleSelectChange} className="w-full bg-slate-700 border border-slate-600 text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2">
-                                            {deviceStatuses.map((status) => (<option key={status} value={status} className="bg-slate-700">{status}</option>))}
+                                        <select id="status" name="status" value={formData.status} onChange={handleSelectChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2">
+                                            {deviceStatuses.map((status) => (<option key={status} value={status} className="bg-[#3a3a3c]">{status}</option>))}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="location" className="text-slate-300 block text-sm font-medium">Ubicación</label>
-                                        <input id="location" name="location" value={formData.location} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Sala de Servidores" />
+                                        <input id="location" name="location" value={formData.location} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Sala de Servidores" />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
                                         <label htmlFor="assignedToUserId" className="text-slate-300 block text-sm font-medium">Asignado a (Usuario)</label>
-                                        <select id="assignedToUserId" name="assignedToUserId" value={formData.assignedToUserId} onChange={handleSelectChange} className="w-full bg-slate-700 border border-slate-600 text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2">
-                                            <option value="" className="bg-slate-700">Sin asignar</option>
-                                            {users && users.map((user) => (<option key={user.id} value={user.id} className="bg-slate-700">{user.username}</option>))}
+                                        <select id="assignedToUserId" name="assignedToUserId" value={formData.assignedToUserId} onChange={handleSelectChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2">
+                                            <option value="" className="bg-[#3a3a3c]">Sin asignar</option>
+                                            {users && users.map((user) => (<option key={user.id} value={user.id} className="bg-[#3a3a3c]">{user.username}</option>))}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="purchaseDate" className="text-slate-300 block text-sm font-medium">Fecha de Compra</label>
-                                        <input id="purchaseDate" name="purchaseDate" type="date" value={formData.purchaseDate} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" />
+                                        <input id="purchaseDate" name="purchaseDate" type="date" value={formData.purchaseDate} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" />
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="warrantyEndDate" className="text-slate-300 block text-sm font-medium">Fin de Garantía</label>
-                                        <input id="warrantyEndDate" name="warrantyEndDate" type="date" value={formData.warrantyEndDate} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" />
+                                        <input id="warrantyEndDate" name="warrantyEndDate" type="date" value={formData.warrantyEndDate} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" />
                                     </div>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div className="space-y-2">
                                         <label htmlFor="description" className="text-slate-300 block text-sm font-medium">Descripción</label>
-                                        <textarea id="description" name="description" value={formData.description} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[100px] resize-y" placeholder="Descripción detallada del dispositivo..." />
+                                        <textarea id="description" name="description" value={formData.description} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[100px] resize-y" placeholder="Descripción detallada del dispositivo..." />
                                     </div>
                                     <div className="space-y-2">
                                         <label htmlFor="notes" className="text-slate-300 block text-sm font-medium">Notas Adicionales</label>
-                                        <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[100px] resize-y" placeholder="Notas adicionales, configuraciones especiales..." />
+                                        <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[100px] resize-y" placeholder="Notas adicionales, configuraciones especiales..." />
                                     </div>
                                 </div>
 

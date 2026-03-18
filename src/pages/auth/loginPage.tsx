@@ -1,10 +1,9 @@
 import { useState } from "react";
 import LoginForm from "../../components/forms/loginForm";
-import Images from "../../assets";
 import { useTranslation } from "react-i18next";
 import { Shield, Cpu, Activity, Lock } from "lucide-react";
-
-const appName = import.meta.env.VITE_APP_NAME || "Flow IT";
+import appConfig from "../../utils/appConfig";
+import { useAppLogo } from "../../utils/useAppLogo";
 
 const features = [
   { icon: Shield, label: "Security", desc: "Role-based access control" },
@@ -18,6 +17,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { t } = useTranslation();
+
+  // Resolved once — respects VITE_APP_LOGO_URL env var or falls back to local asset
+  const logoSrc = useAppLogo();
+  const appName = appConfig.name;
 
   return (
     <div className="min-h-screen bg-[#1d1d1f] flex overflow-hidden">
@@ -33,7 +36,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-            <img src={Images?.logo} alt="logo" className="w-6 h-6 object-contain" />
+            <img src={logoSrc} alt={appName} className="w-6 h-6 object-contain" />
           </div>
           <span className="text-white font-semibold text-lg tracking-tight">{appName}</span>
         </div>
@@ -71,7 +74,7 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="relative z-10">
           <p className="text-[#6e6e73] text-xs">
-            © {new Date().getFullYear()} {appName}. All rights reserved.
+            © {new Date().getFullYear()} {appConfig.companyName || appName}. All rights reserved.
           </p>
         </div>
       </div>
@@ -81,12 +84,11 @@ export default function LoginPage() {
 
       {/* ── Right panel: form ── */}
       <div className="flex-1 lg:max-w-[480px] flex flex-col items-center justify-center p-8 relative bg-[#161617]">
-
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
-              <img src={Images?.logo} alt="logo" className="w-7 h-7 object-contain" />
+              <img src={logoSrc} alt={appName} className="w-7 h-7 object-contain" />
             </div>
             <span className="text-white font-semibold text-xl">{appName}</span>
           </div>

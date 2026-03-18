@@ -103,13 +103,13 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
 
     const inputClass = `w-full rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm ${
       isDarkMode
-        ? 'bg-[#1c1c1e] border border-gray-600 text-white'
+        ? 'bg-[#1c1c1e] border border-white/[0.08] text-white'
         : 'bg-white border border-gray-300 text-gray-900'
     }`;
     
     const labelClass = `block text-sm font-medium mb-1 ${
       isDarkMode
-        ? 'text-gray-400'
+        ? 'text-white/50'
         : 'text-gray-700'
     }`;
     
@@ -281,7 +281,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                               key={index} 
                               className={`p-4 rounded-lg border space-y-4 relative transition-colors ${
                                 isDarkMode
-                                  ? 'bg-gray-800/40 border-white/[0.08]'
+                                  ? 'bg-[#2c2c2e]/40 border-white/[0.08]'
                                   : 'bg-gray-100 border-gray-300'
                               }`}
                             >
@@ -301,7 +301,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                                         className={`ml-4 transition-colors ${
                                           isDarkMode
                                             ? 'text-gray-500 hover:text-red-500'
-                                            : 'text-gray-400 hover:text-red-600'
+                                            : 'text-white/50 hover:text-red-600'
                                         }`}
                                     >
                                         ✕
@@ -360,7 +360,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                                         id={`active-${index}`}
                                         className={`w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer ${
                                           isDarkMode
-                                            ? 'bg-[#1c1c1e] border-gray-600'
+                                            ? 'bg-[#1c1c1e] border-white/[0.08]'
                                             : 'bg-white border-gray-300'
                                         }`}
                                         checked={deduction.isActive}
@@ -370,7 +370,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                                       htmlFor={`active-${index}`} 
                                       className={`text-xs cursor-pointer ${
                                         isDarkMode
-                                          ? 'text-gray-400'
+                                          ? 'text-white/50'
                                           : 'text-gray-600'
                                       }`}
                                     >
@@ -393,7 +393,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ initialData, departments, c
                     onClick={() => navigate(-1)}
                     className={`px-6 py-2.5 rounded-lg transition-colors ${
                       isDarkMode
-                        ? 'text-gray-400 hover:text-white'
+                        ? 'text-white/50 hover:text-white'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >

@@ -10,6 +10,7 @@ import { useSearch } from "../../../../context/searchContext"
 import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
 import { useTheme } from "../../../../context/themeContext"
+import { useTranslation } from "react-i18next"
 
 const fetcher = (url: string) =>
     fetch(url, {
@@ -82,6 +83,7 @@ export const AllUsers: React.FC = () => {
     const { data, error, isLoading } = useSWR<UsuarioFull[]>(`${import.meta.env.VITE_API_URL}/api/users/full/${selectedCompany?.id}`, fetcher)
     const { pageName } = usePageName()
     const { search } = useSearch()
+    const { t } = useTranslation()
     const [statusFilter, setStatusFilter] = useState("Todos")
     const [notification, setNotification] = useState<Notification>({ type: "success", message: "", show: false })
     const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({ show: false, user: null, isDeleting: false })
@@ -155,7 +157,7 @@ export const AllUsers: React.FC = () => {
     }, [data, search, statusFilter])
 
     const columnConfig = {
-        "Usuario": (item: UsuarioFull) => (
+        [t("users.title")]: (item: UsuarioFull) => (
             <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(item?.username)}`}>
                     {item?.username?.charAt(0)?.toUpperCase()}
@@ -166,7 +168,7 @@ export const AllUsers: React.FC = () => {
                 </div>
             </div>
         ),
-        "Email": (item: UsuarioFull) => (
+        [t("users.email")]: (item: UsuarioFull) => (
             <div className="text-sm">
                 <div className="flex items-center space-x-1 mb-1">
                     <span>{item.email}</span>
@@ -176,21 +178,21 @@ export const AllUsers: React.FC = () => {
                 </div>
             </div>
         ),
-        "Departamento": (item: UsuarioFull) => (
+        [t("persons.department")]: (item: UsuarioFull) => (
             <div>
-                <div className="font-medium text-sm">{item?.person?.department?.name || "Sin departamento"}</div>
+                <div className="font-medium text-sm">{item?.person?.department?.name || t("persons.noDepartment")}</div>
                 <div className="text-xs text-gray-400">{item?.person?.position}</div>
             </div>
         ),
-        "Estado": (item: UsuarioFull) => (
+        [t("common.status")]: (item: UsuarioFull) => (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item)}`}>
-                {item.isActive ? "Activo" : "Inactivo"}
+                {item.isActive ? t("common.active") : t("common.inactive")}
             </span>
         ),
     }
 
     if (isLoading) return <Loader />
-    if (error || !data) return <div className="text-center p-8 text-red-500">Error al cargar usuarios</div>
+    if (error || !data) return <div className="text-center p-8 text-red-500">{t("error.loadData")}</div>
 
     // Add a safety check at the start of your KPI calculations
     const isDataArray = Array.isArray(data);
@@ -205,8 +207,8 @@ export const AllUsers: React.FC = () => {
     return (
         <div className="relative">
             <PagesHeader
-                title={"Usuarios"}
-                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+                title={t("users.title")}
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")}
                 showCreate
             />
 
@@ -217,36 +219,36 @@ export const AllUsers: React.FC = () => {
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
-                    <span className="text-gray-400 text-sm">Total Usuarios</span>
+                    <span className="text-gray-400 text-sm">{t("users.totalUsers")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{totalUsers}</div>
-                    <div className="text-sm text-gray-400">Registrados en el sistema</div>
+                    <div className="text-sm text-gray-400">{t("common.total")}</div>
                 </div>
                 <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
-                    <span className="text-gray-400 text-sm">Usuarios Activos</span>
+                    <span className="text-gray-400 text-sm">{t("common.active")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{activeUsers}</div>
-                    <div className="text-sm text-gray-400">Con acceso al sistema</div>
+                    <div className="text-sm text-gray-400">{t("common.total")}</div>
                 </div>
                 <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
-                    <span className="text-gray-400 text-sm">Con Equipos</span>
+                    <span className="text-gray-400 text-sm">{t("persons.withDevice")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{usersWithEquipment}</div>
-                    <div className="text-sm text-gray-400">Tienen equipos asignados</div>
+                    <div className="text-sm text-gray-400">{t("devices.assigned")}</div>
                 </div>
                 <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-100'
                 }`}>
-                    <span className="text-gray-400 text-sm">Departamentos</span>
+                    <span className="text-gray-400 text-sm">{t("persons.department")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{departments}</div>
-                    <div className="text-sm text-gray-400">Diferentes áreas</div>
+                    <div className="text-sm text-gray-400">{t("common.total")}</div>
                 </div>
             </div>
 
@@ -262,17 +264,17 @@ export const AllUsers: React.FC = () => {
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                    <option>Todos</option>
-                    <option>Activos</option>
-                    <option>Inactivos</option>
-                    <option>Con Equipos</option>
-                    <option>Sin Equipos</option>
+                    <option value="Todos">{t("common.all")}</option>
+                    <option value="Activos">{t("common.active")}</option>
+                    <option value="Inactivos">{t("common.inactive")}</option>
+                    <option value="Con Equipos">Con Equipos</option>
+                    <option value="Sin Equipos">Sin Equipos</option>
                 </select>
             </div>
 
             {filteredUsers?.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
-                    <p className="text-white font-medium">No se encontraron usuarios</p>
+                    <p className="text-white font-medium">{t("common.noData")}</p>
                 </div>
             ) : (
                 <Tabla
@@ -290,14 +292,14 @@ export const AllUsers: React.FC = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-white">Confirmar Eliminación</h3>
+                            <h3 className="text-lg font-medium text-white">{t("common.confirmDelete")}</h3>
                             <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className="text-gray-400 hover:text-white">
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="mb-6">
-                            <p className="text-gray-300 mb-2">¿Estás seguro de que deseas eliminar al usuario:</p>
+                            <p className="text-gray-300 mb-2">{t("users.deleteConfirm")}</p>
                             <div className="bg-white/[0.04] rounded-lg p-3 border border-white/[0.06]">
                                 <div className="flex items-center space-x-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(deleteConfirmation.user?.username || "")}`}>
@@ -313,10 +315,10 @@ export const AllUsers: React.FC = () => {
 
                         <div className="flex space-x-3">
                             <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className="flex-1 px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] disabled:opacity-50 text-white rounded-xl text-[13px] font-medium">
-                                Cancelar
+                                {t("action.cancel")}
                             </button>
                             <button onClick={deleteUser} disabled={deleteConfirmation.isDeleting} className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg">
-                                {deleteConfirmation.isDeleting ? "Eliminando..." : "Eliminar"}
+                                {deleteConfirmation.isDeleting ? t("common.deleting") : t("action.delete")}
                             </button>
                         </div>
                     </div>

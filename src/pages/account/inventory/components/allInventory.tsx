@@ -11,6 +11,7 @@ import { useSearch } from "../../../../context/searchContext";
 import Tabla from "../../../../components/tables/Table";
 import { X } from "lucide-react";
 import { CreateEquipmentData } from "../../devices/components/AllDevices";
+import { useTranslation } from "react-i18next";
 
 
 interface Department {
@@ -37,6 +38,7 @@ export default function AllInventory() {
   const { search } = useSearch();
   const { selectedCompany } = useCompany();
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   // --- Clases dinámicas reutilizables ---
   const pageBg = isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900";
@@ -180,7 +182,7 @@ export default function AllInventory() {
     try {
       const res = await fetch(`${VITE_API_URL}/api/inventory/${selectedCompany?.id}/inventory/${equipmentToDelete.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Error al eliminar equipo");
-      alert("Equipo eliminado correctamente");
+      alert(t("inventory.equipmentDeleted"));
       cerrarModalEliminar();
       await fetchInventory();
     } catch (error) { alert(`Error al eliminar: ${error}`); }
@@ -199,7 +201,7 @@ export default function AllInventory() {
         }),
       });
       if (!res.ok) throw new Error("Error al crear el equipo");
-      alert("Equipo creado correctamente");
+      alert(t("inventory.equipmentCreated"));
       setShowAddModal(false);
       setNewEquipment({ brand: "", model: "", type: "", serialNumber: "", location: "", status: "Activo", cost: "" });
       await fetchInventory();
@@ -223,27 +225,27 @@ export default function AllInventory() {
   };
 
   const columnConfig = {
-    "Marca/Modelo": (item: CreateEquipmentData) => (
+    [t("devices.brand") + "/" + t("devices.model")]: (item: CreateEquipmentData) => (
       <div>
         <div className="font-medium">{item.brand}</div>
         <div className={`text-sm ${subTextClass}`}>{item.model}</div>
       </div>
     ),
-    "Tipo": (item: CreateEquipmentData) => item.type,
-    "Placa/Serie": (item: CreateEquipmentData) => (
+    [t("common.type")]: (item: CreateEquipmentData) => item.type,
+    [t("devices.serialNumber")]: (item: CreateEquipmentData) => (
       <div>
         <div>{item.plateNumber ?? "-"}</div>
         <div className={`text-xs ${subTextClass}`}>{item.serialNumber}</div>
       </div>
     ),
-    "Ubicación": (item: CreateEquipmentData) => getDepartmentName(item.location),
-    "Lo tiene": (item: CreateEquipmentData) => item.assignedToPerson?.fullName ?? "-",
-    "Estado": (item: CreateEquipmentData) => (
+    [t("devices.location")]: (item: CreateEquipmentData) => getDepartmentName(item.location),
+    [t("devices.assignedTo")]: (item: CreateEquipmentData) => item.assignedToPerson?.fullName ?? "-",
+    [t("common.status")]: (item: CreateEquipmentData) => (
       <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(String(item?.status))}`}>
         {item.status}
       </span>
     ),
-    "Costo": (item: CreateEquipmentData) => item.cost ?? "-",
+    [t("inventory.unitPrice")]: (item: CreateEquipmentData) => item.cost ?? "-",
   };
   const filteredEquipos = inventory.filter(equipo => {
     const searchTermLower = search.toLowerCase()
@@ -319,13 +321,13 @@ export default function AllInventory() {
   const typeStats = getTypeStats()
 
   if (loading) return <Loader />;
-  if (!selectedCompany?.id) return <p className={subTextClass}>No se encontró el código de empresa.</p>;
+  if (!selectedCompany?.id) return <p className={subTextClass}>{t("inventory.noCompany")}</p>;
 
   return (
     <div className={`flex-1 transition-colors ${pageBg}`}>
       <PagesHeader
-        title={`Inventario`}
-        description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+        title={t("inventory.title")}
+        description={pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")}
         showCreate
         onDownloadTemplate={downloadTemplate}
         onImportCsv={handleImportClick}
@@ -342,8 +344,8 @@ export default function AllInventory() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <h3 className="text-xl font-bold mb-2">Importando Datos</h3>
-              <p className={`text-center ${subTextClass}`}>Por favor espera mientras procesamos tu archivo CSV...</p>
+              <h3 className="text-xl font-bold mb-2">{t("action.importing")}</h3>
+              <p className={`text-center ${subTextClass}`}>{t("inventory.importingMessage")}</p>
               <div className={`mt-4 w-full rounded-full h-2 ${isDarkMode ? "bg-gray-700" : "bg-gray-200"}`}>
                 <div className="bg-blue-500 h-2 rounded-full animate-pulse w-full" />
               </div>
@@ -358,7 +360,7 @@ export default function AllInventory() {
           <div className={`rounded-lg p-6 shadow-2xl max-w-3xl w-full border max-h-[90vh] overflow-y-auto transition-colors ${cardBg}`}>
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-2xl font-bold">
-                {importResult.success ? '✅ Importación Completada' : '⚠️ Importación con Errores'}
+                {importResult.success ? `✅ ${t("inventory.importComplete")}` : `⚠️ ${t("inventory.importWithErrors")}`}
               </h3>
               <button onClick={() => setShowImportResultModal(false)} className={`${subTextClass} hover:opacity-75`}>
                 <X size={24} />
@@ -367,19 +369,19 @@ export default function AllInventory() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className={`rounded-lg p-4 ${isDarkMode ? "bg-gray-700" : "bg-gray-100"}`}>
-                <p className={`text-sm ${subTextClass}`}>Total Filas</p>
+                <p className={`text-sm ${subTextClass}`}>{t("inventory.totalRows")}</p>
                 <p className="text-2xl font-bold">{importResult.totalRows}</p>
               </div>
               <div className={`rounded-lg p-4 border ${isDarkMode ? "bg-green-900/30 border-green-700" : "bg-green-50 border-green-300"}`}>
-                <p className={`text-sm ${isDarkMode ? "text-green-400" : "text-green-700"}`}>Insertados</p>
+                <p className={`text-sm ${isDarkMode ? "text-green-400" : "text-green-700"}`}>{t("inventory.inserted")}</p>
                 <p className={`text-2xl font-bold ${isDarkMode ? "text-green-300" : "text-green-700"}`}>{importResult.inserted}</p>
               </div>
               <div className={`rounded-lg p-4 border ${isDarkMode ? "bg-yellow-900/30 border-yellow-700" : "bg-yellow-50 border-yellow-300"}`}>
-                <p className={`text-sm ${isDarkMode ? "text-yellow-400" : "text-yellow-700"}`}>Omitidos</p>
+                <p className={`text-sm ${isDarkMode ? "text-yellow-400" : "text-yellow-700"}`}>{t("inventory.skipped")}</p>
                 <p className={`text-2xl font-bold ${isDarkMode ? "text-yellow-300" : "text-yellow-700"}`}>{importResult.skipped}</p>
               </div>
               <div className={`rounded-lg p-4 border ${isDarkMode ? "bg-red-900/30 border-red-700" : "bg-red-50 border-red-300"}`}>
-                <p className={`text-sm ${isDarkMode ? "text-red-400" : "text-red-700"}`}>Errores</p>
+                <p className={`text-sm ${isDarkMode ? "text-red-400" : "text-red-700"}`}>{t("inventory.errors")}</p>
                 <p className={`text-2xl font-bold ${isDarkMode ? "text-red-300" : "text-red-700"}`}>{importResult.errors}</p>
               </div>
             </div>
@@ -387,12 +389,12 @@ export default function AllInventory() {
             {importResult.details.skippedRecords.length > 0 && (
               <div className="mb-6">
                 <h4 className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-yellow-400" : "text-yellow-600"}`}>
-                  📋 Registros Omitidos ({importResult.details.skippedRecords.length})
+                  {t("inventory.skippedRecords")} ({importResult.details.skippedRecords.length})
                 </h4>
                 <div className={`rounded-lg p-4 max-h-60 overflow-y-auto ${innerBg}`}>
                   {importResult.details.skippedRecords.map((item, idx) => (
                     <div key={idx} className={`mb-3 pb-3 border-b last:border-0 ${dividerClass}`}>
-                      <p className="font-medium">Fila {item.row}</p>
+                      <p className="font-medium">{t("inventory.row")} {item.row}</p>
                       <p className={`text-sm ${subTextClass}`}>Serial: {item.serialNumber}</p>
                       <p className={`text-sm ${isDarkMode ? "text-yellow-300" : "text-yellow-600"}`}>{item.reason}</p>
                     </div>
@@ -404,12 +406,12 @@ export default function AllInventory() {
             {importResult.details.errorRecords.length > 0 && (
               <div className="mb-6">
                 <h4 className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-red-400" : "text-red-600"}`}>
-                  ❌ Errores ({importResult.details.errorRecords.length})
+                  {t("inventory.errorRecords")} ({importResult.details.errorRecords.length})
                 </h4>
                 <div className={`rounded-lg p-4 max-h-60 overflow-y-auto ${innerBg}`}>
                   {importResult.details.errorRecords.map((item, idx) => (
                     <div key={idx} className={`mb-3 pb-3 border-b last:border-0 ${dividerClass}`}>
-                      <p className="font-medium">Fila {item.row}</p>
+                      <p className="font-medium">{t("inventory.row")} {item.row}</p>
                       {item.serialNumber && <p className={`text-sm ${subTextClass}`}>Serial: {item.serialNumber}</p>}
                       <p className={`text-sm ${isDarkMode ? "text-red-300" : "text-red-600"}`}>{item.message}</p>
                     </div>
@@ -421,7 +423,7 @@ export default function AllInventory() {
             {importResult.details.insertedRecords.length > 0 && (
               <div className="mb-4">
                 <h4 className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-green-400" : "text-green-600"}`}>
-                  ✅ Registros Insertados ({importResult.details.insertedRecords.length})
+                  {t("inventory.insertedRecords")} ({importResult.details.insertedRecords.length})
                 </h4>
                 <div className={`rounded-lg p-4 max-h-40 overflow-y-auto ${innerBg}`}>
                   <div className="flex flex-wrap gap-2">
@@ -437,7 +439,7 @@ export default function AllInventory() {
 
             <div className="flex justify-end mt-6">
               <button onClick={() => setShowImportResultModal(false)} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium">
-                Cerrar
+                {t("action.cancel")}
               </button>
             </div>
           </div>
@@ -449,21 +451,21 @@ export default function AllInventory() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`rounded-lg shadow-xl max-w-sm w-full mx-4 border transition-colors ${cardBg}`}>
             <div className={`flex items-center justify-between p-6 border-b ${dividerClass}`}>
-              <h3 className="text-lg font-semibold">Confirmar eliminación</h3>
+              <h3 className="text-lg font-semibold">{t("common.confirmDelete")}</h3>
               <button onClick={cerrarModalEliminar} className={`${subTextClass} hover:opacity-75 transition-opacity`}>
                 <X size={20} />
               </button>
             </div>
             <div className="p-6">
-              <p className={`mb-2 ${labelClass}`}>¿Estás seguro de que deseas eliminar este equipo?</p>
+              <p className={`mb-2 ${labelClass}`}>{t("inventory.deleteConfirm")}</p>
               <p className="font-semibold text-lg">{equipmentToDelete.brand} {equipmentToDelete.model}</p>
               <p className={`text-sm mt-2 ${subTextClass}`}>Serie: {equipmentToDelete.serialNumber}</p>
-              <p className={`text-sm mt-4 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>Esta acción no se puede deshacer.</p>
+              <p className={`text-sm mt-4 ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}>{t("common.cannotUndo")}</p>
             </div>
             <div className={`flex gap-3 p-6 border-t ${dividerClass} ${cardBg750}`}>
-              <button onClick={cerrarModalEliminar} className={`flex-1 ${cancelBtnClass}`}>Cancelar</button>
+              <button onClick={cerrarModalEliminar} className={`flex-1 ${cancelBtnClass}`}>{t("action.cancel")}</button>
               <button onClick={handleDelete} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium">
-                Eliminar
+                {t("action.delete")}
               </button>
             </div>
           </div>
@@ -477,33 +479,33 @@ export default function AllInventory() {
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalEquipos}</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>En Uso</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.inUse")}</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{enUso}</div>
           <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((enUso / totalEquipos) * 100).toFixed(0) : 0}%</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Disponibles</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.available")}</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{disponibles}</div>
           <div className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{totalEquipos > 0 ? ((disponibles / totalEquipos) * 100).toFixed(0) : 0}%</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activos</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("common.active")}</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-green-500' : 'text-green-700'}`}>{activos}</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mant.</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.maintenance")}</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>{enMantenimiento}</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Dañados</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.damaged")}</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{dañados}</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Garantías</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.warranties")}</span>
           <div className={`text-2xl font-bold ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`}>{garantiasPorVencer}</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Costo</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.cost")}</span>
           <div className={`text-lg font-bold ${isDarkMode ? 'text-purple-400' : 'text-purple-600'}`}>
             ${(totalCost >= 1000000 ? (totalCost / 1000000).toFixed(1) + 'M' : (totalCost >= 1000 ? (totalCost / 1000).toFixed(1) + 'k' : totalCost.toFixed(0)))}
           </div>
@@ -513,12 +515,12 @@ export default function AllInventory() {
       {/* ANÁLISIS POR USUARIO */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>👤 Más Equipos</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.mostEquipment")}</span>
           <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{userStats.max[0]}</div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{userStats.max[1]}</div>
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>📍 Top Deptos</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.topDepts")}</span>
           {topDepts.slice(0, 3).map((dept, idx) => (
             <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {dept[0]}: <span className="font-bold">{dept[1]}</span>
@@ -526,7 +528,7 @@ export default function AllInventory() {
           ))}
         </div>
         <div className={`rounded p-3 border transition-colors ${isDarkMode ? 'bg-gray-800 border-white/[0.08]' : 'bg-white border-gray-200'}`}>
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>🖥️ Tipos</span>
+          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{t("inventory.types")}</span>
           {typeStats.slice(0, 3).map((type, idx) => (
             <div key={idx} className={`text-xs truncate ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               {type[0]}: <span className="font-bold">{type[1]}</span>
@@ -546,7 +548,7 @@ export default function AllInventory() {
               : 'bg-white border border-gray-300 text-gray-900'
             }`}
         >
-          <option value="todos">🖥️ Todos los Tipos</option>
+          <option value="todos">{t("inventory.allTypes")}</option>
           {Array.from(new Set(inventory.map(eq => eq.type).filter(Boolean))).sort().map(type => (
             <option key={type} value={type}>
               🖥️ {type}
@@ -563,7 +565,7 @@ export default function AllInventory() {
               : 'bg-white border border-gray-300 text-gray-900'
             }`}
         >
-          <option value="todos">📍 Todos los Departamentos</option>
+          <option value="todos">{t("inventory.allDepartments")}</option>
           {departments.map(dept => (
             <option key={dept.id} value={dept.id}>
               📍 {dept.name}
@@ -583,21 +585,21 @@ export default function AllInventory() {
           mostrarAcciones={true}
         />
       ) : (
-        <p className={`mt-6 ${subTextClass}`}>No hay equipos aún. Puedes agregar uno o importar un CSV.</p>
+        <p className={`mt-6 ${subTextClass}`}>{t("inventory.noEquipment")}</p>
       )}
 
       {/* Modal Agregar Equipo */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`rounded-lg p-6 w-full max-w-2xl border transition-colors ${cardBg}`}>
-            <h3 className="text-xl font-bold mb-4">Agregar Nuevo Equipo</h3>
+            <h3 className="text-xl font-bold mb-4">{t("inventory.create")}</h3>
             <div className="grid grid-cols-2 gap-4">
-              <input className={inputClass} placeholder="Marca" value={newEquipment.brand} onChange={(e) => setNewEquipment({ ...newEquipment, brand: e.target.value })} />
-              <input className={inputClass} placeholder="Modelo" value={newEquipment.model} onChange={(e) => setNewEquipment({ ...newEquipment, model: e.target.value })} />
-              <input className={inputClass} placeholder="Tipo" value={newEquipment.type} onChange={(e) => setNewEquipment({ ...newEquipment, type: e.target.value })} />
-              <input className={inputClass} placeholder="Número de Serie" value={newEquipment.serialNumber} onChange={(e) => setNewEquipment({ ...newEquipment, serialNumber: e.target.value })} />
+              <input className={inputClass} placeholder={t("devices.brand")} value={newEquipment.brand} onChange={(e) => setNewEquipment({ ...newEquipment, brand: e.target.value })} />
+              <input className={inputClass} placeholder={t("devices.model")} value={newEquipment.model} onChange={(e) => setNewEquipment({ ...newEquipment, model: e.target.value })} />
+              <input className={inputClass} placeholder={t("common.type")} value={newEquipment.type} onChange={(e) => setNewEquipment({ ...newEquipment, type: e.target.value })} />
+              <input className={inputClass} placeholder={t("devices.serialNumber")} value={newEquipment.serialNumber} onChange={(e) => setNewEquipment({ ...newEquipment, serialNumber: e.target.value })} />
               <select className={selectClass} value={newEquipment.location} onChange={(e) => setNewEquipment({ ...newEquipment, location: e.target.value })}>
-                <option value="">Sin ubicación asignada</option>
+                <option value="">{t("inventory.noLocation")}</option>
                 {departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
                     {dept.name}
@@ -609,11 +611,11 @@ export default function AllInventory() {
                 <option value="En Uso">En Uso</option>
                 <option value="Mantenimiento">Mantenimiento</option>
               </select>
-              <input className={inputClass} placeholder="Costo" type="number" value={newEquipment.cost} onChange={(e) => setNewEquipment({ ...newEquipment, cost: e.target.value })} />
+              <input className={inputClass} placeholder={t("inventory.cost")} type="number" value={newEquipment.cost} onChange={(e) => setNewEquipment({ ...newEquipment, cost: e.target.value })} />
             </div>
             <div className="flex justify-end mt-6 gap-3">
-              <button onClick={() => setShowAddModal(false)} className={cancelBtnClass}>Cancelar</button>
-              <button onClick={handleAddEquipment} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white font-medium">Guardar Equipo</button>
+              <button onClick={() => setShowAddModal(false)} className={cancelBtnClass}>{t("action.cancel")}</button>
+              <button onClick={handleAddEquipment} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white font-medium">{t("action.save")}</button>
             </div>
           </div>
         </div>

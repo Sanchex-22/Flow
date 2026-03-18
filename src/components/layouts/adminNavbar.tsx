@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { getMainRoutesForRole, getUserRoles } from "../../routes/routesConfig";
 import { UserProfile } from "../../context/userProfileContext";
 import Images from "../../assets";
-import { LogOut, Menu, X, Search, Bell, Sun, Moon, Globe, Ticket, Wrench, Monitor, CheckCheck, ExternalLink } from "lucide-react";
+import { Menu, X, Search, Bell, Sun, Moon, Globe, Ticket, Wrench, Monitor, CheckCheck, ExternalLink, LogOut } from "lucide-react";
 import useUser from "../../hook/useUser";
 import CompanySelectorComponent from "../selector/CompanySelectorComponent";
 import { useCompany } from "../../context/routerContext";
@@ -12,6 +12,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useTheme } from "../../context/themeContext";
 import { useTranslation } from "react-i18next";
 import { useNotifications, AppNotification } from "../../context/notificationContext";
+import appConfig from "../../utils/appConfig";
 
 interface CurrentPathname { name: string }
 interface AdminNavbarProps {
@@ -41,13 +42,14 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
   const { logout } = useUser();
   const { selectedCompany } = useCompany();
   const { isDarkMode, toggleTheme } = useTheme();
+  const ThemeIcon = isDarkMode ? Sun : Moon;
   const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { search, setSearch } = useSearch();
   const location = useLocation();
-  const AppName = import.meta.env.VITE_APP_NAME || "Flow IT";
+  const AppName = appConfig.name;
   const initials = profile?.username ? profile.username[0].toUpperCase() : "U";
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -220,7 +222,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
 
             {/* Theme */}
             <button onClick={toggleTheme} className={iconBtn} aria-label="Toggle theme">
-              {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+              <ThemeIcon className="w-[18px] h-[18px]" />
             </button>
 
             {/* User avatar */}
@@ -253,7 +255,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ profile }) => {
               )}
             </button>
             <button onClick={toggleTheme} className={iconBtn}>
-              {isDarkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+              <ThemeIcon className="w-[18px] h-[18px]" />
             </button>
             <button
               onClick={() => { setIsMenuOpen(!isMenuOpen); setMobileSearchOpen(false); }}

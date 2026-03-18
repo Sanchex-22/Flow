@@ -11,6 +11,7 @@ import { useTheme } from "../../../../context/themeContext"
 import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 import Loader from "../../../../components/loaders/loader"
+import { useTranslation } from "react-i18next"
 
 const API_URL = import.meta.env.VITE_API_URL as string
 
@@ -57,7 +58,7 @@ const getFullName = (person: AssignedPerson): string => {
   if (person.user?.username) {
     return person.user.username
   }
-  return "Persona Desconocida"
+  return "Unknown"
 }
 
 // ✅ Helper para extraer department
@@ -71,6 +72,7 @@ export default function AllExpensePage() {
   const { selectedCompany } = useCompany()
   const { search } = useSearch()
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
 
   const [expenses, setExpenses] = useState<AnnualSoftwareExpense[]>([])
   const [loading, setLoading] = useState(true)
@@ -577,9 +579,9 @@ export default function AllExpensePage() {
       }`}
     >
       <PagesHeader
-        title={"Gastos Anuales de Software"}
+        title={t("expenses.title")}
         description={
-          pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."
+          pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")
         }
         showCreate
         onExport={handleExportExcel}
@@ -598,7 +600,7 @@ export default function AllExpensePage() {
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Total de Personas
+            {t("persons.totalPersons")}
           </p>
           <p
             className={`text-2xl sm:text-3xl font-bold mt-1 transition-colors ${
@@ -621,7 +623,7 @@ export default function AllExpensePage() {
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Total Aplicaciones
+            {t("expenses.software")}
           </p>
           <p
             className={`text-2xl sm:text-3xl font-bold mt-1 transition-colors ${
@@ -644,7 +646,7 @@ export default function AllExpensePage() {
               isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            Costo Total Anual
+            {t("expenses.annualTotal")}
           </p>
           <p
             className={`text-2xl sm:text-3xl font-bold mt-1 transition-colors ${
@@ -687,14 +689,14 @@ export default function AllExpensePage() {
                     isDarkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
-                  Colaborador
+                  {t("persons.firstName")}
                 </th>
                 <th
                   className={`text-left py-3 px-4 font-bold transition-colors ${
                     isDarkMode ? "text-white" : "text-gray-800"
                   }`}
                 >
-                  Departamento
+                  {t("persons.department")}
                 </th>
                 {tableData.applications.map((app) => {
                   const expense = filteredExpenses.find(
@@ -723,7 +725,7 @@ export default function AllExpensePage() {
                             }`}
                             title="Editar aplicación"
                           >
-                            ✎ Editar
+                            ✎ {t("action.edit")}
                           </button>
                         )}
                       </div>
@@ -878,7 +880,7 @@ export default function AllExpensePage() {
                     colSpan={tableData.applications.length + 3}
                     className="py-8 text-center text-gray-500"
                   >
-                    No hay personas con datos asignados
+                    {t("common.noData")}
                   </td>
                 </tr>
               )}
@@ -895,9 +897,7 @@ export default function AllExpensePage() {
         }`}
       >
         <p>
-          💡 La tabla muestra el costo por usuario para cada aplicación. Haz clic en el nombre de un
-          Colaborador para ver el desglose de sus gastos. Los valores "-" indican que la persona no
-          tiene asignada esa aplicación para los filtros actuales.
+          {t("expenses.tableHint")}
         </p>
       </div>
 
@@ -913,7 +913,7 @@ export default function AllExpensePage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold mb-4">
-              Desglose de Gastos para: {selectedPersonFullName}
+              {t("expenses.title")}: {selectedPersonFullName}
             </h2>
 
             <div id="expense-detail-modal-content" className="space-y-4">
@@ -930,14 +930,14 @@ export default function AllExpensePage() {
                           isDarkMode ? "text-gray-300" : "text-gray-500"
                         }`}
                       >
-                        Aplicación
+                        {t("expenses.application")}
                       </th>
                       <th
                         className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${
                           isDarkMode ? "text-gray-300" : "text-gray-500"
                         }`}
                       >
-                        Costo
+                        {t("expenses.costPerUser")}
                       </th>
                     </tr>
                   </thead>
@@ -993,7 +993,7 @@ export default function AllExpensePage() {
                   </tbody>
                 </table>
               ) : (
-                <p>No hay gastos asignados a esta persona que coincidan con los filtros actuales.</p>
+                <p>{t("common.noData")}</p>
               )}
             </div>
 
@@ -1006,7 +1006,7 @@ export default function AllExpensePage() {
                     : "bg-green-500 hover:bg-green-600 text-white"
                 }`}
               >
-                📥 Descargar Excel
+                {t("expenses.downloadExcel")}
               </button>
               <button
                 onClick={downloadPersonExpensePDF}
@@ -1016,7 +1016,7 @@ export default function AllExpensePage() {
                     : "bg-blue-500 hover:bg-blue-600 text-white"
                 }`}
               >
-                📄 Descargar PDF
+                {t("expenses.downloadPDF")}
               </button>
               <button
                 onClick={closePersonDetailModal}
@@ -1026,7 +1026,7 @@ export default function AllExpensePage() {
                     : "bg-gray-300 hover:bg-gray-400 text-gray-800"
                 }`}
               >
-                Cerrar
+                {t("action.cancel")}
               </button>
             </div>
           </div>

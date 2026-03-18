@@ -10,6 +10,7 @@ import PagesHeader from "../../../../components/headers/pagesHeader"
 import Loader from "../../../../components/loaders/loader"
 import SimpleTable from "../../../../components/tables/SimpleTable"
 import * as XLSX from "xlsx"
+import { useTranslation } from "react-i18next"
 
 const { VITE_API_URL } = import.meta.env
 
@@ -31,6 +32,7 @@ interface License {
 export default function AllLicenses() {
   const navigate = useNavigate()
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
   const { selectedCompany } = useCompany()
   usePageName()
   const { search } = useSearch()
@@ -61,7 +63,7 @@ export default function AllLicenses() {
           : data
         setLicenses(filtered)
       })
-      .catch(() => setError("Error al cargar las licencias"))
+      .catch(() => setError(t("error.loadData")))
       .finally(() => setLoading(false))
   }
 
@@ -76,7 +78,7 @@ export default function AllLicenses() {
       setLicenses((prev) => prev.filter((l) => l.id !== deleteId))
       setDeleteId(null)
     } catch {
-      alert("Error al eliminar la licencia")
+      alert(t("error.deleteData"))
     } finally {
       setIsDeleting(false)
     }
@@ -95,14 +97,14 @@ export default function AllLicenses() {
 
   const exportToExcel = () => {
     const data = filteredLicenses.map((l) => ({
-      Software: l.softwareName,
-      Proveedor: l.provider || "-",
-      "Clave de Licencia": l.licenseKey,
-      "Fecha de Activación": new Date(l.activationDate).toLocaleDateString("es-ES"),
-      "Fecha de Expiración": l.expirationDate
-        ? new Date(l.expirationDate).toLocaleDateString("es-ES")
-        : "Sin expiración",
-      Notas: l.notes || "-",
+      [t("licenses.softwareName")]: l.softwareName,
+      [t("licenses.provider")]: l.provider || "-",
+      [t("licenses.licenseKey")]: l.licenseKey,
+      [t("licenses.activationDate")]: new Date(l.activationDate).toLocaleDateString(),
+      [t("licenses.expirationDate")]: l.expirationDate
+        ? new Date(l.expirationDate).toLocaleDateString()
+        : t("licenses.noExpiration"),
+      [t("common.notes")]: l.notes || "-",
     }))
     const ws = XLSX.utils.json_to_sheet(data)
     ws["!cols"] = [25, 20, 30, 20, 20, 30].map((w) => ({ wch: w }))
@@ -119,13 +121,13 @@ export default function AllLicenses() {
   )
 
   const columns = [
-    { key: "softwareName", label: "Software" },
-    { key: "provider", label: "Proveedor" },
-    { key: "licenseKey", label: "Clave de Licencia" },
-    { key: "activationDate", label: "Activación" },
-    { key: "expirationDate", label: "Expiración" },
-    { key: "status", label: "Estado" },
-    { key: "actions", label: "Acciones" },
+    { key: "softwareName", label: t("licenses.softwareName") },
+    { key: "provider", label: t("licenses.provider") },
+    { key: "licenseKey", label: t("licenses.licenseKey") },
+    { key: "activationDate", label: t("licenses.activationDate") },
+    { key: "expirationDate", label: t("licenses.expirationDate") },
+    { key: "status", label: t("common.status") },
+    { key: "actions", label: t("common.actions") },
   ]
 
   const tableRows = filteredLicenses.map((l) => ({
@@ -139,7 +141,7 @@ export default function AllLicenses() {
     activationDate: new Date(l.activationDate).toLocaleDateString("es-ES"),
     expirationDate: l.expirationDate
       ? new Date(l.expirationDate).toLocaleDateString("es-ES")
-      : "Sin expiración",
+      : t("licenses.noExpiration"),
     status: (
       <span
         className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -151,10 +153,10 @@ export default function AllLicenses() {
         }`}
       >
         {isExpired(l.expirationDate)
-          ? "Expirada"
+          ? t("licenses.expired")
           : isExpiringSoon(l.expirationDate)
-          ? "Por vencer"
-          : "Activa"}
+          ? t("licenses.expiringSoon")
+          : t("licenses.active")}
       </span>
     ),
     actions: (
@@ -163,13 +165,13 @@ export default function AllLicenses() {
           onClick={() => navigate(`/${selectedCompany?.code}/licenses/edit/${l.id}`)}
           className="text-blue-500 hover:text-blue-700 text-xs font-medium"
         >
-          Editar
+          {t("action.edit")}
         </button>
         <button
           onClick={() => setDeleteId(l.id)}
           className="text-red-500 hover:text-red-700 text-xs font-medium"
         >
-          Eliminar
+          {t("action.delete")}
         </button>
       </div>
     ),
@@ -181,25 +183,25 @@ export default function AllLicenses() {
   return (
     <div className="space-y-4">
       <PagesHeader
-        title="Licencias de Software"
-        description={selectedCompany ? `Licencias de ${selectedCompany.name}` : "Todas las licencias"}
+        title={t("licenses.title")}
+        description={selectedCompany ? `${t("licenses.title")} - ${selectedCompany.name}` : t("licenses.all")}
         showCreate
         onExport={exportToExcel}
       />
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
-          <p className={`text-xs ${textSub}`}>Total Licencias</p>
+          <p className={`text-xs ${textSub}`}>{t("licenses.totalLicenses")}</p>
           <p className={`text-2xl sm:text-3xl font-bold ${textMain}`}>{filteredLicenses.length}</p>
         </div>
         <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
-          <p className={`text-xs text-yellow-500`}>Por Vencer (30d)</p>
+          <p className={`text-xs text-yellow-500`}>{t("licenses.expiringSoonCount")}</p>
           <p className="text-2xl sm:text-3xl font-bold text-yellow-500">
             {filteredLicenses.filter((l) => isExpiringSoon(l.expirationDate)).length}
           </p>
         </div>
         <div className={`rounded-xl p-3 sm:p-4 border ${cardBg}`}>
-          <p className={`text-xs text-red-500`}>Expiradas</p>
+          <p className={`text-xs text-red-500`}>{t("licenses.expiredCount")}</p>
           <p className="text-2xl sm:text-3xl font-bold text-red-500">
             {filteredLicenses.filter((l) => isExpired(l.expirationDate)).length}
           </p>
@@ -217,21 +219,21 @@ export default function AllLicenses() {
             className={`rounded-xl p-6 w-full max-w-sm shadow-xl ${cardBg}`}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className={`text-lg font-bold mb-2 ${textMain}`}>¿Eliminar licencia?</h3>
-            <p className={`text-sm mb-4 ${textSub}`}>Esta acción no se puede deshacer.</p>
+            <h3 className={`text-lg font-bold mb-2 ${textMain}`}>{t("licenses.deleteConfirm")}</h3>
+            <p className={`text-sm mb-4 ${textSub}`}>{t("common.cannotUndo")}</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteId(null)}
                 className={`px-4 py-2 rounded-lg text-sm ${isDarkMode ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"}`}
               >
-                Cancelar
+                {t("action.cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="px-4 py-2 rounded-lg text-sm bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
               >
-                {isDeleting ? "Eliminando..." : "Eliminar"}
+                {isDeleting ? t("common.deleting") : t("action.delete")}
               </button>
             </div>
           </div>

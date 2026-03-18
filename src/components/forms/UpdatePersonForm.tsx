@@ -199,16 +199,16 @@ export default function UpdatePersonForm({ userID, personId, departments, select
   };
 
   // --- Estilos Dinámicos ---
-  const bgClasses = isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200";
+  const bgClasses = isDarkMode ? "bg-[#2c2c2e] border-white/[0.08]" : "bg-white border-gray-200";
   const textClasses = isDarkMode ? "text-white" : "text-gray-900";
   const labelClasses = isDarkMode ? "text-gray-300" : "text-gray-700";
   const inputClasses = isDarkMode 
-    ? "w-full bg-gray-700 border border-gray-600 text-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" 
+    ? "w-full bg-[#3a3a3c] border border-white/[0.08] text-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" 
     : "w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500";
   
   const primaryButton = "px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50";
   const secondaryButton = isDarkMode 
-    ? "px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-medium transition-all" 
+    ? "px-6 py-2.5 bg-[#3a3a3c] hover:bg-gray-600 text-gray-200 rounded-lg font-medium transition-all" 
     : "px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-all";
 
   if (personError) return <div className="p-4 text-red-500">Error al cargar datos del perfil.</div>;
@@ -217,11 +217,11 @@ export default function UpdatePersonForm({ userID, personId, departments, select
     <form onSubmit={handleSubmit} className={`max-w-4xl mx-auto space-y-6 rounded-xl p-8 border shadow-sm ${bgClasses}`}>
       
       {/* Header */}
-      <div className="border-b border-gray-700 pb-4 mb-6">
+      <div className="border-b border-white/[0.08] pb-4 mb-6">
         <h2 className={`text-2xl font-bold ${textClasses}`}>
           {isEditMode ? "Actualizar Perfil" : "Crear Nueva Persona"}
         </h2>
-        <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+        <p className={`text-sm ${isDarkMode ? "text-white/50" : "text-gray-500"}`}>
           Compañía: <span className="text-blue-500 font-semibold">{selectedCompany?.name}</span>
         </p>
       </div>
@@ -368,7 +368,7 @@ export default function UpdatePersonForm({ userID, personId, departments, select
       </div>
 
       {/* Footer / Acciones */}
-      <div className="flex justify-end gap-3 pt-6 border-t border-gray-700">
+      <div className="flex justify-end gap-3 pt-6 border-t border-white/[0.08]">
         <button
           type="button"
           onClick={() => navigate(-1)}

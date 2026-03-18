@@ -260,69 +260,73 @@ export default function UpdateUser({
 
   // ── Clases reutilizables según el tema ──────────────────────────────────────
   const card = isDarkMode
-    ? "bg-gray-800 border-gray-700"
+    ? "bg-[#2c2c2e] border-white/[0.08]"
     : "bg-white border-gray-200 shadow-sm";
 
-  const cardTitle   = isDarkMode ? "text-white"      : "text-gray-900";
-  const cardSubtitle = isDarkMode ? "text-gray-400"   : "text-gray-500";
-  const divider     = isDarkMode ? "border-gray-700" : "border-gray-200";
+  const cardTitle    = isDarkMode ? "text-white"     : "text-gray-900";
+  const cardSubtitle = isDarkMode ? "text-white/50"  : "text-gray-500";
+  const divider      = isDarkMode ? "border-white/[0.08]" : "border-gray-200";
 
   const inputBase = isDarkMode
-    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-    : "bg-gray-50  border-gray-300 text-gray-900 placeholder-gray-400";
+    ? "bg-[#3a3a3c] border-white/[0.08] text-white placeholder-white/30 focus:border-blue-500/60 focus:ring-blue-500/20"
+    : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/20";
 
   const selectBase = isDarkMode
-    ? "bg-gray-700 border-gray-600 text-white"
-    : "bg-gray-50  border-gray-300 text-gray-900";
+    ? "bg-[#3a3a3c] border-white/[0.08] text-white focus:border-blue-500/60 focus:ring-blue-500/20"
+    : "bg-gray-50 border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500/20";
 
   const disabledInput = isDarkMode
-    ? "bg-gray-600 border-gray-500 text-gray-400"
-    : "bg-gray-100 border-gray-300 text-gray-400";
+    ? "bg-[#2c2c2e] border-white/[0.05] text-white/30 cursor-not-allowed"
+    : "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed";
 
   const cancelBtn = isDarkMode
-    ? "bg-gray-700 hover:bg-gray-600 text-white"
-    : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300";
+    ? "bg-white/[0.06] hover:bg-white/10 text-white border border-white/[0.08]"
+    : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300";
 
   // React-Select dinámico
   const customStyles = {
     control: (base: any) => ({
       ...base,
-      backgroundColor: isDarkMode ? "#374151" : "#f9fafb",
-      borderColor: errors.companies ? "#ef4444" : isDarkMode ? "#4b5563" : "#d1d5db",
+      backgroundColor: isDarkMode ? "#3a3a3c" : "#f9fafb",
+      borderColor: errors.companies ? "#ef4444" : isDarkMode ? "rgba(255,255,255,0.08)" : "#d1d5db",
       minHeight: "42px",
       boxShadow: "none",
-      "&:hover": { borderColor: isDarkMode ? "#6b7280" : "#9ca3af" },
+      borderRadius: "0.5rem",
+      "&:hover": { borderColor: isDarkMode ? "rgba(255,255,255,0.15)" : "#9ca3af" },
     }),
     menu: (base: any) => ({
       ...base,
-      backgroundColor: isDarkMode ? "#374151" : "#ffffff",
-      border: `1px solid ${isDarkMode ? "#4b5563" : "#d1d5db"}`,
+      backgroundColor: isDarkMode ? "#2c2c2e" : "#ffffff",
+      border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "#d1d5db"}`,
+      borderRadius: "0.5rem",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
     }),
     option: (base: any, state: any) => ({
       ...base,
       backgroundColor: state.isFocused
-        ? isDarkMode ? "#4b5563" : "#f3f4f6"
-        : isDarkMode ? "#374151" : "#ffffff",
+        ? isDarkMode ? "rgba(255,255,255,0.06)" : "#f3f4f6"
+        : "transparent",
       color: isDarkMode ? "#ffffff" : "#111827",
     }),
     multiValue: (base: any) => ({
       ...base,
-      backgroundColor: isDarkMode ? "#3b82f6" : "#dbeafe",
+      backgroundColor: isDarkMode ? "rgba(59,130,246,0.25)" : "#dbeafe",
+      borderRadius: "0.375rem",
     }),
     multiValueLabel: (base: any) => ({
       ...base,
-      color: isDarkMode ? "#ffffff" : "#1d4ed8",
+      color: isDarkMode ? "#93c5fd" : "#1d4ed8",
     }),
     multiValueRemove: (base: any) => ({
       ...base,
-      color: isDarkMode ? "#ffffff" : "#1d4ed8",
+      color: isDarkMode ? "#93c5fd" : "#1d4ed8",
       "&:hover": {
-        backgroundColor: isDarkMode ? "#2563eb" : "#bfdbfe",
+        backgroundColor: isDarkMode ? "rgba(59,130,246,0.4)" : "#bfdbfe",
         color: isDarkMode ? "#ffffff" : "#1e40af",
       },
     }),
     input: (base: any) => ({ ...base, color: isDarkMode ? "#ffffff" : "#111827" }),
-    placeholder: (base: any) => ({ ...base, color: "#9ca3af" }),
+    placeholder: (base: any) => ({ ...base, color: isDarkMode ? "rgba(255,255,255,0.3)" : "#9ca3af" }),
     singleValue: (base: any) => ({ ...base, color: isDarkMode ? "#ffffff" : "#111827" }),
   };
 
@@ -335,16 +339,26 @@ export default function UpdateUser({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {submitError && (
-        <div className="bg-red-900/30 border border-red-600 rounded-lg p-4 text-red-300">
-          {submitError}
+        <div className={`rounded-xl p-4 border flex items-start gap-3 ${
+          isDarkMode
+            ? "bg-red-500/10 border-red-500/30 text-red-400"
+            : "bg-red-50 border-red-200 text-red-600"
+        }`}>
+          <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <p className="text-sm font-medium">{submitError}</p>
         </div>
       )}
 
       {/* ── Información de Cuenta ── */}
-      <div className={`rounded-lg p-6 border transition-colors duration-200 ${card}`}>
-        <h2 className={`text-xl font-bold mb-6 ${cardTitle}`}>Información de Cuenta</h2>
+      <div className={`rounded-xl p-5 sm:p-6 border transition-colors duration-200 ${card}`}>
+        <div className="mb-5">
+          <h2 className={`text-base sm:text-lg font-semibold ${cardTitle}`}>Información de Cuenta</h2>
+          <p className={`text-xs sm:text-sm mt-0.5 ${cardSubtitle}`}>Credenciales y permisos del sistema</p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -436,7 +450,7 @@ export default function UpdateUser({
       </div>
 
       {/* ── Toggle Información Personal ── */}
-      <div className={`rounded-lg p-6 border transition-colors duration-200 ${card}`}>
+      <div className={`rounded-xl p-5 sm:p-6 border transition-colors duration-200 ${card}`}>
         <div className="flex items-center justify-between">
           <div>
             <h2 className={`text-xl font-bold ${cardTitle}`}>Información Personal</h2>
@@ -593,11 +607,13 @@ export default function UpdateUser({
       </div>
 
       {/* ── Compañías Asignadas ── */}
-      <div className={`rounded-lg p-6 border transition-colors duration-200 ${card}`}>
-        <h2 className={`text-xl font-bold mb-4 ${cardTitle}`}>Compañías Asignadas *</h2>
-        <p className={`text-sm mb-4 ${cardSubtitle}`}>
-          Seleccione una o más compañías a las que pertenecerá este usuario
-        </p>
+      <div className={`rounded-xl p-5 sm:p-6 border transition-colors duration-200 ${card}`}>
+        <div className="mb-4">
+          <h2 className={`text-base sm:text-lg font-semibold ${cardTitle}`}>Compañías Asignadas <span className="text-red-400">*</span></h2>
+          <p className={`text-xs sm:text-sm mt-0.5 ${cardSubtitle}`}>
+            Seleccione una o más compañías a las que pertenecerá este usuario
+          </p>
+        </div>
         <Select
           isMulti
           options={companyOptions}
@@ -611,28 +627,28 @@ export default function UpdateUser({
           noOptionsMessage={() => "No hay compañías disponibles"}
         />
         {errors.companies && (
-          <p className="text-red-400 text-sm mt-1">{errors.companies}</p>
+          <p className="text-red-400 text-sm mt-2">{errors.companies}</p>
         )}
         {selectedCompanies.length > 0 && (
-          <p className={`text-sm mt-4 ${cardSubtitle}`}>
+          <p className={`text-sm mt-3 ${cardSubtitle}`}>
             {selectedCompanies.length} compañía(s) seleccionada(s)
           </p>
         )}
       </div>
 
       {/* ── Botones ── */}
-      <div className="flex justify-end space-x-4">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
         <button
           type="button"
           onClick={() => navigate(`/${selectedCompany?.code}/users/all`)}
-          className={`px-6 py-2 rounded-lg transition-colors ${cancelBtn}`}
+          className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-sm font-medium transition-colors ${cancelBtn}`}
           disabled={isSubmitting}
         >
           Cancelar
         </button>
         <button
           type="submit"
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-60"
+          className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           disabled={isSubmitting}
         >
           {isSubmitting ? (

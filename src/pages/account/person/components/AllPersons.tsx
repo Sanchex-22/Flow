@@ -10,6 +10,7 @@ import { useSearch } from "../../../../context/searchContext"
 import Tabla from "../../../../components/tables/Table"
 import { X } from "lucide-react"
 import { useTheme } from "../../../../context/themeContext"
+import { useTranslation } from "react-i18next"
 
 const fetcher = (url: string) =>
     fetch(url, {
@@ -79,6 +80,7 @@ const getUserStatusBadge = (person: PersonFull) => {
 
 export const AllPersons: React.FC = () => {
     const { isDarkMode } = useTheme()
+    const { t } = useTranslation()
     const { selectedCompany }: { selectedCompany: Company | null } = useCompany()
     
     // ✅ CORREGIDO: Usar selectedCompany.id correctamente
@@ -126,18 +128,18 @@ export const AllPersons: React.FC = () => {
 
             if (!response.ok) {
                 const errorData = await response.json()
-                throw new Error(errorData.message || "Error al eliminar la persona")
+                throw new Error(errorData.message || t("error.deleteData"))
             }
 
             // ✅ Actualizar lista después de eliminar
             if (selectedCompany?.id) {
                 mutate(`${import.meta.env.VITE_API_URL}/api/persons/company/${selectedCompany.id}`)
             }
-            showNotification("success", `Persona ${deleteConfirmation.person.fullName} eliminada exitosamente`)
+            showNotification("success", `${deleteConfirmation.person.fullName} - ${t("common.success")}`)
             closeDeleteConfirmation()
         } catch (error: any) {
-            console.error("Error al eliminar persona:", error)
-            showNotification("error", error.message || "Error inesperado al eliminar la persona")
+            console.error("Error deleting person:", error)
+            showNotification("error", error.message || t("error.deleteData"))
             setDeleteConfirmation((prev) => ({ ...prev, isDeleting: false }))
         }
     }
@@ -166,7 +168,7 @@ export const AllPersons: React.FC = () => {
     }, [data, search, statusFilter])
 
     const columnConfig = {
-        "Nombre Completo": (item: PersonFull) => (
+        [t("persons.firstName")]: (item: PersonFull) => (
             <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(item?.fullName)}`}>
                     {item?.fullName?.charAt(0)?.toUpperCase()}
@@ -177,7 +179,7 @@ export const AllPersons: React.FC = () => {
                 </div>
             </div>
         ),
-        "Contacto": (item: PersonFull) => (
+        [t("persons.phone")]: (item: PersonFull) => (
             <div className="text-sm">
                 <div className="flex items-center space-x-1 mb-1">
                     <span>{item.contactEmail || "-"}</span>
@@ -187,32 +189,32 @@ export const AllPersons: React.FC = () => {
                 </div>
             </div>
         ),
-        "Departamento": (item: PersonFull) => (
+        [t("persons.department")]: (item: PersonFull) => (
             <div>
-                <div className="font-medium text-sm">{item?.department?.name || "Sin departamento"}</div>
+                <div className="font-medium text-sm">{item?.department?.name || t("persons.noDepartment")}</div>
                 <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{item?.position || "-"}</div>
             </div>
         ),
-        "Usuario": (item: PersonFull) => (
+        [t("users.title")]: (item: PersonFull) => (
             <div>
-                <div className="font-medium text-sm">{item?.user?.username || "Sin usuario"}</div>
+                <div className="font-medium text-sm">{item?.user?.username || "-"}</div>
                 <div className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{item?.user?.email || "-"}</div>
             </div>
         ),
-        "Estado Persona": (item: PersonFull) => (
+        [t("common.status")]: (item: PersonFull) => (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item)}`}>
                 {item.status}
             </span>
         ),
-        "Estado Usuario": (item: PersonFull) => (
+        [t("users.role")]: (item: PersonFull) => (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getUserStatusBadge(item)}`}>
-                {!item.user ? "Sin Usuario" : item.user.isActive ? "Activo" : "Inactivo"}
+                {!item.user ? "-" : item.user.isActive ? t("common.active") : t("common.inactive")}
             </span>
         ),
     }
 
     if (isLoading) return <Loader />
-    if (error || !data) return <div className={`text-center p-8 ${isDarkMode ? "text-red-500" : "text-red-600"}`}>Error al cargar personas</div>
+    if (error || !data) return <div className={`text-center p-8 ${isDarkMode ? "text-red-500" : "text-red-600"}`}>{t("error.loadData")}</div>
 
     const isDataArray = Array.isArray(data)
 
@@ -226,8 +228,8 @@ export const AllPersons: React.FC = () => {
     return (
         <div className="relative">
             <PagesHeader
-                title={"Personas"}
-                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+                title={t("persons.title")}
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")}
                 showCreate
             />
 
@@ -238,36 +240,36 @@ export const AllPersons: React.FC = () => {
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
-                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Total Personas</span>
+                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("persons.totalPersons")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{totalPersons}</div>
-                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Registradas en el sistema</div>
+                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("common.total")}</div>
                 </div>
                 <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
-                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Personas Activas</span>
+                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("common.active")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{activePersons}</div>
-                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Con estado activo</div>
+                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("common.total")}</div>
                 </div>
                 <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
-                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Con Usuario</span>
+                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("users.title")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{personsWithUser}</div>
-                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Vinculadas a usuario</div>
+                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("common.total")}</div>
                 </div>
                 <div className={`rounded-xl p-3 sm:p-4 border transition-colors ${
                     isDarkMode 
                     ? 'bg-[#1c1c1e] border-white/[0.08]' 
                     : 'bg-white border-gray-200'
                 }`}>
-                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Departamentos</span>
+                    <span className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("persons.department")}</span>
                     <div className="text-2xl sm:text-3xl font-bold mb-1">{departments}</div>
-                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Diferentes áreas</div>
+                    <div className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{t("common.total")}</div>
                 </div>
             </div>
 
@@ -282,17 +284,17 @@ export const AllPersons: React.FC = () => {
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                    <option>Todos</option>
-                    <option>Activos</option>
-                    <option>Inactivos</option>
-                    <option>Con Usuario</option>
-                    <option>Sin Usuario</option>
+                    <option value="Todos">{t("common.all")}</option>
+                    <option value="Activos">{t("common.active")}</option>
+                    <option value="Inactivos">{t("common.inactive")}</option>
+                    <option value="Con Usuario">Con Usuario</option>
+                    <option value="Sin Usuario">Sin Usuario</option>
                 </select>
             </div>
 
             {filteredPersons?.length === 0 ? (
                 <div className={`p-8 text-center rounded-lg border ${isDarkMode ? "bg-[#1c1c1e] border-white/[0.08] text-gray-400" : "bg-gray-50 border-gray-200 text-gray-600"}`}>
-                    <p className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>No se encontraron personas</p>
+                    <p className={`font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>{t("common.noData")}</p>
                 </div>
             ) : (
                 <Tabla
@@ -310,14 +312,14 @@ export const AllPersons: React.FC = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className={`rounded-lg p-6 max-w-md w-full mx-4 border ${isDarkMode ? "bg-[#1c1c1e] border-white/[0.08]" : "bg-white border-gray-200"}`}>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>Confirmar Eliminación</h3>
+                            <h3 className={`text-lg font-medium ${isDarkMode ? "text-white" : "text-gray-900"}`}>{t("common.confirmDelete")}</h3>
                             <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={isDarkMode ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"}>
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="mb-6">
-                            <p className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>¿Estás seguro de que deseas eliminar a la persona:</p>
+                            <p className={`mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>{t("persons.deleteConfirm")}</p>
                             <div className={`rounded-lg p-3 border ${isDarkMode ? "bg-gray-700 border-gray-600" : "bg-gray-50 border-gray-200"}`}>
                                 <div className="flex items-center space-x-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getAvatarColor(deleteConfirmation.person?.fullName || "")}`}>
@@ -333,10 +335,10 @@ export const AllPersons: React.FC = () => {
 
                         <div className="flex space-x-3">
                             <button onClick={closeDeleteConfirmation} disabled={deleteConfirmation.isDeleting} className={`flex-1 px-4 py-2 rounded-lg transition-colors ${isDarkMode ? "bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 text-white" : "bg-gray-300 hover:bg-gray-400 disabled:bg-gray-300 text-gray-900"}`}>
-                                Cancelar
+                                {t("action.cancel")}
                             </button>
                             <button onClick={deletePerson} disabled={deleteConfirmation.isDeleting} className="flex-1 flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors">
-                                {deleteConfirmation.isDeleting ? "Eliminando..." : "Eliminar"}
+                                {deleteConfirmation.isDeleting ? t("common.deleting") : t("action.delete")}
                             </button>
                         </div>
                     </div>

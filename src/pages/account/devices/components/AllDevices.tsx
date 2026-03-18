@@ -13,6 +13,7 @@ import { X } from "lucide-react"
 import Tabla from "../../../../components/tables/Table"
 import CambioSelectorModal from "./CambioSelectorModal"
 import DeliveryActaGenerator from "./DeliveryPDFGenerator"
+import { useTranslation } from "react-i18next"
 
 const { VITE_API_URL } = import.meta.env
 const fetcher = (url: string) =>
@@ -100,6 +101,7 @@ const formatDate = (date: string | Date | undefined): string => {
 
 export default function AllDevices() {
     const { isDarkMode } = useTheme()
+    const { t } = useTranslation()
     const { search } = useSearch()
     const [selectedType, setSelectedType] = useState<string>("todos")
     const [activeTab, setActiveTab] = useState<string>("Todos los Equipos")
@@ -523,7 +525,7 @@ export default function AllDevices() {
     }
 
     const columnConfig = {
-        "Marca/Modelo": (item: CreateEquipmentData) => (
+        [t("devices.brand") + "/" + t("devices.model")]: (item: CreateEquipmentData) => (
             <div>
                 <div className="font-medium">{item?.brand || "N/A"}</div>
                 <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -531,12 +533,12 @@ export default function AllDevices() {
                 </div>
             </div>
         ),
-        "Tipo": (item: CreateEquipmentData) => (
+        [t("common.type")]: (item: CreateEquipmentData) => (
             <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {item?.type || "N/A"}
             </span>
         ),
-        "Placa/Serie": (item: CreateEquipmentData) => (
+        [t("devices.serialNumber")]: (item: CreateEquipmentData) => (
             <div>
                 <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {item?.plateNumber || "-"}
@@ -546,12 +548,12 @@ export default function AllDevices() {
                 </div>
             </div>
         ),
-        "Departamento": (item: CreateEquipmentData) => (
+        [t("persons.department")]: (item: CreateEquipmentData) => (
             <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {getDepartmentName(item?.location) || "-"}
             </div>
         ),
-        "Lo tiene": (item: CreateEquipmentData) => (
+        [t("devices.assignedTo")]: (item: CreateEquipmentData) => (
             <div>
                 <div className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                     {item?.assignedToPerson?.fullName || "-"}
@@ -563,32 +565,32 @@ export default function AllDevices() {
                 )}
             </div>
         ),
-        "Usuario Final": (item: CreateEquipmentData) => (
+        [t("users.email")]: (item: CreateEquipmentData) => (
             <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {item?.endUser || "-"}
             </span>
         ),
-        "Estado": (item: CreateEquipmentData) => (
+        [t("common.status")]: (item: CreateEquipmentData) => (
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(item.status || "Activo")}`}>
                 {item?.status || "Activo"}
             </span>
         ),
-        "Garantía": (item: CreateEquipmentData) => (
+        [t("maintenance.scheduledDate")]: (item: CreateEquipmentData) => (
             <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {item?.warrantyDetails || "-"}
             </span>
         ),
-        "Creado": (item: CreateEquipmentData) => (
+        [t("common.date")]: (item: CreateEquipmentData) => (
             <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 {formatDate(item?.createdAt)}
             </span>
         ),
-        "Actualizado": (item: CreateEquipmentData) => (
+        [t("common.description")]: (item: CreateEquipmentData) => (
             <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 {formatDate(item?.updatedAt)}
             </span>
         ),
-        "Costo": (item: CreateEquipmentData) => (
+        [t("maintenance.cost")]: (item: CreateEquipmentData) => (
             <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 ${item?.cost || "-"}
             </span>
@@ -666,8 +668,8 @@ export default function AllDevices() {
             )}
 
             <PagesHeader
-                title={`Dispositivos`}
-                description={pageName ? `${pageName} in ${selectedCompany?.name}` : "Cargando compañía..."}
+                title={t("devices.title")}
+                description={pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")}
                 onExport={exportToExcel}
                 showCreate
             />
@@ -677,7 +679,7 @@ export default function AllDevices() {
                 <div className="flex items-center gap-2 min-w-max">
                     {/* Tab pills */}
                     <div className={`flex p-1 rounded-lg transition-colors ${isDarkMode ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
-                        {[['Todos los Equipos', 'Todos'], ['Asignaciones', 'Asig.'], ['Garantías', 'Gtías']].map(([tab, short]) => (
+                        {[['Todos los Equipos', t("devices.all"), t("common.all")], ['Asignaciones', t("devices.assigned"), t("devices.assigned")], ['Garantías', t("devices.inWarranty"), t("devices.inWarranty")]].map(([tab, label, short]) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -687,7 +689,7 @@ export default function AllDevices() {
                                         : isDarkMode ? 'text-[#8e8e93] hover:text-white' : 'text-gray-500 hover:text-gray-900'
                                 }`}
                             >
-                                <span className="hidden sm:inline">{tab}</span>
+                                <span className="hidden sm:inline">{label}</span>
                                 <span className="sm:hidden">{short}</span>
                             </button>
                         ))}
@@ -705,7 +707,7 @@ export default function AllDevices() {
                                 : 'bg-white border-gray-200 text-gray-700'
                         }`}
                     >
-                        <option value="todos">Tipo</option>
+                        <option value="todos">{t("common.type")}</option>
                         {uniqueTypes.map(type => (
                             <option key={type} value={type}>{type}</option>
                         ))}
@@ -720,7 +722,7 @@ export default function AllDevices() {
                                 : 'bg-white border-gray-200 text-gray-700'
                         }`}
                     >
-                        <option value="todos">Depto.</option>
+                        <option value="todos">{t("persons.department")}</option>
                         {departments.map(dept => (
                             <option key={dept.id} value={dept.id}>{dept.name}</option>
                         ))}
@@ -787,7 +789,7 @@ export default function AllDevices() {
             {/* TABLA */}
             <Tabla
                 datos={getTabData()}
-                titulo={`${pageName || "Dispositivos"} List`}
+                titulo={`${pageName || t("devices.title")} List`}
                 columnasPersonalizadas={columnConfig}
                 onEditar={(item) => window.location.href = `edit/${item.id}`}
                 onEliminar={openDeleteConfirmation}

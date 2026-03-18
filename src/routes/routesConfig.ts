@@ -57,11 +57,11 @@ const routesConfig = [
   {
     icon: UsersIcon,
     name: "Users",
-    href: "/users/all",
+    href: "/settings/users/all",
     roles: [authRoles.super_admin, authRoles.admin, authRoles.moderator],
     subroutes: [
-      { name: "Create User", href: "/users/create" },
-      { name: "Edit User", href: "/users/edit" },
+      { name: "Create User", href: "/settings/users/create" },
+      { name: "Edit User", href: "/settings/users/edit" },
     ]
   },
   {

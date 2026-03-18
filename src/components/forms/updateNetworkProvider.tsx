@@ -240,7 +240,7 @@ const NetworkProviderForm: React.FC<Props> = ({ NetworkProviderID, selectedCompa
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label htmlFor="name" className="text-slate-300 block text-sm font-medium">Nombre del Proveedor <span className="text-red-400">*</span></label>
-                                    <input id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: Tigo Honduras" />
+                                    <input id="name" name="name" value={formData.name} onChange={handleChange} required className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: Tigo Honduras" />
                                     {formErrors.name && <p className="text-red-400 text-sm mt-1">{formErrors.name}</p>}
                                 </div>
 
@@ -252,46 +252,46 @@ const NetworkProviderForm: React.FC<Props> = ({ NetworkProviderID, selectedCompa
                                         name="companyName"
                                         value={selectedCompany?.name || "Cargando..."}
                                         disabled
-                                        className="w-full bg-slate-700 border border-slate-600 text-slate-400 rounded-md px-3 py-2 cursor-not-allowed"
+                                        className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white/50 rounded-md px-3 py-2 cursor-not-allowed"
                                     />
                                     {formErrors.companyId && <p className="text-red-400 text-sm mt-1">{formErrors.companyId}</p>}
                                 </div>
 
                                 <div className="space-y-2">
                                     <label htmlFor="providerIp" className="text-slate-300 block text-sm font-medium">IP del Proveedor</label>
-                                    <input id="providerIp" name="providerIp" value={formData.providerIp} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 200.10.20.1" />
+                                    <input id="providerIp" name="providerIp" value={formData.providerIp} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 200.10.20.1" />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label htmlFor="dnsGateway" className="text-slate-300 block text-sm font-medium">DNS Gateway</label>
-                                    <input id="dnsGateway" name="dnsGateway" value={formData.dnsGateway} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 8.8.8.8" />
+                                    <input id="dnsGateway" name="dnsGateway" value={formData.dnsGateway} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 8.8.8.8" />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label htmlFor="speed" className="text-slate-300 block text-sm font-medium">Velocidad Contratada</label>
-                                    <input id="speed" name="speed" value={formData.speed} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 100 Mbps / 50 Mbps" />
+                                    <input id="speed" name="speed" value={formData.speed} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 100 Mbps / 50 Mbps" />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label htmlFor="cost" className="text-slate-300 block text-sm font-medium">Costo Mensual</label>
-                                    <input id="cost" name="cost" type="number" step="0.01" value={formData.cost} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 50.00" />
+                                    <input id="cost" name="cost" type="number" step="0.01" value={formData.cost} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2" placeholder="Ej: 50.00" />
                                 </div>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label htmlFor="meshDevices" className="text-slate-300 block text-sm font-medium">Dispositivos Malla (JSON Array)</label>
-                                    <textarea id="meshDevices" name="meshDevices" value={formData.meshDevices} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[80px] resize-y" placeholder='Ej: ["Mesh A", "Mesh B"]' />
+                                    <textarea id="meshDevices" name="meshDevices" value={formData.meshDevices} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[80px] resize-y" placeholder='Ej: ["Mesh A", "Mesh B"]' />
                                     <p className="text-gray-500 text-xs mt-1">Introduce los nombres de los dispositivos de malla como un JSON Array.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="switchDevices" className="text-slate-300 block text-sm font-medium">Dispositivos Switch (JSON Array)</label>
-                                    <textarea id="switchDevices" name="switchDevices" value={formData.switchDevices} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[80px] resize-y" placeholder='Ej: ["Switch Principal", "Switch Sala A"]' />
+                                    <textarea id="switchDevices" name="switchDevices" value={formData.switchDevices} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[80px] resize-y" placeholder='Ej: ["Switch Principal", "Switch Sala A"]' />
                                     <p className="text-gray-500 text-xs mt-1">Introduce los nombres de los switches como un JSON Array.</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="notes" className="text-slate-300 block text-sm font-medium">Notas Adicionales</label>
-                                    <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="w-full bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[100px] resize-y" placeholder="Cualquier nota adicional sobre el proveedor o servicio..." />
+                                    <textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} className="w-full bg-[#3a3a3c] border border-white/[0.08] text-white placeholder:text-white/50 focus:border-blue-500 focus:outline-none rounded-md px-3 py-2 min-h-[100px] resize-y" placeholder="Cualquier nota adicional sobre el proveedor o servicio..." />
                                 </div>
                             </div>
 

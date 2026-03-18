@@ -272,6 +272,7 @@ const es = {
     "persons.position": "Cargo",
     "persons.totalPersons": "Total Personas",
     "persons.withDevice": "Con Dispositivo",
+    "persons.noDepartment": "Sin departamento",
     "persons.deleteConfirm": "¿Eliminar persona?",
 
     // Tickets
@@ -311,6 +312,12 @@ const es = {
     "expenses.totalExpenses": "Total Gastos",
     "expenses.annualTotal": "Total Anual",
     "expenses.deleteConfirm": "¿Eliminar gasto?",
+    "expenses.application": "Aplicación",
+    "expenses.costPerUser": "Costo",
+    "expenses.downloadExcel": "Descargar Excel",
+    "expenses.downloadPDF": "Descargar PDF",
+    "expenses.unknownPerson": "Persona Desconocida",
+    "expenses.tableHint": "La tabla muestra el costo por usuario para cada aplicación. Haz clic en el nombre de un Colaborador para ver el desglose de sus gastos. Los valores \"-\" indican que la persona no tiene asignada esa aplicación para los filtros actuales.",
 
     // Licenses
     "licenses.title": "Licencias de Software",
@@ -362,13 +369,41 @@ const es = {
     "inventory.unitPrice": "Precio Unitario",
     "inventory.totalValue": "Valor Total",
     "inventory.deleteConfirm": "¿Eliminar artículo de inventario?",
+    "inventory.inUse": "En Uso",
+    "inventory.available": "Disponibles",
+    "inventory.maintenance": "Mantenimiento",
+    "inventory.damaged": "Dañados",
+    "inventory.warranties": "Garantías",
+    "inventory.cost": "Costo",
+    "inventory.mostEquipment": "Más Equipos",
+    "inventory.topDepts": "Top Deptos",
+    "inventory.types": "Tipos",
+    "inventory.allTypes": "Todos los Tipos",
+    "inventory.allDepartments": "Todos los Departamentos",
+    "inventory.noEquipment": "No hay equipos aún. Puedes agregar uno o importar un CSV.",
+    "inventory.noCompany": "No se encontró el código de empresa.",
+    "inventory.importComplete": "Importación Completada",
+    "inventory.importWithErrors": "Importación con Errores",
+    "inventory.totalRows": "Total Filas",
+    "inventory.inserted": "Insertados",
+    "inventory.skipped": "Omitidos",
+    "inventory.errors": "Errores",
+    "inventory.skippedRecords": "Registros Omitidos",
+    "inventory.errorRecords": "Errores",
+    "inventory.insertedRecords": "Registros Insertados",
+    "inventory.row": "Fila",
+    "inventory.importingMessage": "Por favor espera mientras procesamos tu archivo CSV...",
+    "inventory.equipmentDeleted": "Equipo eliminado correctamente",
+    "inventory.equipmentCreated": "Equipo creado correctamente",
+    "inventory.noLocation": "Sin ubicación asignada",
 
     // Settings
     "settings.title": "Configuración",
     "settings.language": "Idioma",
     "settings.theme": "Tema",
-    "settings.darkMode": "Modo Oscuro",
-    "settings.lightMode": "Modo Claro",
+    "settings.darkMode": "Oscuro",
+    "settings.lightMode": "Claro",
+    "settings.systemMode": "Sistema",
     "settings.profile": "Perfil",
     "settings.company": "Empresa",
 
@@ -386,6 +421,55 @@ const es = {
     "lang.en": "Inglés",
     "lang.es": "Español",
     "lang.switch": "Cambiar idioma",
+
+    // Sidebar group labels
+    "nav.group.general":        "General",
+    "nav.group.infrastructure": "Infraestructura",
+    "nav.group.resources":      "Recursos",
+    "nav.group.finance":        "Finanzas",
+    "nav.group.documentation":  "Documentación",
+    "nav.group.support":        "Soporte",
+    "nav.group.system":         "Sistema",
+
+    // Settings nav tabs
+    "settings.tab.general":     "General",
+    "settings.tab.users":       "Usuarios",
+    "settings.tab.companies":   "Compañías",
+    "settings.tab.departments": "Departamentos",
+    "settings.breadcrumb":      "Configuración",
+    "settings.system":          "Sistema",
+    "settings.appearance":      "Apariencia",
+
+    // Red (adicional)
+    "network.providers": "Proveedores",
+    "network.decommissioned": "Desactivado",
+    "network.unknown": "Desconocido",
+    "network.allStatuses": "Todos los estados",
+    "network.noNetworks": "No hay redes registradas",
+
+    // Mantenimiento (adicional)
+    "maintenance.thisMonth": "Este mes",
+    "maintenance.requireAttention": "Requieren atención",
+    "maintenance.totalCost": "Costo Total",
+
+    // Compañías
+    "companies.loadError": "Error al cargar compañías",
+    "companies.registered": "registradas",
+    "companies.new": "Nueva compañía",
+    "companies.noCompanies": "No se encontraron compañías",
+    "companies.users": "usuarios",
+    "companies.equipments": "equipos",
+    "companies.maintenances": "mant.",
+    "companies.depts": "deptos",
+    "companies.add": "Agregar",
+    "companies.noDepartments": "Sin departamentos",
+    "companies.deleteCompany": "Eliminar compañía",
+
+    // Departamentos
+    "departments.loadError": "Error al cargar departamentos",
+    "departments.new": "Nuevo departamento",
+    "departments.noDepartments": "No se encontraron departamentos",
+    "departments.deleteDepartment": "Eliminar departamento",
   },
 };
 
