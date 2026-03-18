@@ -12,7 +12,6 @@ import useUserProfile from "../hook/userUserProfile";
 import NotFound from "../pages/public_pages/not_found";
 import DevicesPage from "../pages/account/devices/devices";
 import NextworkPage from "../pages/account/network/network";
-import UsersPage from "../pages/account/users/page";
 import ProfilePage from "../pages/account/profile/page";
 import { Company } from "../components/layouts/slideBar";
 import { useCompany } from "../context/routerContext";
