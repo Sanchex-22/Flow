@@ -5,6 +5,7 @@ import { Building2, CheckCircle, ArrowRight } from "lucide-react";
 import appConfig from "../../utils/appConfig";
 import { useAppLogo } from "../../utils/useAppLogo";
 import useUserProfile from "../../hook/userUserProfile";
+import Images from "../../assets";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -88,7 +89,7 @@ export default function SetupCompanyPage() {
           {/* Logo & header */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-purple-200">
-              <img src={Images?.logo} alt="logo" className="select-none w-8 h-8" />
+              <img src={logoSrc ?? Images?.logo} alt="logo" className="select-none w-8 h-8" />
             </div>
             <p className="text-xs font-semibold text-purple-600 uppercase tracking-widest mb-1">{appName}</p>
           </div>

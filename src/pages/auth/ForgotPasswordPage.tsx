@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, Mail, KeyRound, Eye, EyeOff, CheckCircle } from "lucide-react";
 import appConfig from "../../utils/appConfig";
 import { useAppLogo } from "../../utils/useAppLogo";
+import Images from "../../assets";
 
 const { VITE_API_URL } = import.meta.env;
 
@@ -80,7 +81,7 @@ export default function ForgotPasswordPage() {
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-purple-200">
-              <img src={Images?.logo} alt="logo" className="select-none w-8 h-8" />
+              <img src={logoSrc ?? Images?.logo} alt="logo" className="select-none w-8 h-8" />
             </div>
             <h1 className="text-xl font-bold text-gray-900">{appName}</h1>
           </div>
