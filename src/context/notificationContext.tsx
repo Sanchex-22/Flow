@@ -48,8 +48,9 @@ const relativeTime = (dateStr: string) => {
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { selectedCompany } = useCompany()
-  const cid = selectedCompany?.id
-  const code = selectedCompany?.code
+  // "na" es el id del fallback — no hacer fetch hasta tener una compañía real
+  const cid  = selectedCompany?.id  && selectedCompany.id  !== "na" ? selectedCompany.id  : null
+  const code = selectedCompany?.code && selectedCompany.code !== "na" ? selectedCompany.code : null
 
   const [readIds, setReadIds] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem("notif_read") || "[]")) }

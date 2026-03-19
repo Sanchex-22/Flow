@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, AlertCircle, WifiOff } from "lucide-react"
 import { Link } from "react-router-dom"
 import useUser from "../../hook/useUser"
 import { useCompany } from "../../context/routerContext"
@@ -62,7 +62,26 @@ export default function LoginForm({
 
       window.location.href = `/${selectedCompany?.code || "code"}/select-company`
     } catch (err) {
-      setError(new Error(err instanceof Error ? err.message : t("login.error")))
+      // Distinguir: error de red (servidor caído) vs credenciales vs otro
+      if (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) {
+        // TypeError: Failed to fetch → servidor no disponible
+        setError(new Error(t("login.errorServer")))
+      } else if (err instanceof Error) {
+        const status = (err as any).status
+        if (status === 401 || status === 403 ||
+            err.message === 'INVALID_CREDENTIALS' ||
+            err.message.toLowerCase().includes('credencial') ||
+            err.message.toLowerCase().includes('inválid') ||
+            err.message.toLowerCase().includes('invalid')) {
+          setError(new Error(t("login.errorCredentials")))
+        } else if (status >= 500 || err.message.toLowerCase().includes('servidor')) {
+          setError(new Error(t("login.errorServer")))
+        } else {
+          setError(new Error(t("login.errorUnknown")))
+        }
+      } else {
+        setError(new Error(t("login.errorUnknown")))
+      }
     } finally {
       setPending(false)
     }
@@ -133,8 +152,12 @@ export default function LoginForm({
 
       {/* Error */}
       {error && (
-        <div className={`p-3 rounded-xl text-sm ${dark ? "bg-red-500/10 border border-red-500/20 text-red-400" : "bg-red-50 border border-red-200 text-red-600"}`}>
-          {error.message}
+        <div className={`flex items-start gap-2.5 p-3.5 rounded-xl text-sm ${dark ? "bg-red-500/10 border border-red-500/20 text-red-400" : "bg-red-50 border border-red-200 text-red-600"}`}>
+          {error.message === t("login.errorServer")
+            ? <WifiOff size={16} className="mt-0.5 shrink-0" />
+            : <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          }
+          <span>{error.message}</span>
         </div>
       )}
 

@@ -12,12 +12,16 @@ export class authServices {
     });
     
     if (!response.ok) {
+      let message = 'INVALID_CREDENTIALS'
       try {
-        const errorData = await response.json();
-        throw new Error(errorData?.message || 'Error en el inicio de sesión');
-      } catch (error) {
-        throw new Error('Error en el inicio de sesión');
+        const errorData = await response.json()
+        message = errorData?.message || message
+      } catch {
+        // sin body JSON — usar mensaje genérico
       }
+      const err = new Error(message) as Error & { status: number }
+      err.status = response.status
+      throw err
     }
 
     const data = await response.json();
