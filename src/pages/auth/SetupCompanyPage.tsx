@@ -64,10 +64,14 @@ export default function SetupCompanyPage() {
       const company = await res.json();
       setCreatedCompany({ code: company.code, name: company.name });
 
-      // Persist the new company as selected
+      // Persist the new company as selected so CompanyProvider picks it up on reload
       localStorage.setItem("selectedCompany", JSON.stringify(company));
 
       setDone(true);
+      // Full reload so SWR re-fetches my-companies with the new association
+      setTimeout(() => {
+        window.location.href = `/${company.code}/dashboard`;
+      }, 1500);
     } catch (err: any) {
       setError(err.message || t("setup.errorCreate"));
     } finally {
