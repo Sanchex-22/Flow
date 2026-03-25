@@ -112,7 +112,8 @@ export default function AllInventory() {
     try {
       const res = await fetch(`${VITE_API_URL}/api/inventory/${selectedCompany.id}/inventory/all`);
       if (!res.ok) throw new Error("Error al cargar inventario");
-      setInventory(await res.json());
+      const json = await res.json();
+      setInventory(Array.isArray(json) ? json : []);
     } catch (error) {
       console.error(error);
       setInventory([]);
