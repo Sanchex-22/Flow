@@ -57,9 +57,9 @@ export default function AllCompaniesPage() {
     setExpandedRows((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n })
 
   const handleDelete = async (id: string) => {
-    await fetch(`${VITE_API_URL}/api/companies/all`, { method: "DELETE", headers: authHeaders() })
+    await fetch(`${VITE_API_URL}/api/companies/${id}`, { method: "DELETE", headers: authHeaders() })
     setDeleteConfirm(null)
-    mutate(`${VITE_API_URL}/api/companies/all`)
+    mutate(`${VITE_API_URL}/api/companies/${id}/my-companies`)
   }
 
   const handleDeleteDept = async (deptId: string) => {
