@@ -41,7 +41,7 @@ export default function AllInventory() {
   const { t } = useTranslation();
 
   // --- Clases dinámicas reutilizables ---
-  const pageBg = isDarkMode ? "bg-[#1c1c1e] text-white" : "bg-gray-100 text-gray-900";
+  const pageBg = isDarkMode ? "bg-[#111113] text-white" : "bg-gray-100 text-gray-900";
   const cardBg = isDarkMode ? "bg-gray-800 border-white/[0.08]" : "bg-white border-gray-200";
   const cardBg750 = isDarkMode ? "bg-gray-750 border-white/[0.08]" : "bg-gray-50 border-gray-200";
   const innerBg = isDarkMode ? "bg-[#1c1c1e]" : "bg-gray-100";
@@ -325,7 +325,7 @@ export default function AllInventory() {
   if (!selectedCompany?.id) return <p className={subTextClass}>{t("inventory.noCompany")}</p>;
 
   return (
-    <div className={`flex-1 transition-colors ${pageBg}`}>
+    <div className={`flex-1 min-h-full transition-colors ${pageBg}`}>
       <PagesHeader
         title={t("inventory.title")}
         description={pageName ? `${pageName} in ${selectedCompany?.name}` : t("common.loading")}

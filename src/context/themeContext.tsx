@@ -44,13 +44,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     const root = document.documentElement;
     if (effective) {
       root.classList.add("dark");
-      document.body.classList.replace("bg-white", "bg-slate-900") ||
-        document.body.classList.add("bg-slate-900");
+      document.body.classList.replace("bg-white", "bg-gray-900") ||
+        document.body.classList.add("bg-gray-900");
       document.body.classList.replace("text-gray-900", "text-white") ||
         document.body.classList.add("text-white");
     } else {
       root.classList.remove("dark");
-      document.body.classList.replace("bg-slate-900", "bg-white") ||
+      document.body.classList.replace("bg-gray-900", "bg-white") ||
         document.body.classList.add("bg-white");
       document.body.classList.replace("text-white", "text-gray-900") ||
         document.body.classList.add("text-gray-900");

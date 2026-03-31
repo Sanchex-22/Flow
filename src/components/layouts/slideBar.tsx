@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { UserProfile } from "../../context/userProfileContext";
 import useUser from "../../hook/useUser";
 import { getMainRoutesForRole, getUserRoles } from "../../routes/routesConfig";
-import { LogOut, ChevronDown } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { InventoryIcon } from "../icons/icons";
 import { useCompany } from "../../context/routerContext";
 import { Link, useLocation } from "react-router-dom";
@@ -56,11 +55,9 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
     { label: t("nav.group.system"),         names: ["Settings"] },
     { label: "Administración",              names: ["AdminOverview", "AdminCompanies", "AdminUsers", "AdminLicenses"] },
   ];
+  
   const location = useLocation();
-
   const currentSegments = location.pathname.split("/").filter(Boolean);
-  // For company routes (/companyCode/section/...) the section is at index 1.
-  // For admin routes (/admin/section) the full path is used for active detection.
   const baseRoute = currentSegments.length > 1 ? currentSegments[1] : "";
   const currentPath = location.pathname;
 
@@ -83,46 +80,12 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
     return true;
   });
 
-  // ── Group open/close state ───────────────────────────────────────────────
-  const activeGroupLabel =
-    NAV_GROUPS.find((g) =>
-      g.names.some((n) => {
-        const route = uniqueRoutes.find((r) => r.name === n);
-        if (!route) return false;
-        return baseRoute === (route.href.split("/").filter(Boolean)[0] ?? "");
-      })
-    )?.label ?? "";
-
-  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
-    const init = new Set<string>(["General"]);
-    if (activeGroupLabel) init.add(activeGroupLabel);
-    return init;
-  });
-
-  useEffect(() => {
-    if (activeGroupLabel) {
-      setOpenGroups((prev) => {
-        if (prev.has(activeGroupLabel)) return prev;
-        const next = new Set(prev);
-        next.add(activeGroupLabel);
-        return next;
-      });
-    }
-  }, [activeGroupLabel]);
-
-  const toggleGroup = (label: string) =>
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      next.has(label) ? next.delete(label) : next.add(label);
-      return next;
-    });
-
   const initials = profile?.username ? profile.username[0].toUpperCase() : "U";
 
   // ── Tokens ───────────────────────────────────────────────────────────────
-  const border    = isDarkMode ? "border-white/[0.06]" : "border-gray-100";
-  const textMid   = isDarkMode ? "text-[#8e8e93]" : "text-[#6e6e73]";
-  const textDim   = isDarkMode ? "text-[#636366]" : "text-gray-400";
+  const border = isDarkMode ? "border-white/[0.06]" : "border-gray-100";
+  const textLabel = isDarkMode ? "text-[#636366]" : "text-gray-400";
+  const textItem = isDarkMode ? "text-[#8e8e93]" : "text-[#6e6e73]";
   const hoverItem = isDarkMode
     ? "hover:text-white hover:bg-white/[0.05]"
     : "hover:text-gray-900 hover:bg-gray-50";
@@ -145,80 +108,55 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
 
           if (groupRoutes.length === 0) return null;
 
-          const isOpen = openGroups.has(group.label);
-          const hasActive = groupRoutes.some((r) => {
-            if (r.href.startsWith('/admin/')) return currentPath.startsWith(r.href);
-            const routeBase = r.href.split("/").filter(Boolean)[0] ?? "";
-            return baseRoute === routeBase;
-          });
-
           return (
-            <div key={group.label} className="mb-1">
-              {/* Group header */}
-              <button
-                onClick={() => toggleGroup(group.label)}
-                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors select-none ${
-                  isDarkMode
-                    ? "text-[#636366] hover:text-[#8e8e93] hover:bg-white/[0.03]"
-                    : "text-gray-400 hover:text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                <span
-                  className={`text-[10px] font-semibold uppercase tracking-wider ${
-                    hasActive ? (isDarkMode ? "text-[#8e8e93]" : "text-gray-500") : ""
-                  }`}
-                >
+            <div key={group.label} className="mb-4">
+              {/* Group label */}
+              <div className="px-2 mb-1">
+                <span className={`text-[10px] font-semibold uppercase tracking-wider ${textLabel}`}>
                   {group.label}
                 </span>
-                <ChevronDown
-                  className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`}
-                />
-              </button>
+              </div>
 
               {/* Routes */}
-              {isOpen && (
-                <div className="mt-0.5 space-y-0.5">
-                  {groupRoutes.map((link, idx) => {
-                    const isActive = link.href.startsWith('/admin/')
-                      ? currentPath.startsWith(link.href)
-                      : baseRoute === (link.href.split("/").filter(Boolean)[0] ?? "");
-                    const Icon = link.icon;
+              <div className="space-y-0.5">
+                {groupRoutes.map((link, idx) => {
+                  const isActive = link.href.startsWith('/admin/')
+                    ? currentPath.startsWith(link.href)
+                    : baseRoute === (link.href.split("/").filter(Boolean)[0] ?? "");
+                  const Icon = link.icon;
 
-                    // Admin routes are absolute paths (/admin/...); company routes need the prefix
-                    const linkTo = link.href.startsWith('/admin/')
-                      ? link.href
-                      : `/${selectedCompany?.code || "code"}${link.href}`;
+                  // Admin routes are absolute paths (/admin/...); company routes need the prefix
+                  const linkTo = link.href.startsWith('/admin/')
+                    ? link.href
+                    : `/${selectedCompany?.code || "code"}${link.href}`;
 
-                    return (
-                      <Link
-                        key={idx}
-                        to={linkTo}
-                        className={`group flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 ${
-                          isActive ? activeItem : `${textMid} ${hoverItem}`
+                  return (
+                    <Link
+                      key={idx}
+                      to={linkTo}
+                      className={`group flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 ${
+                        isActive ? activeItem : `${textItem} ${hoverItem}`
+                      }`}
+                    >
+                      <span
+                        className={`flex-shrink-0 w-4 h-4 transition-colors ${
+                          isActive
+                            ? isDarkMode ? "text-white" : "text-blue-600"
+                            : ""
                         }`}
                       >
-                        <span
-                          className={`flex-shrink-0 w-4 h-4 transition-colors ${
-                            isActive
-                              ? isDarkMode ? "text-white" : "text-blue-600"
-                              : isDarkMode
-                              ? "text-[#636366] group-hover:text-[#8e8e93]"
-                              : "text-[#8e8e93] group-hover:text-[#6e6e73]"
-                          }`}
-                        >
-                          {Icon ? <Icon /> : <InventoryIcon />}
-                        </span>
-                        <span className="flex-1 text-[13px] font-medium leading-none">
-                          {t(`nav.${link.name.toLowerCase()}`, link.name)}
-                        </span>
-                        {isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
+                        {Icon ? <Icon /> : <InventoryIcon />}
+                      </span>
+                      <span className="flex-1 text-[13px] font-medium leading-none">
+                        {t(`nav.${link.name.toLowerCase()}`, link.name)}
+                      </span>
+                      {isActive && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
@@ -230,18 +168,22 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
         <Link
           to={`/${selectedCompany?.code || "code"}/profile/${profile?.id || "1"}`}
           className={`group flex items-center gap-2.5 px-2.5 py-2.5 rounded-lg transition-all ${
-            baseRoute === "profile" ? activeItem : `${textMid} ${hoverItem}`
+            baseRoute === "profile" 
+              ? activeItem 
+              : `${textItem} ${hoverItem}`
           }`}
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm">
+          <div 
+            className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm"
+          >
             {initials}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium truncate leading-tight">
               {profile?.username || "user"}
             </p>
-            <p className={`text-[11px] truncate ${textDim}`}>
-              {t("nav.profile")}
+            <p className={`text-[11px] truncate ${textLabel}`}>
+              {t("nav.profile", "View profile")}
             </p>
           </div>
         </Link>
@@ -256,7 +198,7 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
           onClick={logout}
         >
           <LogOut className="h-4 w-4 flex-shrink-0" />
-          <span className="text-[13px] font-medium">{t("nav.logout")}</span>
+          <span className="text-[13px] font-medium">{t("nav.logout", "Logout")}</span>
         </button>
       </div>
     </div>

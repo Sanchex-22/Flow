@@ -623,8 +623,8 @@ export const AllTickets: React.FC = () => {
   const urgentes = tickets.filter((t) => t.priority === "urgent" && ["open", "pending"].includes(t.status)).length
 
   return (
-    <div className={`min-h-screen transition-colors ${
-      isDarkMode ? 'bg-[#1c1c1e] text-white' : 'bg-[#f5f5f7] text-gray-900'
+    <div className={`min-h-full transition-colors ${
+      isDarkMode ? 'bg-[#111113] text-white' : 'bg-[#f5f5f7] text-gray-900'
     }`}>
       {/* Page Header */}
       <div className="mb-6">

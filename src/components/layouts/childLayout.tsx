@@ -47,7 +47,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         {publicRoute ? (
           <div id="page-content" className={`z-10 h-screen overflow-y-auto transition-colors duration-300 ${
             isDarkMode 
-              ? "bg-slate-900 text-white" 
+              ? "bg-gray-900 text-white" 
               : "bg-white text-gray-900"
           }`}>
             {children}
@@ -56,7 +56,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
           <NotificationProvider>
           <div className={`flex flex-col h-screen overflow-hidden transition-colors duration-300 ${
             isDarkMode 
-              ? "bg-slate-900 text-white" 
+              ? "bg-gray-900 text-white" 
               : "bg-gray-50 text-gray-900"
           }`}>
             {/* Navbar */}
@@ -82,7 +82,7 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
               </div>
 
               {/* Page content */}
-              <div id="page-content" className="flex-1 overflow-y-auto w-full p-4">
+              <div id="page-content" className={`flex-1 overflow-y-auto w-full p-4 transition-colors duration-300 ${isDarkMode ? "bg-[#111113]" : "bg-gray-50"}`}>
                 {children}
               </div>
             </div>

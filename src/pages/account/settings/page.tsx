@@ -42,8 +42,7 @@ const SettingsPage: React.FC<SubRoutesProps> = () => {
   return (
     // Negative margins cancel the parent layout padding → nav bar goes edge-to-edge
     <div
-      className={`flex flex-col min-w-0 -mx-3 -mt-3 sm:-mx-4 sm:-mt-4 md:-mx-5 md:-mt-5 ${pageBg}`}
-      style={{ minHeight: "calc(100% + 2.5rem)" }}
+      className={`flex flex-col min-w-0 -mx-3 -mt-3 sm:-mx-4 sm:-mt-4 md:-mx-5 md:-mt-5 min-h-full ${pageBg}`}
     >
       {/* ── Top settings nav ──────────────────────────────────────────────── */}
       <div className={`flex-shrink-0 border-b ${border} ${navBg}`}>
@@ -84,7 +83,7 @@ const SettingsPage: React.FC<SubRoutesProps> = () => {
       </div>
 
       {/* ── Page content — padding restored here ──────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4 sm:py-5 md:px-5 md:py-6">
+      <div className="flex-1 px-3 py-4 sm:px-4 sm:py-5 md:px-5 md:py-6">
         <Outlet />
       </div>
     </div>

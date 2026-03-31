@@ -367,9 +367,9 @@ const AllNetwork: React.FC<Props> = ({ }) => {
   const proveedores = new Set(conexiones.map((c) => c.proveedor)).size
 
   return (
-    <div className={`transition-colors ${
+    <div className={`min-h-full transition-colors ${
       isDarkMode
-        ? 'bg-[#1c1c1e] text-gray-100'
+        ? 'bg-[#111113] text-gray-100'
         : 'bg-gray-100 text-gray-900'
     }`}>
       {/* Header Section */}

@@ -89,7 +89,7 @@ export default function AllReportsPage() {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
 
   // theme tokens
-  const pageBg  = isDarkMode ? "bg-[#1c1c1e]"  : "bg-[#f5f5f7]"
+  const pageBg  = isDarkMode ? "bg-[#111113]"  : "bg-[#f5f5f7]"
   const cardBg  = isDarkMode ? "bg-[#2c2c2e] border-white/[0.08]" : "bg-white border-gray-200 shadow-sm"
   const textMain = isDarkMode ? "text-white"      : "text-gray-900"
   const textSub  = isDarkMode ? "text-white/50"   : "text-gray-500"
@@ -135,7 +135,7 @@ export default function AllReportsPage() {
   if (isLoading) return <Loader />
 
   return (
-    <div className={`min-h-screen transition-colors ${pageBg}`}>
+    <div className={`min-h-full transition-colors ${pageBg}`}>
       <div className="px-0 sm:px-0">
 
         {/* Page header */}
