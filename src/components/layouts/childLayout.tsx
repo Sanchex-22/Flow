@@ -6,6 +6,7 @@ import { Toaster } from "sonner"
 import SlideBar, { Company } from "./slideBar";
 import AdminNavbar from "./adminNavbar";
 import { useTheme } from "../../context/themeContext";
+import { NotificationProvider } from "../../context/notificationContext";
 
 const SlideBarComponent: any = SlideBar;
 
@@ -45,17 +46,18 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
         <SpeedInsights />
         {publicRoute ? (
           <div id="page-content" className={`z-10 h-screen overflow-y-auto transition-colors duration-300 ${
-            isDarkMode
-              ? "bg-[#1c1c1e] text-white"
+            isDarkMode 
+              ? "bg-slate-900 text-white" 
               : "bg-white text-gray-900"
           }`}>
             {children}
           </div>
         ) : (
+          <NotificationProvider>
           <div className={`flex flex-col h-screen overflow-hidden transition-colors duration-300 ${
-            isDarkMode
-              ? "bg-[#1c1c1e] text-white"
-              : "bg-[#f5f5f7] text-gray-900"
+            isDarkMode 
+              ? "bg-slate-900 text-white" 
+              : "bg-gray-50 text-gray-900"
           }`}>
             {/* Navbar */}
             <div className="flex-shrink-0">
@@ -68,8 +70,8 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
 
             {/* Main content area */}
             <div className="flex flex-1 overflow-hidden">
-              {/* Sidebar — hidden on mobile, visible md+ */}
-              <div className="hidden md:flex flex-shrink-0 relative z-10">
+              {/* Sidebar */}
+              <div className="hidden sm:inline-flex md:block lg:flex xl:flex flex-shrink-0">
                 <SlideBarComponent
                   subroutes={[]}
                   currentPathname={currentPathname}
@@ -80,11 +82,12 @@ const EnvolveLayout: React.FC<childLayoutProps> = ({
               </div>
 
               {/* Page content */}
-              <div id="page-content" className="flex-1 overflow-y-auto w-full min-w-0 px-3 py-3 sm:px-4 sm:py-4 md:px-5 md:py-5">
+              <div id="page-content" className="flex-1 overflow-y-auto w-full p-4">
                 {children}
               </div>
             </div>
           </div>
+          </NotificationProvider>
         )}
       </main>
     </>

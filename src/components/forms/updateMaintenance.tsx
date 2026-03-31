@@ -11,7 +11,9 @@ import { useCompany } from "../../context/routerContext"
 const { VITE_API_URL } = import.meta.env;
 
 // Función fetcher para SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+    fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('jwt') || ''}` } })
+        .then((res) => res.json());
 
 // --- Tipos de Datos ---
 interface Company {
@@ -106,7 +108,7 @@ const UpdateMaintenanceForm: React.FC<Props> = ({ maintenanceId, selectedCompany
         fetcher
     );
 
-    const { data: users } = useSWR<User[]>(`${VITE_API_URL}/api/users/full/${company?.id}`, fetcher);
+    const { data: users } = useSWR<User[]>(company?.id ? `${VITE_API_URL}/api/users/full/${company.id}` : null, fetcher);
     const { data: equipments } = useSWR<Equipment[]>(
         formData.companyId ? `${VITE_API_URL}/api/devices/all` : null,
         fetcher

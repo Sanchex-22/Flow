@@ -1,9 +1,11 @@
 
-import { LucideBookUser, TicketIcon } from "lucide-react";
+import { Building2, LayoutDashboard, LucideBookUser, ShieldCheck, TicketIcon, Users } from "lucide-react";
 import { DashboardIcon, DevicesIcon, DocumentIcon, InventoryIcon, MaintenanceIcon, NetworkIcon, ReportsIcon, SettingsIcon, UsersIcon } from "../components/icons/icons";
 import { UserProfile } from "../context/userProfileContext";
 import { authRoles } from "../diccionary/constants";
 import { FaMoneyBill, FaKey } from "react-icons/fa";
+
+export type RouteGroup = 'PRINCIPAL' | 'REPORTES' | 'CONFIGURACIÓN' | 'ADMINISTRACIÓN';
 
 const routesConfig = [
   {
@@ -133,6 +135,51 @@ const routesConfig = [
 
     ]
   },
+    // --- Panel exclusivo GLOBAL_ADMIN ---
+  {
+    disable: false,
+    icon: LayoutDashboard,
+    name: "AdminOverview",
+    href: "/admin/overview",
+    group: 'ADMINISTRACIÓN' as RouteGroup,
+    roles: [authRoles.global_admin],
+    subroutes: [
+      { name: "Resumen", href: "/admin/overview" },
+    ]
+  },
+  {
+    disable: false,
+    icon: Building2,
+    name: "AdminCompanies",
+    href: "/admin/companies",
+    group: 'ADMINISTRACIÓN' as RouteGroup,
+    roles: [authRoles.global_admin],
+    subroutes: [
+      { name: "Empresas", href: "/admin/companies" },
+    ]
+  },
+  {
+    disable: false,
+    icon: Users,
+    name: "AdminUsers",
+    href: "/admin/users",
+    group: 'ADMINISTRACIÓN' as RouteGroup,
+    roles: [authRoles.global_admin],
+    subroutes: [
+      { name: "Usuarios", href: "/admin/users" },
+    ]
+  },
+  {
+    disable: false,
+    icon: ShieldCheck,
+    name: "AdminLicenses",
+    href: "/admin/licenses",
+    group: 'ADMINISTRACIÓN' as RouteGroup,
+    roles: [authRoles.global_admin],
+    subroutes: [
+      { name: "Licencias", href: "/admin/licenses" },
+    ]
+  },
 ];
 
 export default routesConfig;
@@ -160,13 +207,13 @@ const getRoutesForRole = (roleKey: keyof typeof authRoles) => {
 };
 export { getRoutesForRole };
 
-const getMainRoutesForRole = (roleKey: keyof typeof authRoles) => {
-  const role = authRoles[roleKey] || authRoles.user;
+const getMainRoutesForRole = (roleKey: keyof typeof authRoles | string) => {
+  const role = (authRoles as Record<string, string>)[roleKey] || authRoles.user;
   if (!role) {
     return [];
   }
 
-  const filteredRoutes = routesConfig.filter((route) => route.roles.includes(role));
+  const filteredRoutes = routesConfig.filter((route) => route.roles.includes(role) && !route.disable);
 
   return filteredRoutes;
 };
@@ -179,11 +226,10 @@ export const getUserRoles = (profile: UserProfile) => {
     return ["user"];
   }
 
-  const validRoles = ["super_admin", "admin", "moderator", "user"];
+  const validRoles = ["global_admin", "super_admin", "admin", "moderator", "user"];
 
-  // profile.roles es un string, convertir a minúsculas y dividir si contiene múltiples roles
   const rolesArray = profile.roles
-    .split(',') // Por si hay múltiples roles separados por comas
+    .split(',')
     .map((role) => role.trim().toLowerCase())
     .filter((role) => validRoles.includes(role));
 

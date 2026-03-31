@@ -1,9 +1,10 @@
 // CompanySelectorComponent.tsx
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useCompany } from '../../context/routerContext.tsx';
 import { useCallback } from 'react';
 import { UserProfile } from '../../context/userProfileContext.tsx';
 import { ChevronDown } from 'lucide-react';
+import { mutate } from 'swr';
 
 export interface Company {
   id: string;
@@ -32,24 +33,38 @@ type Props = {
 
 const CompanySelectorComponent: React.FC<Props> = ({ isDarkMode = true }) => {
   const { selectedCompany, handleCompanyChange, companies } = useCompany();
-  const navigate = useNavigate();
   const location = useLocation();
-  
-  const handleChangeAndNavigate = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    handleCompanyChange(event);
-    const newCompanyCode = event.target.value;
-    console.log("New Company Code selected:", newCompanyCode);
-    const currentPath = location.pathname;
-    const pathSegments = currentPath.split('/');
+  const navigate = useNavigate();
 
-    if (pathSegments.length >= 2) {
-      pathSegments[1] = newCompanyCode;
-      const newPath = pathSegments.join('/');
-      navigate(newPath);
-    } else {
-      navigate(`/${newCompanyCode}/dashboard/all`);
+  const handleChangeAndNavigate = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCompanyCode = event.target.value;
+    const newCompany = companies.find(c => c.code === newCompanyCode);
+
+    if (newCompany) {
+      localStorage.setItem('selectedCompany', JSON.stringify(newCompany));
     }
-  }, [handleCompanyChange, navigate, location.pathname]);
+    handleCompanyChange(event);
+
+    // Forzar revalidación de todo el caché SWR para que las páginas fetchen datos frescos
+    mutate(() => true);
+
+    // Reemplazar el primer segmento (companyCode) manteniendo el resto de la ruta
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const knownCodes = companies.map(c => c.code);
+    let newPath: string;
+    if (pathSegments.length >= 1 && knownCodes.includes(pathSegments[0])) {
+      pathSegments[0] = newCompanyCode;
+      newPath = '/' + pathSegments.join('/');
+    } else {
+      newPath = `/${newCompanyCode}/dashboard/all`;
+    }
+
+    // Navegación sin reload — los SWR reaccionan al cambio de selectedCompany en el contexto
+    navigate(newPath, { replace: true });
+  }, [handleCompanyChange, location.pathname, companies, navigate]);
+
+  // Solo mostrar activas en el selector del navbar
+  const activeCompanies = companies.filter(c => c.isActive);
 
   return (
     <div className="w-full">
@@ -57,20 +72,20 @@ const CompanySelectorComponent: React.FC<Props> = ({ isDarkMode = true }) => {
         <select
           className={`w-full rounded-lg px-3 py-2 text-sm appearance-none cursor-pointer transition-colors border ${
             isDarkMode
-              ? "bg-[#2c2c2e] border-white/[0.08] text-white hover:border-slate-600 focus:ring-blue-500"
+              ? "bg-slate-800 border-slate-700 text-white hover:border-slate-600 focus:ring-blue-500"
               : "bg-white border-gray-300 text-gray-900 hover:border-gray-400 focus:ring-blue-500"
           } focus:outline-none focus:ring-2 focus:border-transparent`}
           onChange={handleChangeAndNavigate}
-          value={selectedCompany ? selectedCompany.code : ''}
+          value={selectedCompany?.isActive ? selectedCompany.code : ''}
         >
-          {companies && companies.length > 0 ? (
-            companies.map((company) => (
-              <option key={company?.id} value={company?.code} className={isDarkMode ? "bg-[#2c2c2e] text-white" : "bg-white text-gray-900"}>
-                {company?.name}
+          {activeCompanies.length > 0 ? (
+            activeCompanies.map((company) => (
+              <option key={company.id} value={company.code} className={isDarkMode ? "bg-slate-800 text-white" : "bg-white text-gray-900"}>
+                {company.name}
               </option>
             ))
           ) : (
-            <option value="">No companies available</option>
+            <option value="">Sin empresas activas</option>
           )}
         </select>
         <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none ${isDarkMode ? "text-slate-400" : "text-gray-400"}`}>

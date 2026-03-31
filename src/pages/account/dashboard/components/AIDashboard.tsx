@@ -89,7 +89,7 @@ const AIDashboard: React.FC<DashboardProps> = () => {
   };
 
   const { data: dashboardData, error, isLoading } = useSWR<DashboardData>(
-    selectedCompany ? `${VITE_API_URL}/api/dashboard/${selectedCompany.id}` : null,
+    selectedCompany?.id ? `${VITE_API_URL}/api/dashboard/${selectedCompany.id}` : null,
     fetcher, swrConfig
   );
 

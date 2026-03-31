@@ -11,27 +11,45 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ auth, allowedRoles, children, isLogged }) => {
   const location = useLocation();
-  const { selectedCompany } = useCompany();
+  const { selectedCompany, companies, isLoadingCompanies } = useCompany();
 
   // 🔒 1. No está logueado → redirigir al login
   if (!isLogged) {
     return <Navigate to="/" replace={false} state={{ from: location }} />;
   }
 
-  // 🔒 2. Logueado pero sin empresa válida seleccionada → redirigir a selector
-  if (!selectedCompany || selectedCompany?.id === "na") {
-    return <Navigate to="/NOCODE/select-company" replace={false} state={{ from: location }} />;
+  // 🔒 2. Perfil/roles aún no disponibles → esperar sin redirigir
+  if (auth.roles.length === 0) {
+    return null;
   }
 
-  // 🔒 3. Verificar roles permitidos
+  const isGlobalAdmin = auth.roles.includes("global_admin");
+
+  // 🔒 3. Empresas cargando → esperar sin redirigir
+  if (!isGlobalAdmin && isLoadingCompanies) {
+    return null;
+  }
+
+  // 🔒 4. Sin empresa → solo settings permitido, resto bloqueado
+  if (!isGlobalAdmin && companies.length === 0) {
+    const isSettings = location.pathname.includes("/settings");
+    if (!isSettings) {
+      return <Navigate to="/setup/settings/all" replace />;
+    }
+    return children;
+  }
+
+  // 🔒 5. Sin empresa seleccionada → redirigir a selector
+  if (!isGlobalAdmin && (!selectedCompany || selectedCompany?.id === "na")) {
+    return <Navigate to="/select-company" replace={false} state={{ from: location }} />;
+  }
+
+  // 🔒 6. Verificar roles permitidos
   if (!auth.roles.some((role) => allowedRoles.includes(role))) {
-    return (
-      <Navigate
-        to={`/${selectedCompany.code}/dashboard`}
-        replace={false}
-        state={{ from: location }}
-      />
-    );
+    const fallback = selectedCompany?.code
+      ? `/${selectedCompany.code}/dashboard/all`
+      : "/";
+    return <Navigate to={fallback} replace={false} state={{ from: location }} />;
   }
 
   // ✅ Todo bien → mostrar el contenido

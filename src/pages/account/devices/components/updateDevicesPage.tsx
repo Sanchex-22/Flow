@@ -6,7 +6,9 @@ import { Company, useCompany } from "../../../../context/routerContext";
 import { useTheme } from "../../../../context/themeContext";
 
 const { VITE_API_URL } = import.meta.env;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+    fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('jwt') || ''}` } })
+        .then((res) => res.json());
 
 interface Person {
     id: string;
@@ -31,7 +33,7 @@ const UpdateDevicesPage: React.FC = () => {
     document.title = renderPage;
 
     const { data: departments, error: errorDepartments, isLoading: isLoadingDepartments } = useSWR<Department[]>(
-        selectedCompany ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}` : null,
+        selectedCompany?.code ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}` : null,
         fetcher,
         {
             revalidateOnFocus: true,
@@ -42,7 +44,7 @@ const UpdateDevicesPage: React.FC = () => {
     );
 
     const { data: persons, error: errorPersons, isLoading: isLoadingPersons } = useSWR<Person[]>(
-        selectedCompany ? `${VITE_API_URL}/api/persons/company/${selectedCompany.id}` : null,
+        selectedCompany?.id ? `${VITE_API_URL}/api/persons/company/${selectedCompany.id}` : null,
         fetcher
     );
 

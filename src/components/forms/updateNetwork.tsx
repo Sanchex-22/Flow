@@ -7,7 +7,9 @@ import useSWR from "swr"
 import { UsuarioFull } from "../../pages/account/users/components/AllUsers" // Asegúrate de que esta ruta y tipo sean correctos
 
 const { VITE_API_URL } = import.meta.env;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+    fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('jwt') || ''}` } })
+        .then((res) => res.json());
 
 // --- Tipos ---
 interface Company {

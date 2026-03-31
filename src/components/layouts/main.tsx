@@ -54,8 +54,8 @@ const Layout: React.FC<RoutesProps> = () => {
     setCurrentPathname({ name: window.location.pathname });
   }, []);
 
-  const { data, error } = useSWR(
-    isLogged ? `${VITE_API_URL}/api/companies/${profile?.id}/my-companies` : null,
+  const { data, error, isValidating } = useSWR(
+    isLogged && profile?.id ? `${VITE_API_URL}/api/companies/${profile.id}/my-companies` : null,
     fetcher,
     {
       fallbackData: fallbackCompanies,
@@ -76,9 +76,11 @@ const Layout: React.FC<RoutesProps> = () => {
   }, [error, data]);
 
   const companies = data || fallbackCompanies;
+  // True only during the initial fetch (while still showing the "na" placeholder)
+  const isLoadingCompanies = isValidating && (companies[0]?.id === "na" || companies.length === 0);
 
   return (
-    <CompanyProvider initialCompanies={companies}>
+    <CompanyProvider initialCompanies={companies} isLoadingCompanies={isLoadingCompanies}>
       <SearchProvider>
         <NotificationProvider>
           <main className="w-full relative scroll-smooth">

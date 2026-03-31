@@ -54,11 +54,15 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
     { label: t("nav.group.documentation"),  names: ["Documents", "Reports"] },
     { label: t("nav.group.support"),        names: ["Tickets"] },
     { label: t("nav.group.system"),         names: ["Settings"] },
+    { label: "Administración",              names: ["AdminOverview", "AdminCompanies", "AdminUsers", "AdminLicenses"] },
   ];
   const location = useLocation();
 
   const currentSegments = location.pathname.split("/").filter(Boolean);
+  // For company routes (/companyCode/section/...) the section is at index 1.
+  // For admin routes (/admin/section) the full path is used for active detection.
   const baseRoute = currentSegments.length > 1 ? currentSegments[1] : "";
+  const currentPath = location.pathname;
 
   // ── Build accessible routes ──────────────────────────────────────────────
   const userRoles = profile?.roles ? getUserRoles(profile) : ["user"];
@@ -143,6 +147,7 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
 
           const isOpen = openGroups.has(group.label);
           const hasActive = groupRoutes.some((r) => {
+            if (r.href.startsWith('/admin/')) return currentPath.startsWith(r.href);
             const routeBase = r.href.split("/").filter(Boolean)[0] ?? "";
             return baseRoute === routeBase;
           });
@@ -174,14 +179,20 @@ const SlideBar: React.FC<DashboardProps> = ({ profile }) => {
               {isOpen && (
                 <div className="mt-0.5 space-y-0.5">
                   {groupRoutes.map((link, idx) => {
-                    const linkBase = link.href.split("/").filter(Boolean)[0] ?? "";
-                    const isActive = baseRoute === linkBase;
+                    const isActive = link.href.startsWith('/admin/')
+                      ? currentPath.startsWith(link.href)
+                      : baseRoute === (link.href.split("/").filter(Boolean)[0] ?? "");
                     const Icon = link.icon;
+
+                    // Admin routes are absolute paths (/admin/...); company routes need the prefix
+                    const linkTo = link.href.startsWith('/admin/')
+                      ? link.href
+                      : `/${selectedCompany?.code || "code"}${link.href}`;
 
                     return (
                       <Link
                         key={idx}
-                        to={`/${selectedCompany?.code || "code"}${link.href}`}
+                        to={linkTo}
                         className={`group flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 ${
                           isActive ? activeItem : `${textMid} ${hoverItem}`
                         }`}

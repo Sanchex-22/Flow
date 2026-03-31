@@ -4,11 +4,8 @@ import type React from "react"
 import { Eye, EyeOff, AlertCircle, WifiOff } from "lucide-react"
 import { Link } from "react-router-dom"
 import useUser from "../../hook/useUser"
-import { useCompany } from "../../context/routerContext"
-import { useTranslation } from "react-i18next"
-
-const { VITE_API_URL } = import.meta.env
-
+import { decodeToken } from "../../utils/decode"
+import { t } from "i18next"
 interface LoginFormProps {
   pending: boolean
   setPending: (value: boolean) => void
@@ -28,60 +25,34 @@ export default function LoginForm({
   setError,
   dark = false,
 }: LoginFormProps) {
-  const { selectedCompany } = useCompany()
   const { login } = useUser()
-  const { t } = useTranslation()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setPending(true)
     const formData = new FormData(event.currentTarget)
-    const email = formData.get("email")?.toString()
+    const email    = formData.get("email")?.toString()
     const password = formData.get("password")?.toString()
 
     if (!email || !password) {
-      setError(new Error(t("login.required")))
+      setError(new Error("Todos los campos son obligatorios."))
       setPending(false)
       return
     }
 
     try {
       await login({ email, password })
-
-      // Check first-run setup: if super_admin and no companies exist → setup flow
-      try {
-        const statusRes = await fetch(`${VITE_API_URL}/api/system/setup-status`)
-        const status = await statusRes.json()
-        if (status.needsSetup) {
-          window.location.href = "/setup"
-          return
-        }
-      } catch {
-        // If status check fails, continue to normal flow
+      const decoded = decodeToken()
+      const role = decoded?.roles?.toLowerCase() ?? ""
+      if (role === "global_admin") {
+        window.location.href = "/admin/overview"
+        return
       }
-
-      window.location.href = `/${selectedCompany?.code || "code"}/select-company`
+      // Limpiar empresa seleccionada para que el selector siempre aparezca tras login
+      localStorage.removeItem("selectedCompany")
+      window.location.href = "/select-company"
     } catch (err) {
-      // Distinguir: error de red (servidor caído) vs credenciales vs otro
-      if (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) {
-        // TypeError: Failed to fetch → servidor no disponible
-        setError(new Error(t("login.errorServer")))
-      } else if (err instanceof Error) {
-        const status = (err as any).status
-        if (status === 401 || status === 403 ||
-            err.message === 'INVALID_CREDENTIALS' ||
-            err.message.toLowerCase().includes('credencial') ||
-            err.message.toLowerCase().includes('inválid') ||
-            err.message.toLowerCase().includes('invalid')) {
-          setError(new Error(t("login.errorCredentials")))
-        } else if (status >= 500 || err.message.toLowerCase().includes('servidor')) {
-          setError(new Error(t("login.errorServer")))
-        } else {
-          setError(new Error(t("login.errorUnknown")))
-        }
-      } else {
-        setError(new Error(t("login.errorUnknown")))
-      }
+      setError(new Error(err instanceof Error ? err.message : "Error al iniciar sesión."))
     } finally {
       setPending(false)
     }

@@ -6,7 +6,9 @@ import { useCompany } from "../../../../context/routerContext";
 import { CurrentPathname } from "../../../../components/layouts/main";
 
 const { VITE_API_URL } = import.meta.env;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+  fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('jwt') || ''}` } })
+    .then((res) => res.json());
 
 interface NetworkFormData {
   name: string;
@@ -87,7 +89,7 @@ const UpdateNetworkForm: React.FC<UpdateNetworkFormProps> = ({
 
   // Fetch usuarios
   const { data: users, isLoading: usersLoading, error: usersError } = useSWR<User[]>(
-    `${VITE_API_URL}/api/users/getAll`,
+    selectedCompany?.id ? `${VITE_API_URL}/api/users/getAll` : null,
     fetcher,
     { revalidateOnFocus: false }
   );

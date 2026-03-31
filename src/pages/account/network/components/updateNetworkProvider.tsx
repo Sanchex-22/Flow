@@ -6,7 +6,9 @@ import { UsuarioFull } from "../../../../utils/usuarioFull";
 import NetworkProviderForm from "../../../../components/forms/updateNetworkProvider";
 import { CurrentPathname } from "../../../../components/layouts/main";
 const { VITE_API_URL } = import.meta.env;
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) =>
+    fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('jwt') || ''}` } })
+        .then((res) => res.json());
 
 interface User {
     id: string;
@@ -34,7 +36,7 @@ const UpdateNetworkProviderPage: React.FC<Props> = ({ }) => {
 
     // 🔹 Consulta 1: Departamentos
     const { data: departments, error: errorDepartments, isLoading: isLoadingDepartments } = useSWR( // Añadido isLoading
-        selectedCompany ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}` : null,
+        selectedCompany?.code ? `${VITE_API_URL}/api/companies/departments/by-code/${selectedCompany.code}` : null,
         fetcher,
         {
             revalidateOnFocus: true,

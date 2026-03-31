@@ -58,7 +58,16 @@ import DocumentsPage from "../pages/account/documents/page";
 import AllDocuments from "../pages/account/documents/components/AllDocuments";
 import UpdateDocument from "../pages/account/documents/components/UpdateDocument";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
-import SetupCompanyPage from "../pages/auth/SetupCompanyPage";
+import ProtectedAdminRoute from "./protectedAdminRoute";
+import { AdminLicenses } from "../pages/admin/licenses/AdminLicenses";
+import { AdminPlans } from "../pages/admin/plans/AdminPlans";
+import { AdminLicenseForm } from "../pages/admin/licenses/AdminLicenseForm";
+import { AdminUserForm } from "../pages/admin/users/AdminUserForm";
+import { AdminUsers } from "../pages/admin/users/AdminUsers";
+import { AdminCompanyForm } from "../pages/admin/companies/AdminCompanyForm";
+import { AdminCompanies } from "../pages/admin/companies/AdminCompanies";
+import { AdminOverview } from "../pages/admin/overview/AdminOverview";
+import SetupCompany from "../pages/onboarding/SetupCompany";
 
 // Tipado de usuario
 export interface User {
@@ -81,8 +90,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
   const { pathname } = useLocation();
   const initialPathSet = useRef(false);
   const { isLogged } = useUser();
-    const { selectedCompany } = useCompany();
-  const code = `${selectedCompany?.code || "default-code"}`;
+  const { companies: userCompanies, isLoadingCompanies } = useCompany();
   const { profile } = useUserProfile();
   useEffect(() => {
     if (!isLogged) {
@@ -112,6 +120,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
             profile={profile}
             currentPathname={pathnameLocation}
             publicRoute={true}
+            companies={companies}
           >
             <LoginPage />
           </EnvolveLayout>
@@ -122,8 +131,57 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       {/* Password recovery — public */}
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-      {/* First-run setup — only for super_admin when no companies exist */}
-      <Route path="/setup" element={<SetupCompanyPage />} />
+      {/* Ruta fija — usada tras el login para evitar dependencia del code */}
+      <Route
+        path="/select-company"
+        element={
+          <ProtectedCompanyRoute isLogged={isLogged}>
+            <CompanySelector profile={profile} />
+          </ProtectedCompanyRoute>
+        }
+      />
+      {/* Onboarding — crear primera empresa (solo si no tiene empresa aún) */}
+      <Route
+        path="/setup"
+        element={
+          !isLogged
+            ? <Navigate to="/" replace />
+            : isLoadingCompanies
+              ? null
+              : (userCompanies && userCompanies.length > 0)
+                ? <Navigate to="/select-company" replace />
+                : <SetupCompany />
+        }
+      />
+      {/* Settings sin empresa — accesible mientras el usuario no haya creado su empresa */}
+      <Route
+        path="/setup/settings/*"
+        element={
+          !isLogged
+            ? <Navigate to="/" replace />
+            : (userCompanies && userCompanies.length > 0)
+              ? <Navigate to="/select-company" replace />
+              : (
+                <EnvolveLayout
+                  title="Configuración"
+                  description="Configuración de cuenta"
+                  isLogged={isLogged}
+                  profile={profile}
+                  currentPathname={pathnameLocation}
+                  publicRoute={false}
+                  companies={companies}
+                >
+                  <SettingsPage />
+                </EnvolveLayout>
+              )
+        }
+      >
+        <Route path="all" element={<AllSettingsPage />} />
+        <Route path="create" element={<UpdateCompany />} />
+        <Route path="edit/:id" element={<UpdateCompany />} />
+        <Route path="departments/edit" element={<UpdateDepartment />} />
+        <Route path="departments/create" element={<UpdateDepartment />} />
+      </Route>
 
       <Route
         path="/login"
@@ -145,19 +203,16 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       />
 
       <Route
-        path={`/:${code}/select-company`}
+        path="/:companyCode/select-company"
         element={
-          <ProtectedCompanyRoute
-            isLogged={isLogged}
-          >
-              <CompanySelector profile={profile}/>
+          <ProtectedCompanyRoute isLogged={isLogged}>
+            <CompanySelector profile={profile} />
           </ProtectedCompanyRoute>
         }
-      >
-      </Route>
+      />
 
       <Route
-        path={`/:${code}/dashboard/*`}
+        path="/:companyCode/dashboard/*"
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -193,7 +248,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/inventory/*`}
+        path={`/:companyCode/inventory/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -230,7 +285,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/devices/*`}
+        path={`/:companyCode/devices/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -267,7 +322,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/network/*`}
+        path="/:companyCode/network/*"
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -307,7 +362,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/maintenance/*`}
+        path={`/:companyCode/maintenance/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -345,7 +400,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/persons/*`}
+        path={`/:companyCode/persons/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -381,7 +436,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/reports/*`}
+        path={`/:companyCode/reports/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -416,7 +471,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/tickets/*`}
+        path={`/:companyCode/tickets/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -453,7 +508,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/expenses/*`}
+        path={`/:companyCode/expenses/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -490,7 +545,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/settings/*`}
+        path={`/:companyCode/settings/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -537,7 +592,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/profile/:id/*`}
+        path={`/:companyCode/profile/:id/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -572,7 +627,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/licenses/*`}
+        path={`/:companyCode/licenses/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -609,7 +664,7 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
       </Route>
 
       <Route
-        path={`/:${code}/documents/*`}
+        path={`/:companyCode/documents/*`}
         element={
           <ProtectedRoute
             isLogged={isLogged}
@@ -644,6 +699,149 @@ export const AppRoutes: React.FC<Props> = ({ pathnameLocation, companies }) => {
         <Route path="create" element={<UpdateDocument />} />
         <Route path="edit/:id" element={<UpdateDocument />} />
       </Route>
+
+      {/* ── Panel Global Admin ───────────────────────────────────────── */}
+      <Route
+        path="/admin/overview"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout
+              title="Admin — Resumen"
+              description="Panel de administración global"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <AdminOverview />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/companies"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout
+              title="Admin — Empresas"
+              description="Gestión de empresas"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <AdminCompanies />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/companies/create"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout title="Admin — Nueva Empresa" description="Crear empresa" isLogged={isLogged} profile={profile} currentPathname={pathnameLocation} publicRoute={false} companies={companies}>
+              <AdminCompanyForm />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/companies/edit/:id"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout title="Admin — Editar Empresa" description="Editar empresa" isLogged={isLogged} profile={profile} currentPathname={pathnameLocation} publicRoute={false} companies={companies}>
+              <AdminCompanyForm />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout
+              title="Admin — Usuarios"
+              description="Gestión de usuarios"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <AdminUsers />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users/create"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout title="Admin — Nuevo Usuario" description="Crear usuario admin" isLogged={isLogged} profile={profile} currentPathname={pathnameLocation} publicRoute={false} companies={companies}>
+              <AdminUserForm />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users/edit/:id"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout title="Admin — Editar Usuario" description="Editar usuario admin" isLogged={isLogged} profile={profile} currentPathname={pathnameLocation} publicRoute={false} companies={companies}>
+              <AdminUserForm />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/licenses/edit/:userId"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout title="Admin — Licencia" description="Editar licencia" isLogged={isLogged} profile={profile} currentPathname={pathnameLocation} publicRoute={false} companies={companies}>
+              <AdminLicenseForm />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/plans"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout
+              title="Admin — Planes"
+              description="Planes disponibles"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <AdminPlans />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/licenses"
+        element={
+          <ProtectedAdminRoute>
+            <EnvolveLayout
+              title="Admin — Licencias"
+              description="Gestión de licencias"
+              isLogged={isLogged}
+              profile={profile}
+              currentPathname={pathnameLocation}
+              publicRoute={false}
+              companies={companies}
+            >
+              <AdminLicenses />
+            </EnvolveLayout>
+          </ProtectedAdminRoute>
+        }
+      />
+
 
       <Route
         path="*"

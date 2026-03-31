@@ -10,6 +10,7 @@ import {
 import { useCompany } from "../../../../context/routerContext"
 import { useTheme } from "../../../../context/themeContext"
 import { useSearch } from "../../../../context/searchContext"
+import useUserProfile from "../../../../hook/userUserProfile"
 import Loader from "../../../../components/loaders/loader"
 import { useTranslation } from "react-i18next"
 
@@ -35,9 +36,13 @@ export default function AllCompaniesPage() {
   const { isDarkMode } = useTheme()
   const { t } = useTranslation()
   const { search } = useSearch()
+  const { profile } = useUserProfile()
   const code = selectedCompany?.code || "code"
 
-  const { data, isLoading, error } = useSWR<Company[]>(`${VITE_API_URL}/api/companies/all`, fetcher)
+  const { data, isLoading, error } = useSWR<Company[]>(
+    profile?.id ? `${VITE_API_URL}/api/companies/${profile.id}/my-companies` : null,
+    fetcher
+  )
   const companies = Array.isArray(data) ? data : []
 
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
@@ -52,7 +57,7 @@ export default function AllCompaniesPage() {
     setExpandedRows((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n })
 
   const handleDelete = async (id: string) => {
-    await fetch(`${VITE_API_URL}/api/companies/${id}`, { method: "DELETE", headers: authHeaders() })
+    await fetch(`${VITE_API_URL}/api/companies/all`, { method: "DELETE", headers: authHeaders() })
     setDeleteConfirm(null)
     mutate(`${VITE_API_URL}/api/companies/all`)
   }

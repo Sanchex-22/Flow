@@ -2,35 +2,13 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import { UserContextProvider } from "./context/userContext.tsx";
 import App from "./app.tsx";
-
-// ── Interceptor global: cualquier 401 cierra la sesión ──────────────────────
-;(function installFetchInterceptor() {
-  const originalFetch = window.fetch
-  window.fetch = async (...args) => {
-    const response = await originalFetch(...args)
-    if (response.status === 401) {
-      const url = typeof args[0] === "string" ? args[0] : (args[0] as Request).url
-      // Ignorar el endpoint de login para no crear bucle
-      if (!url.includes("/auth/login")) {
-        localStorage.removeItem("jwt")
-        sessionStorage.removeItem("jwt")
-        localStorage.removeItem("selectedCompany")
-        sessionStorage.removeItem("selectedCompany")
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login"
-        }
-      }
-    }
-    return response
-  }
-})()
-// ────────────────────────────────────────────────────────────────────────────
 import { UserProfileProvider } from "./context/userProfileContext.tsx";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import 'flag-icon-css/css/flag-icons.min.css';
 import en from "./diccionary/en";
 import es from "./diccionary/es.tsx";
+import { ThemeProvider } from "./context/themeContext.tsx";
 
 const savedLanguage = localStorage.getItem("i18nextLng") || "en";
 
@@ -40,34 +18,21 @@ i18n.use(initReactI18next).init({
     es: es
   },
   lng: savedLanguage,
-  fallbackLng: "en",
+  fallbackLng: "es",
   interpolation: {
     escapeValue: false
   }
 });
 
-// ── Apply appConfig at boot ────────────────────────────────────────────────
-import appConfig from "./utils/appConfig"
-
-// <title>
-document.title = appConfig.name
-
-// Favicon override (only if VITE_APP_FAVICON_URL is set)
-if (appConfig.faviconUrl) {
-  const link = document.querySelector<HTMLLinkElement>("link[rel~='icon']")
-    ?? Object.assign(document.createElement("link"), { rel: "icon", type: "image/png" })
-  link.href = appConfig.faviconUrl
-  document.head.appendChild(link)
-}
-// ──────────────────────────────────────────────────────────────────────────
-
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
+  <ThemeProvider>
   <UserContextProvider>
     <UserProfileProvider>
         <App />
     </UserProfileProvider>
   </UserContextProvider>
+  </ThemeProvider>
 );

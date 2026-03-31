@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 
 // 1. Define the Company interface (Mantener esto aquí o en un archivo de tipos compartido)
 export interface Company {
@@ -25,6 +26,7 @@ interface CompanyContextType {
   selectedCompany: Company | null;
   setSelectedCompany: React.Dispatch<React.SetStateAction<Company | null>>;
   companies: Company[];
+  isLoadingCompanies: boolean;
   handleCompanyChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
@@ -33,21 +35,24 @@ export const CompanyContext = createContext<CompanyContextType | null>(null);
 interface CompanyProviderProps {
   children: ReactNode;
   initialCompanies: Company[];
+  isLoadingCompanies?: boolean;
 }
 
-export const CompanyProvider = ({ children, initialCompanies }: CompanyProviderProps) => {
+export const CompanyProvider = ({ children, initialCompanies, isLoadingCompanies = false }: CompanyProviderProps) => {
+  const location = useLocation();
+  const onSelectorPage = location.pathname.includes('select-company');
+  const companies = initialCompanies || [];
+
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(() => {
-    const savedCompany = localStorage.getItem('selectedCompany');
     try {
-      return savedCompany ? JSON.parse(savedCompany) : null;
-    } catch (error) {
-      console.error("Error parsing saved company from localStorage:", error);
+      const saved = localStorage.getItem('selectedCompany');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
       return null;
     }
   });
 
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies || []);
-
+  // Persistir en localStorage cada vez que cambia
   useEffect(() => {
     if (selectedCompany) {
       localStorage.setItem('selectedCompany', JSON.stringify(selectedCompany));
@@ -56,22 +61,31 @@ export const CompanyProvider = ({ children, initialCompanies }: CompanyProviderP
     }
   }, [selectedCompany]);
 
+  // Solo cuando llega la lista real: limpiar empresa eliminada o auto-seleccionar si no hay ninguna
   useEffect(() => {
-    if (initialCompanies && initialCompanies.length > 0 && !selectedCompany) {
-      setSelectedCompany(initialCompanies[0]);
-    }
-    if (initialCompanies && initialCompanies.length > 0 && companies !== initialCompanies) {
-        setCompanies(initialCompanies);
-    }
-  }, [initialCompanies, selectedCompany, companies]);
+    if (isLoadingCompanies || companies.length === 0) return;
+
+    setSelectedCompany(prev => {
+      if (prev) {
+        // Si la empresa seleccionada ya no existe → limpiar
+        const stillExists = companies.find(c => c.id === prev.id);
+        return stillExists ?? null;
+      }
+      // Sin empresa seleccionada y no estamos en el selector → tomar la primera activa
+      if (!onSelectorPage) {
+        return companies.find(c => c.isActive && c.id !== "na") ?? null;
+      }
+      return null;
+    });
+  }, [companies, isLoadingCompanies, onSelectorPage]);
+
   const handleCompanyChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const companyCode = event.target.value;
-    const company = companies.find(c => c.code === companyCode);
+    const company = companies.find(c => c.code === event.target.value);
     setSelectedCompany(company || null);
   };
 
   return (
-    <CompanyContext.Provider value={{ selectedCompany, setSelectedCompany, companies, handleCompanyChange }}>
+    <CompanyContext.Provider value={{ selectedCompany, setSelectedCompany, companies, isLoadingCompanies, handleCompanyChange }}>
       {children}
     </CompanyContext.Provider>
   );
